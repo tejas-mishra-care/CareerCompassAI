@@ -22,7 +22,8 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
     setIsLoading(true);
     try {
       // Explicitly setting the auth domain for the provider can resolve redirect issues.
-      auth.tenantId = null; // Ensure we're not using a tenant
+      // Also ensure we're not using a tenant ID which can cause this error.
+      auth.tenantId = null; 
       provider.setCustomParameters({
         authDomain: 'studio-9295250327-e0fca.firebaseapp.com'
       });
