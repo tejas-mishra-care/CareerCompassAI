@@ -42,7 +42,7 @@ The onboarding process has three topics: 'Interests', 'Skills', and 'Goals'.
 
 Current conversation topic: {{{currentTopic}}}
 
-{{#if previousAnswers}}
+{{#if previousAnswers.length}}
 Previous questions and answers:
 {{#each previousAnswers}}
 Q: {{this.question}}
