@@ -26,6 +26,7 @@ import {
   Users,
   SquareTerminal,
   User as UserIcon,
+  Loader2,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { cn } from '@/lib/utils';
