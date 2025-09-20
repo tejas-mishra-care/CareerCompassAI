@@ -1,5 +1,3 @@
-// This file is machine-generated - edit with care!
-
 'use server';
 
 /**
@@ -16,6 +14,10 @@ import {z} from 'genkit';
 
 const ExploreCareersWithChatbotInputSchema = z.object({
   question: z.string().describe('The user question about careers.'),
+  userProfile: z
+    .string()
+    .optional()
+    .describe('A detailed description of the user profile including skills, experience, education, and interests.'),
 });
 export type ExploreCareersWithChatbotInput = z.infer<typeof ExploreCareersWithChatbotInputSchema>;
 
@@ -35,6 +37,10 @@ const prompt = ai.definePrompt({
   input: {schema: ExploreCareersWithChatbotInputSchema},
   output: {schema: ExploreCareersWithChatbotOutputSchema},
   prompt: `You are a career exploration chatbot. A user will ask a question about a career, and you should provide a helpful answer.
+{{#if userProfile}}
+Use the following user profile to provide a more personalized and contextual answer:
+User Profile: {{{userProfile}}}
+{{/if}}
 
 Question: {{{question}}}`,
 });

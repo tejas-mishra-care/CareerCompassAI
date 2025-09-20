@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -30,6 +30,11 @@ export function CareerChatbot() {
   const [loading, setLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  const userProfileString = useMemo(() => {
+    if (!userProfile) return undefined;
+    return `Name: ${userProfile.name}. Bio: ${userProfile.bio}. Skills: ${userProfile.skills.map(s => `${s.name} (Proficiency: ${s.proficiency}/100)`).join(', ')}.`;
+  }, [userProfile]);
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
@@ -58,7 +63,10 @@ export function CareerChatbot() {
     setLoading(true);
 
     try {
-      const response = await exploreCareersWithChatbot({ question: input });
+      const response = await exploreCareersWithChatbot({ 
+        question: input,
+        userProfile: userProfileString,
+      });
       const botMessage: Message = { sender: 'bot', text: response.answer };
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
@@ -92,7 +100,7 @@ export function CareerChatbot() {
                         <ul className="text-xs list-disc list-inside mt-2">
                             <li>"What does a product manager do?"</li>
                             <li>"What skills do I need for data science?"</li>
-                            <li>"Compare software engineering and web development."</li>
+                            <li>"Based on my profile, what's a good next career step?"</li>
                         </ul>
                     </div>
                 )}
