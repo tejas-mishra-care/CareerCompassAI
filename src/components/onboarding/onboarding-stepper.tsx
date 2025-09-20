@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Loader2, Smile, Meh, Frown } from 'lucide-react';
+import { Loader2, Smile, Meh, Frown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,8 +14,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '../ui/textarea';
-import { cn } from '@/lib/utils';
 import { Card, CardContent } from '../ui/card';
+import { createProfileFromOnboarding } from '@/ai/flows/create-profile-from-onboarding';
+import type { UserProfile } from '@/lib/types';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+
 
 // --- Validation Schemas ---
 const foundationSchema = z.object({
@@ -35,6 +39,14 @@ const subjectSchema = z.object({
 
 const deepDiveSchema = z.object({
     subjects: z.record(subjectSchema)
+});
+
+const quizSchema = z.object({
+  quizAnswers: z.record(z.string().min(1, "Please select an answer."))
+});
+
+const directionSchema = z.object({
+  goal: z.string().min(1, "Please select a goal.")
 });
 
 
@@ -204,7 +216,7 @@ const Step1Foundation = ({ onComplete }: { onComplete: (data: z.infer<typeof fou
                 </div>
                 
                 <div className="flex justify-end pt-4">
-                    <Button type="submit">Next</Button>
+                    <Button type="submit">Next <ChevronRight className="ml-2" /></Button>
                 </div>
             </form>
         </FormProvider>
@@ -217,10 +229,10 @@ const STREAM_SUBJECTS: Record<string, string[]> = {
     commerce: ['Accountancy', 'Business Studies', 'Economics', 'English'],
     arts: ['History', 'Political Science', 'Sociology', 'English'],
     diploma: ['Engineering Mathematics', 'Applied Physics', 'Applied Chemistry', 'Communication Skills'],
-    default: ['Subject 1', 'Subject 2', 'Subject 3', 'Subject 4', 'Subject 5'],
+    default: ['Science', 'Mathematics', 'Social Studies', 'English', 'Second Language'],
 }
 
-const Step2DeepDive = ({ onComplete, previousData }: { onComplete: (data: any) => void, previousData: any }) => {
+const Step2DeepDive = ({ onComplete, onBack, previousData }: { onComplete: (data: any) => void, onBack: () => void, previousData: any }) => {
     const stream = previousData.stream12th || 'default';
     const subjects = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
 
@@ -230,13 +242,15 @@ const Step2DeepDive = ({ onComplete, previousData }: { onComplete: (data: any) =
     }, {} as Record<string, { score: string, feeling: string }>);
 
     const methods = useForm({
-        // resolver: zodResolver(deepDiveSchema), // Add validation later
+        // resolver: zodResolver(deepDiveSchema),
         defaultValues: { subjects: defaultValues }
     });
+    
+    const { control, handleSubmit } = methods;
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
+            <form onSubmit={handleSubmit(onComplete)} className="space-y-8">
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Subject-Level Deep Dive</h3>
                     <p className="text-sm text-muted-foreground mb-4">This is where we deconstruct the average score to find the real story. For each subject, tell us your score and how you *really* felt about it.</p>
@@ -244,13 +258,13 @@ const Step2DeepDive = ({ onComplete, previousData }: { onComplete: (data: any) =
 
                 <div className="space-y-6">
                     {subjects.map((subject) => (
-                        <Card key={subject} className="bg-secondary/50">
+                        <Card key={subject} className="bg-card">
                             <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                                 <FormLabel className="text-base font-semibold md:col-span-1">{subject}</FormLabel>
                                 
                                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                                      <FormField
-                                        control={methods.control}
+                                        control={control}
                                         name={`subjects.${subject}.score`}
                                         render={({ field }) => (
                                             <FormItem>
@@ -263,7 +277,7 @@ const Step2DeepDive = ({ onComplete, previousData }: { onComplete: (data: any) =
                                         )}
                                     />
                                     <Controller
-                                        control={methods.control}
+                                        control={control}
                                         name={`subjects.${subject}.feeling`}
                                         render={({ field }) => (
                                             <FormItem>
@@ -284,8 +298,8 @@ const Step2DeepDive = ({ onComplete, previousData }: { onComplete: (data: any) =
                 </div>
                 
                 <div className="flex justify-between pt-4">
-                    <Button type="button" variant="ghost">Back</Button>
-                    <Button type="submit">Next</Button>
+                    <Button type="button" variant="ghost" onClick={onBack}><ChevronLeft className="mr-2" /> Back</Button>
+                    <Button type="submit">Next <ChevronRight className="ml-2" /></Button>
                 </div>
             </form>
         </FormProvider>
@@ -293,31 +307,145 @@ const Step2DeepDive = ({ onComplete, previousData }: { onComplete: (data: any) =
 };
 
 
-const Step3Quiz = ({ onComplete }: { onComplete: (data: any) => void }) => (
-    <div>
-        <h3 className="font-semibold mb-4">Step 3: The Adaptive Knowledge Quiz</h3>
-        <p className="text-muted-foreground mb-4">The adaptive quiz will be generated here.</p>
-        <div className="flex justify-between pt-4">
-            <Button type="button" variant="ghost">Back</Button>
-            <Button onClick={() => onComplete({ step3: 'data' })}>Next</Button>
-        </div>
-    </div>
-);
+const QUIZ_QUESTIONS = [
+    {
+        id: 'q1',
+        question: "You have a free weekend. What's the most appealing project?",
+        options: ["Building a custom PC from parts.", "Writing a short story or a poem.", "Organizing a small community clean-up drive.", "Analyzing your monthly spending in a spreadsheet."]
+    },
+    {
+        id: 'q2',
+        question: "A client gives you a vague brief for a new logo. What's your first step?",
+        options: ["Start sketching ideas immediately to show them options.", "Ask a series of questions to understand their business and target audience.", "Research their competitors to see what's already out there.", "Decline the project because the brief is too unclear."]
+    },
+    {
+        id: 'q3',
+        question: "You are planning a trip. What's your approach?",
+        options: ["Create a detailed itinerary with a budget for each day.", "Just book the tickets and figure it out when you get there.", "Ask friends for recommendations and pick the most interesting ones.", "Look for the most unusual, off-the-beaten-path destination."]
+    }
+]
 
-const Step4Direction = ({ onComplete }: { onComplete: (data: any) => void }) => (
-    <div>
-        <h3 className="font-semibold mb-4">Step 4: Defining Your Direction</h3>
-        <p className="text-muted-foreground mb-4">Form for user goals and motivations will go here.</p>
-        <div className="flex justify-between pt-4">
-            <Button type="button" variant="ghost">Back</Button>
-            <Button onClick={() => onComplete({ step4: 'data' })}>Finish</Button>
-        </div>
-    </div>
-);
+const Step3Quiz = ({ onComplete, onBack }: { onComplete: (data: any) => void, onBack: () => void }) => {
+    const defaultValues = QUIZ_QUESTIONS.reduce((acc, q) => {
+        acc[q.id] = '';
+        return acc;
+    }, {} as Record<string, string>);
+    
+    const methods = useForm({
+        // resolver: zodResolver(quizSchema),
+        defaultValues: { quizAnswers: defaultValues }
+    });
+
+    return (
+        <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">The Profile Scanner</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Let's calibrate your Compass. This isn't a test; it's a quick challenge to discover your hidden strengths.</p>
+                </div>
+
+                <div className="space-y-6">
+                    {QUIZ_QUESTIONS.map(q => (
+                        <FormField
+                            key={q.id}
+                            control={methods.control}
+                            name={`quizAnswers.${q.id}`}
+                            render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                    <FormLabel className="text-base">{q.question}</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className="flex flex-col space-y-1"
+                                        >
+                                            {q.options.map((option, index) => (
+                                                <FormItem key={index} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
+                                                    <FormControl>
+                                                        <RadioGroupItem value={option} />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal flex-1 cursor-pointer">
+                                                        {option}
+                                                    </FormLabel>
+                                                </FormItem>
+                                            ))}
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    ))}
+                </div>
+
+                <div className="flex justify-between pt-4">
+                    <Button type="button" variant="ghost" onClick={onBack}><ChevronLeft className="mr-2" /> Back</Button>
+                    <Button type="submit">Next <ChevronRight className="ml-2" /></Button>
+                </div>
+            </form>
+        </FormProvider>
+    )
+};
+
+
+const GOAL_OPTIONS = [
+    { id: 'dream_career', title: "I have a dream career", description: "You have a specific job title in mind." },
+    { id: 'field_of_interest', title: "I have a field of interest", description: "You're interested in a broad area like 'Technology' or 'Healthcare'." },
+    { id: 'earn_well', title: "I want to earn well", description: "Financial security is your primary motivator right now." },
+    { id: 'exploring', title: "I'm just exploring", description: "You're open to discovering new and different paths." },
+    { id: 'entrance_exam', title: "I'm focused on an exam", description: "You're preparing for a competitive entrance exam." },
+]
+
+const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: any) => void, onBack: () => void }) => {
+    const methods = useForm<z.infer<typeof directionSchema>>({
+        resolver: zodResolver(directionSchema),
+        defaultValues: { goal: '' }
+    });
+    
+    return (
+        <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
+                 <div>
+                    <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
+                </div>
+
+                <FormField
+                    control={methods.control}
+                    name="goal"
+                    render={({ field }) => (
+                         <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        >
+                            {GOAL_OPTIONS.map(option => (
+                                <FormItem key={option.id}>
+                                    <FormControl>
+                                        <RadioGroupItem value={option.title} className="sr-only" id={option.id} />
+                                    </FormControl>
+                                    <Label htmlFor={option.id} className="flex flex-col h-full items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                        <h4 className="font-semibold mb-1">{option.title}</h4>
+                                        <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                    </Label>
+                                </FormItem>
+                            ))}
+                         </RadioGroup>
+                    )}
+                />
+
+                <div className="flex justify-between pt-4">
+                    <Button type="button" variant="ghost" onClick={onBack}><ChevronLeft className="mr-2" /> Back</Button>
+                    <Button type="submit">Finish</Button>
+                </div>
+            </form>
+        </FormProvider>
+    )
+};
 
 
 export function OnboardingStepper() {
-  const { userProfile, setUserProfile } = useUserProfile();
+  const { user, userProfile, setUserProfile } = useUserProfile();
   const { toast } = useToast();
   const router = useRouter();
   
@@ -332,37 +460,45 @@ export function OnboardingStepper() {
     if (step === 4) {
       handleFinish(newData);
     } else {
-      setStep(step + 1);
+      setStep(s => s + 1);
     }
   };
   
   const goToPreviousStep = () => {
     if (step > 1) {
-      setStep(step - 1);
+      setStep(s => s - 1);
     }
   }
 
-
   const handleFinish = async (finalData: any) => {
-    if (!userProfile) return;
+    if (!user || !userProfile) return;
     setLoading(true);
-    
-    console.log("Final onboarding data to be processed by AI:", finalData);
+
+    const answers = [
+        { question: "10th/12th Academics", answer: JSON.stringify(finalData.foundation) },
+        { question: "Subject Deep Dive", answer: JSON.stringify(finalData.subjects) },
+        { question: "Aptitude Quiz", answer: JSON.stringify(finalData.quizAnswers) },
+        { question: "Primary Goal", answer: finalData.goal },
+    ];
     
     try {
-        // In the next step, we will replace this with a call to the AI flow.
-        const generatedProfile = {
+        const generatedProfile = await createProfileFromOnboarding({
+            answers,
+            userName: user.displayName || userProfile.name,
+        });
+
+        const finalProfile: UserProfile = {
             ...userProfile,
-            name: userProfile.name || 'New User',
-            bio: 'Profile created from the new onboarding flow!',
-            skills: [{ name: 'Initial Skill', proficiency: 20 }], // Placeholder
-            activePathways: [],
+            name: generatedProfile.name,
+            bio: generatedProfile.bio,
+            skills: generatedProfile.skills,
+            activePathways: userProfile.activePathways || [],
         };
         
-        await setUserProfile(generatedProfile);
+        await setUserProfile(finalProfile);
 
         toast({
-            title: "Profile Calibrated!",
+            title: "Compass Calibrated!",
             description: "Your new AI-powered profile is ready.",
         });
 
@@ -373,7 +509,7 @@ export function OnboardingStepper() {
         toast({
             variant: 'destructive',
             title: 'Error',
-            description: 'Could not create your profile.',
+            description: 'Could not create your profile from your answers.',
         });
     } finally {
         setLoading(false);
@@ -383,13 +519,13 @@ export function OnboardingStepper() {
   const renderStep = () => {
     switch(step) {
       case 1:
-        return <Step1Foundation onComplete={handleStepComplete} />;
+        return <Step1Foundation onComplete={(data) => handleStepComplete({ foundation: data })} />;
       case 2:
-        return <Step2DeepDive onComplete={handleStepComplete} previousData={onboardingData} />;
+        return <Step2DeepDive onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} previousData={onboardingData.foundation || {}} />;
       case 3:
-        return <Step3Quiz onComplete={handleStepComplete} />;
+        return <Step3Quiz onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} />;
       case 4:
-        return <Step4Direction onComplete={handleStepComplete} />;
+        return <Step4Direction onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} />;
       default:
         return <Step1Foundation onComplete={handleStepComplete} />;
     }
@@ -398,12 +534,28 @@ export function OnboardingStepper() {
   return (
     <div className="py-4 space-y-6 min-h-[300px]">
       {loading ? (
-        <div className="flex flex-col items-center justify-center text-center space-y-2">
+        <div className="flex flex-col items-center justify-center text-center space-y-2 h-[400px]">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="font-semibold">Building your profile...</p>
-            <p className="text-sm text-muted-foreground">This will just take a moment.</p>
+            <p className="font-semibold">Calibrating Your Compass...</p>
+            <p className="text-sm text-muted-foreground">This may take a moment. We're analyzing your unique path!</p>
         </div>
-      ) : renderStep()}
+      ) : (
+        <>
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">
+                    Step {step}: {
+                        step === 1 ? "Your Foundation" :
+                        step === 2 ? "Subject-Level Deep Dive" :
+                        step === 3 ? "The Profile Scanner" : "Defining Your Direction"
+                    }
+                </h3>
+                 <p className="text-sm text-muted-foreground">
+                    Step {step} of 4
+                </p>
+            </div>
+            {renderStep()}
+        </>
+      )}
     </div>
   );
 }
