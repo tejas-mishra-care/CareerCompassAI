@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useId } from 'react';
@@ -61,56 +60,54 @@ const STREAM_SUBJECTS: Record<string, string[]> = {
     default: ['Science', 'Mathematics', 'Social Studies', 'English', 'Second Language'],
 };
 
-// Function to generate the complete default values structure
 const generateDefaultValues = (stream: string = 'default') => {
-  const subjectsForStream = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
-  const defaultSubjects = subjectsForStream.reduce((acc, subject) => {
-    acc[subject] = { score: '', feeling: undefined as any };
-    return acc;
-  }, {} as Record<string, { score: string; feeling: 'loved' | 'okay' | 'disliked' }>);
-
-  const defaultQuizAnswers = QUIZ_QUESTIONS.reduce((acc, q) => {
-    acc[q.id] = '';
-    return acc;
-  }, {} as Record<string, string>);
-
-  return {
-      board10th: '',
-      year10th: '',
-      score10th: '',
-      stream12th: '',
-      board12th: '',
-      year12th: '',
-      score12th: '',
-      achievements: '',
-      subjects: defaultSubjects,
-      quizAnswers: defaultQuizAnswers,
-      goal: '',
+    const subjectsForStream = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
+    const defaultSubjects = subjectsForStream.reduce((acc, subject) => {
+      acc[subject] = { score: '', feeling: undefined as any };
+      return acc;
+    }, {} as Record<string, { score: string; feeling: 'loved' | 'okay' | 'disliked' }>);
+  
+    const defaultQuizAnswers = QUIZ_QUESTIONS.reduce((acc, q) => {
+      acc[q.id] = '';
+      return acc;
+    }, {} as Record<string, string>);
+  
+    return {
+        board10th: '',
+        year10th: '',
+        score10th: '',
+        stream12th: '',
+        board12th: '',
+        year12th: '',
+        score12th: '',
+        achievements: '',
+        subjects: defaultSubjects,
+        quizAnswers: defaultQuizAnswers,
+        goal: '',
+    };
   };
-};
 
 const onboardingSchema = z.object({
-      board10th: z.string().min(1, "Please select your 10th standard board."),
-      year10th: z.string().min(4, "Please enter a valid year.").max(4),
-      score10th: z.string().min(1, "Please enter your score."),
-      stream12th: z.string().optional(),
-      board12th: z.string().optional(),
-      year12th: z.string().optional(),
-      score12th: z.string().optional(),
-      achievements: z.string().optional(),
-      subjects: z.record(subjectSchema).refine(
-        (subjects) => Object.values(subjects).every(subject => subject.score && subject.feeling),
-        { message: "Please fill out all fields for each subject." }
-      ),
-      quizAnswers: z.record(z.string().min(1, "Please select an answer.")).refine(
-        (answers) => Object.keys(answers).length >= QUIZ_QUESTIONS.length,
-        { message: "Please answer all quiz questions." }
-      ),
-      goal: z.string({ required_error: "Please select a goal to continue." }).min(1, "Please select a goal to continue."),
-});
+    board10th: z.string().min(1, "Please select your 10th standard board."),
+    year10th: z.string().min(4, "Please enter a valid year.").max(4),
+    score10th: z.string().min(1, "Please enter your score."),
+    stream12th: z.string().optional(),
+    board12th: z.string().optional(),
+    year12th: z.string().optional(),
+    score12th: z.string().optional(),
+    achievements: z.string().optional(),
+    subjects: z.record(subjectSchema).refine(
+      (subjects) => Object.values(subjects).every(subject => subject.score && subject.feeling),
+      { message: "Please fill out all fields for each subject." }
+    ),
+    quizAnswers: z.record(z.string().min(1, "Please select an answer.")).refine(
+      (answers) => Object.keys(answers).length >= QUIZ_QUESTIONS.length,
+      { message: "Please answer all quiz questions." }
+    ),
+    goal: z.string({ required_error: "Please select a goal to continue." }).min(1, "Please select a goal to continue."),
+  });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
-
 
 export function OnboardingStepper() {
   const { user, userProfile, setUserProfile } = useUserProfile();
@@ -131,7 +128,6 @@ export function OnboardingStepper() {
   const watchedStream = methods.watch('stream12th') || 'default';
   const subjects = useMemo(() => STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default, [watchedStream]);
 
-  // Effect to reset subject fields when stream changes
   React.useEffect(() => {
     const defaultSubjects = (STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default).reduce((acc, subject) => {
         acc[subject] = { score: '', feeling: undefined as any };
@@ -140,29 +136,22 @@ export function OnboardingStepper() {
     methods.setValue('subjects', defaultSubjects);
   }, [watchedStream, methods]);
 
-
   const handleNext = async () => {
-    let fieldsToValidate: (keyof OnboardingFormData)[] = [];
+    let fieldsToValidate: (keyof OnboardingFormData | `subjects.${string}` | `quizAnswers.${string}`)[] = [];
     if (step === 1) fieldsToValidate = ['board10th', 'year10th', 'score10th'];
     if (step === 2) fieldsToValidate = ['subjects'];
     if (step === 3) fieldsToValidate = ['quizAnswers'];
     
-    const isValid = await trigger(fieldsToValidate);
+    const isValid = await trigger(fieldsToValidate as any);
     
     if (isValid) {
       setStep(s => s + 1);
     } else {
-        if (step === 2 && errors.subjects) {
-            toast({ variant: 'destructive', title: 'Please fill out all fields for each subject.' });
-        }
-        if (step === 3 && errors.quizAnswers) {
-            toast({ variant: 'destructive', title: 'Please answer all quiz questions.' });
-        }
+        toast({ variant: 'destructive', title: 'Please complete all required fields.' });
     }
   };
   
   const handleBack = () => step > 1 && setStep(s => s - 1);
-  
 
   const handleFinish = async (data: OnboardingFormData) => {
     if (!user || !userProfile) return;
@@ -176,35 +165,15 @@ export function OnboardingStepper() {
     ];
     
     try {
-        const generatedProfile = await createProfileFromOnboarding({
-            answers,
-            userName: user.displayName || userProfile.name,
-        });
-
-        const finalProfile: UserProfile = {
-            ...userProfile,
-            name: generatedProfile.name,
-            bio: generatedProfile.bio,
-            skills: generatedProfile.skills,
-            activePathways: userProfile.activePathways || [],
-        };
+        const generatedProfile = await createProfileFromOnboarding({ answers, userName: user.displayName || userProfile.name });
+        const finalProfile: UserProfile = { ...userProfile, name: generatedProfile.name, bio: generatedProfile.bio, skills: generatedProfile.skills, activePathways: userProfile.activePathways || [] };
         
         await setUserProfile(finalProfile);
-
-        toast({
-            title: "Compass Calibrated!",
-            description: "Your new AI-powered profile is ready.",
-        });
-
+        toast({ title: "Compass Calibrated!", description: "Your new AI-powered profile is ready." });
         router.push('/dashboard');
-
     } catch (error) {
         console.error("Failed to create profile:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not create your profile. Please try again.',
-        });
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not create your profile. Please try again.' });
     } finally {
         setLoading(false);
     }
@@ -226,20 +195,12 @@ export function OnboardingStepper() {
             </div>
         ) : (
           <div className="min-h-[450px]">
-            {/* --- STEP 1: Foundation --- */}
             <div className={cn("space-y-8", step !== 1 && "hidden")}>
                  <div>
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">10th Standard Details</h3>
                     <div className="grid md:grid-cols-3 gap-6">
                         <FormField control={methods.control} name="board10th" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Board</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger></FormControl>
-                                    <SelectContent><SelectItem value="cbse">CBSE</SelectItem><SelectItem value="icse">ICSE</SelectItem><SelectItem value="state">State Board</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
+                            <FormItem><FormLabel>Board</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger></FormControl><SelectContent><SelectItem value="cbse">CBSE</SelectItem><SelectItem value="icse">ICSE</SelectItem><SelectItem value="state">State Board</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                         )}/>
                          <FormField control={methods.control} name="year10th" render={({ field }) => (
                             <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2020" {...field} /></FormControl><FormMessage /></FormItem>
@@ -275,7 +236,6 @@ export function OnboardingStepper() {
                 </div>
             </div>
 
-            {/* --- STEP 2: Deep Dive --- */}
             <div className={cn("space-y-6", step !== 2 && "hidden")}>
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Subject-Level Deep Dive</h3>
@@ -292,16 +252,12 @@ export function OnboardingStepper() {
                                         <FormItem><FormLabel>Your Score (%)</FormLabel><FormControl><Input placeholder="e.g., 95" {...field} /></FormControl><FormMessage /></FormItem>
                                     )}/>
                                     <FormField control={methods.control} name={`subjects.${subject}.feeling`} render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Your Feeling</FormLabel>
-                                            <FormControl>
-                                                <div className="flex items-center space-x-2 pt-2">
-                                                    <Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
-                                                    <Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
-                                                    <Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
+                                        <FormItem><FormLabel>Your Feeling</FormLabel><FormControl>
+                                            <div className="flex items-center space-x-2 pt-2">
+                                                <Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
+                                                <Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
+                                                <Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
+                                            </div></FormControl><FormMessage />
                                         </FormItem>
                                     )}/>
                                 </div>
@@ -310,7 +266,6 @@ export function OnboardingStepper() {
                     )})}
             </div>
 
-            {/* --- STEP 3: Quiz --- */}
             <div className={cn("space-y-6", step !== 3 && "hidden")}>
                 <div>
                     <h3 className="text-lg font-semibold mb-2">The Profile Scanner</h3>
@@ -320,23 +275,18 @@ export function OnboardingStepper() {
                     <FormField key={q.id} control={methods.control} name={`quizAnswers.${q.id}`} render={({ field }) => (
                         <FormItem className="space-y-3">
                             <FormLabel className="text-base">{index+1}. {q.question}</FormLabel>
-                            <FormControl>
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-                                    {q.options.map((option, oIndex) => (
-                                    <FormItem key={oIndex} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
-                                        <FormControl><RadioGroupItem value={option} id={`${q.id}-${oIndex}`} /></FormControl>
-                                        <FormLabel htmlFor={`${q.id}-${oIndex}`} className="font-normal flex-1 cursor-pointer">{option}</FormLabel>
-                                    </FormItem>
-                                    ))}
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
+                            <FormControl><RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                                {q.options.map((option, oIndex) => (
+                                <FormItem key={oIndex} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
+                                    <FormControl><RadioGroupItem value={option} id={`${q.id}-${oIndex}`} /></FormControl>
+                                    <FormLabel htmlFor={`${q.id}-${oIndex}`} className="font-normal flex-1 cursor-pointer">{option}</FormLabel>
+                                </FormItem>
+                                ))}</RadioGroup></FormControl><FormMessage />
                         </FormItem>
                     )}/>
                 ))}
             </div>
 
-            {/* --- STEP 4: Direction --- */}
             <div className={cn("space-y-6", step !== 4 && "hidden")}>
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
@@ -344,24 +294,16 @@ export function OnboardingStepper() {
                 </div>
                 <FormField control={methods.control} name="goal" render={({ field }) => (
                     <FormItem className="space-y-4">
-                        <FormControl>
-                            <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {GOAL_OPTIONS.map((option) => {
-                                    const radioId = `${option.id}-${useId()}`;
-                                    return (
-                                        <FormItem key={option.id}>
-                                            <FormControl>
-                                                <RadioGroupItem value={option.title} id={radioId} className="sr-only" />
-                                            </FormControl>
-                                            <FormLabel htmlFor={radioId} className={cn("flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover")}>
-                                                <h4 className="font-semibold mb-1">{option.title}</h4>
-                                                <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                                            </FormLabel>
-                                        </FormItem>
-                                    )
-                                })}
-                            </RadioGroup>
-                        </FormControl>
+                        <FormControl><RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {GOAL_OPTIONS.map((option) => (
+                                <FormItem key={option.id}>
+                                    <FormControl><RadioGroupItem value={option.title} id={option.id} className="sr-only" /></FormControl>
+                                    <Label htmlFor={option.id} className={cn("flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover")}>
+                                        <h4 className="font-semibold mb-1">{option.title}</h4>
+                                        <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                    </Label>
+                                </FormItem>
+                            ))}</RadioGroup></FormControl>
                         <div className="text-center"><FormMessage /></div>
                     </FormItem>
                 )}/>
@@ -369,7 +311,6 @@ export function OnboardingStepper() {
           </div>
         )}
 
-        {/* --- Navigation --- */}
         <div className="flex justify-between pt-4 border-t">
             <Button type="button" variant="ghost" onClick={handleBack} disabled={step === 1 || loading}>
                 <ChevronLeft className="mr-2 h-4 w-4" /> Back
@@ -387,5 +328,3 @@ export function OnboardingStepper() {
     </FormProvider>
   );
 }
-
-    
