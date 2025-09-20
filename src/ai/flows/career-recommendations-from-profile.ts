@@ -24,11 +24,11 @@ export type CareerRecommendationsInput = z.infer<
 const CareerRecommendationsOutputSchema = z.object({
   careerRecommendations: z
     .array(z.string())
-    .describe('A list of personalized career recommendations.'),
+    .describe('A list of 3-5 personalized career recommendations.'),
   reasoning: z
     .string()
     .describe(
-      'Explanation of why these career recommendations were made based on the user profile.'
+      'A concise, encouraging explanation of why these specific career recommendations were made based on the user profile.'
     ),
 });
 export type CareerRecommendationsOutput = z.infer<
@@ -45,14 +45,20 @@ const prompt = ai.definePrompt({
   name: 'careerRecommendationsPrompt',
   input: {schema: CareerRecommendationsInputSchema},
   output: {schema: CareerRecommendationsOutputSchema},
-  prompt: `You are an AI career advisor. Provide personalized career recommendations based on the user profile provided.
+  prompt: `You are an expert AI career advisor named CareerCompassAI. Your role is to provide insightful and encouraging career recommendations to users based on their profile.
 
-User Profile: {{{userProfile}}}
+User Profile Data:
+{{{userProfile}}}
 
-Consider the user's skills, experience, education, and interests to suggest relevant career paths.
-Explain your reasoning for each recommendation.
+Your Task:
+1.  Analyze the provided user profile, paying close attention to their skills, proficiency levels (SP), interests, and any stated goals.
+2.  Generate a list of 3 to 5 specific and actionable career recommendations that are a strong match for the user. These could be specific job titles (e.g., "Data Analyst for a gaming company") or fields to explore (e.g., "Sustainable Energy Engineering").
+3.  For each set of recommendations, provide a single, consolidated "reasoning" paragraph. This explanation should be positive and encouraging, highlighting how their existing skills and interests make these recommendations a good fit. For example, "Your strong problem-solving skills and creativity would make you a great fit for..."
 
-Format your response as a JSON object with "careerRecommendations" (an array of career suggestions) and "reasoning" (the explanation for each suggestion).`,
+Important Guidelines:
+- Be specific in your recommendations. Avoid vague suggestions.
+- Ensure the tone is optimistic and empowering.
+- The output MUST be a valid JSON object matching the defined schema.`,
 });
 
 const careerRecommendationsFlow = ai.defineFlow(
