@@ -21,6 +21,12 @@ export function AuthForm({ className, ...props }: AuthFormProps) {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
+      // Explicitly setting the auth domain for the provider can resolve redirect issues.
+      auth.tenantId = null; // Ensure we're not using a tenant
+      provider.setCustomParameters({
+        authDomain: 'studio-9295250327-e0fca.firebaseapp.com'
+      });
+
       await signInWithPopup(auth, provider);
       // The auth state change will be handled by the useUserProfile hook,
       // which will then trigger a redirect from the AppShell.
