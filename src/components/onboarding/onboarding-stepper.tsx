@@ -7,7 +7,7 @@ import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Loader2, Smile, Meh, Frown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useForm, FormProvider, Controller, useFormContext } from 'react-hook-form';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -246,7 +246,6 @@ const Step2DeepDive = ({ onComplete, onBack, previousData }: { onComplete: (data
     }, {} as Record<string, { score: string, feeling: 'loved' | 'okay' | 'disliked' | undefined }>);
 
     const methods = useForm({
-        // Note: Zod validation can be tricky for dynamic fields, manual check might be simpler
         defaultValues: { subjects: defaultValues }
     });
     
@@ -274,7 +273,7 @@ const Step2DeepDive = ({ onComplete, onBack, previousData }: { onComplete: (data
                                             <FormItem>
                                                 <FormLabel>Your Score (%)</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="e.g., 95" {...field} />
+                                                    <Input placeholder="e.g., 95" {...field} id={`score-${subject}`} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -336,7 +335,6 @@ const Step3Quiz = ({ onComplete, onBack }: { onComplete: (data: any) => void, on
     }, {} as Record<string, string>);
     
     const methods = useForm({
-        // resolver: zodResolver(quizSchema),
         defaultValues: { quizAnswers: defaultValues }
     });
 
@@ -429,18 +427,18 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: z.infer<typ
                         >
                           {GOAL_OPTIONS.map((option) => (
                             <FormItem key={option.id}>
-                              <FormControl>
-                                <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
-                              </FormControl>
-                              <Label
+                                <Label
                                 htmlFor={option.id}
                                 className={cn(
-                                  "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
-                                  field.value === option.title
+                                    "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                                    field.value === option.title
                                     ? "border-primary bg-accent"
                                     : "border-muted bg-popover"
                                 )}
-                              >
+                                >
+                                <FormControl>
+                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                </FormControl>
                                 <h4 className="font-semibold mb-1">{option.title}</h4>
                                 <p className="text-sm text-muted-foreground text-center">{option.description}</p>
                               </Label>

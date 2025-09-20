@@ -26,9 +26,6 @@ const UserProfileContext = createContext<UserProfileContextType | undefined>(
   undefined
 );
 
-// A one-time flag to ensure we only try to clear persistence once.
-let persistenceCleared = false;
-
 export const UserProfileProvider = ({
   children,
 }: {
@@ -40,66 +37,41 @@ export const UserProfileProvider = ({
   const auth = getAuth(app);
   
   useEffect(() => {
-    const initialize = async () => {
-      // One-time attempt to clear persistence if it hasn't been done.
-      if (!persistenceCleared) {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true); 
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
         try {
-          await clearIndexedDbPersistence(db);
-          console.log('Successfully cleared Firestore IndexedDB persistence.');
-        } catch (err) {
-          console.error('Could not clear Firestore persistence:', err);
-        } finally {
-          persistenceCleared = true;
-        }
-      }
-
-      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        setLoading(true); // Set loading true at the start of auth change
-        if (firebaseUser) {
-          setUser(firebaseUser);
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          try {
-            const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) {
-              setUserProfileState(docSnap.data() as UserProfile);
-            } else {
-              const newProfile: UserProfile = {
-                  name: firebaseUser.displayName || 'New User',
-                  bio: '',
-                  skills: [],
-                  activePathways: [],
-              }
-              await setDoc(userDocRef, newProfile);
-              setUserProfileState(newProfile);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            setUserProfileState(docSnap.data() as UserProfile);
+          } else {
+            const newProfile: UserProfile = {
+                name: firebaseUser.displayName || 'New User',
+                bio: '',
+                skills: [],
+                activePathways: [],
             }
-          } catch (error) {
-            console.error('Failed to get user profile from Firestore', error);
-            setUserProfileState(null);
-          } finally {
-            setLoading(false);
+            await setDoc(userDocRef, newProfile);
+            setUserProfileState(newProfile);
           }
-        } else {
-          setUser(null);
+        } catch (error) {
+          console.error("Failed to get user profile from Firestore. This might be due to API key restrictions or network issues.", error);
+          // We will keep the app in a loading state, but not crash.
+          // The user will be redirected to /login if they are not authenticated.
           setUserProfileState(null);
+        } finally {
           setLoading(false);
         }
-      });
-      
-      return unsubscribe;
-    };
-
-    let unsubscribe: (() => void) | undefined;
-    initialize().then(unsub => {
-      if (unsub) {
-        unsubscribe = unsub;
+      } else {
+        setUser(null);
+        setUserProfileState(null);
+        setLoading(false);
       }
     });
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
+    
+    return () => unsubscribe();
   }, [auth]);
 
   const setUserProfile = useCallback(
