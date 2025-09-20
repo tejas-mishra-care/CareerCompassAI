@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,6 @@ import { Card, CardContent } from '../ui/card';
 import { createProfileFromOnboarding } from '@/ai/flows/create-profile-from-onboarding';
 import type { UserProfile } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Progress } from '../ui/progress';
 
@@ -29,21 +28,29 @@ const subjectSchema = z.object({
 });
 
 const onboardingSchema = z.object({
-  // Step 1
-  board10th: z.string().min(1, "Please select your 10th standard board."),
-  year10th: z.string().min(4, "Please enter a valid year.").max(4),
-  score10th: z.string().min(1, "Please enter your score."),
-  stream12th: z.string().optional(),
-  board12th: z.string().optional(),
-  year12th: z.string().optional(),
-  score12th: z.string().optional(),
-  achievements: z.string().optional(),
-  // Step 2
-  subjects: z.record(subjectSchema).optional(),
-  // Step 3
-  quizAnswers: z.record(z.string().min(1, "Please select an answer.")).optional(),
-  // Step 4
-  goal: z.string({ required_error: "Please select a goal to continue." }).min(1, "Please select a goal to continue."),
+  onboardingData: z.object({
+      // Step 1
+      board10th: z.string().min(1, "Please select your 10th standard board."),
+      year10th: z.string().min(4, "Please enter a valid year.").max(4),
+      score10th: z.string().min(1, "Please enter your score."),
+      stream12th: z.string().optional(),
+      board12th: z.string().optional(),
+      year12th: z.string().optional(),
+      score12th: z.string().optional(),
+      achievements: z.string().optional(),
+      // Step 2
+      subjects: z.record(subjectSchema).refine(
+        (subjects) => Object.values(subjects).every(subject => subject.score && subject.feeling),
+        { message: "Please fill out all fields for each subject." }
+      ),
+      // Step 3
+      quizAnswers: z.record(z.string().min(1, "Please select an answer.")).refine(
+        (answers) => Object.keys(answers).length === QUIZ_QUESTIONS.length,
+        { message: "Please answer all quiz questions." }
+      ),
+      // Step 4
+      goal: z.string({ required_error: "Please select a goal to continue." }).min(1, "Please select a goal to continue."),
+  })
 });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
@@ -83,47 +90,91 @@ const GOAL_OPTIONS = [
     { id: 'entrance_exam', title: "I'm focused on an exam", description: "You're preparing for a competitive entrance exam." },
 ]
 
+// Function to generate the complete default values structure
+const generateDefaultValues = (stream: string = 'default') => {
+  const subjectsForStream = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
+  const defaultSubjects = subjectsForStream.reduce((acc, subject) => {
+    acc[subject] = { score: '', feeling: undefined as any };
+    return acc;
+  }, {} as Record<string, { score: string; feeling: 'loved' | 'okay' | 'disliked' }>);
+
+  const defaultQuizAnswers = QUIZ_QUESTIONS.reduce((acc, q) => {
+    acc[q.id] = '';
+    return acc;
+  }, {} as Record<string, string>);
+
+  return {
+    onboardingData: {
+      board10th: '',
+      year10th: '',
+      score10th: '',
+      stream12th: '',
+      board12th: '',
+      year12th: '',
+      score12th: '',
+      achievements: '',
+      subjects: defaultSubjects,
+      quizAnswers: defaultQuizAnswers,
+      goal: '',
+    },
+  };
+};
+
+
 export function OnboardingStepper() {
   const { user, userProfile, setUserProfile } = useUserProfile();
   const { toast } = useToast();
   const router = useRouter();
+  const formId = useId();
   
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const methods = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
-    defaultValues: {
-        board10th: '', year10th: '', score10th: '',
-        stream12th: '', board12th: '', year12th: '', score12th: '',
-        achievements: '',
-        goal: '',
-    },
-    mode: 'onChange' // Validate on change to enable/disable Next button
+    defaultValues: generateDefaultValues(),
+    mode: 'onChange',
   });
   
-  const { trigger, formState: { errors } } = methods;
+  const { trigger, formState: { errors, isValid } } = methods;
 
-  const stream = methods.watch('stream12th') || 'default';
-  const subjects = useMemo(() => STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default, [stream]);
+  const watchedStream = methods.watch('onboardingData.stream12th') || 'default';
+  const subjects = useMemo(() => STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default, [watchedStream]);
+
+  // Effect to reset subject fields when stream changes
+  React.useEffect(() => {
+    const defaultSubjects = (STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default).reduce((acc, subject) => {
+        acc[subject] = { score: '', feeling: undefined as any };
+        return acc;
+    }, {} as any);
+    methods.setValue('onboardingData.subjects', defaultSubjects);
+  }, [watchedStream, methods.setValue]);
+
 
   const handleNext = async () => {
-    let fieldsToValidate: (keyof OnboardingFormData)[] = [];
+    let fieldsToValidate: (keyof OnboardingFormData['onboardingData'])[] = [];
     if (step === 1) {
         fieldsToValidate = ['board10th', 'year10th', 'score10th'];
     } else if (step === 2) {
-        fieldsToValidate = [`subjects`];
+        fieldsToValidate = ['subjects'];
     } else if (step === 3) {
         fieldsToValidate = ['quizAnswers'];
     }
+    
+    // We use a type assertion because the paths are complex for TS to infer statically
+    const castedPaths = fieldsToValidate.map(f => `onboardingData.${f}` as 'onboardingData.subjects');
 
-    const isValid = await trigger(fieldsToValidate);
+    const isValid = await trigger(castedPaths);
+    
     if (isValid) {
       setStep(s => s + 1);
     } else {
-        // This helps show errors if fields are empty and user clicks next
-        if (step === 2) {
+        // Manually show toast for complex validation errors
+        if (step === 2 && errors.onboardingData?.subjects) {
             toast({ variant: 'destructive', title: 'Please fill out all fields for each subject.' });
+        }
+        if (step === 3 && errors.onboardingData?.quizAnswers) {
+            toast({ variant: 'destructive', title: 'Please answer all quiz questions.' });
         }
     }
   };
@@ -138,11 +189,13 @@ export function OnboardingStepper() {
     if (!user || !userProfile) return;
     setLoading(true);
 
+    const { onboardingData } = data;
+
     const answers = [
-        { question: "Academics and Achievements", answer: JSON.stringify({ board10th: data.board10th, year10th: data.year10th, score10th: data.score10th, stream12th: data.stream12th, board12th: data.board12th, year12th: data.year12th, score12th: data.score12th, achievements: data.achievements }) },
-        { question: "Subject Deep Dive", answer: JSON.stringify(data.subjects || {}) },
-        { question: "Aptitude Quiz", answer: JSON.stringify(data.quizAnswers || {}) },
-        { question: "Primary Goal", answer: data.goal || "" },
+        { question: "Academics and Achievements", answer: JSON.stringify({ board10th: onboardingData.board10th, year10th: onboardingData.year10th, score10th: onboardingData.score10th, stream12th: onboardingData.stream12th, board12th: onboardingData.board12th, year12th: onboardingData.year12th, score12th: onboardingData.score12th, achievements: onboardingData.achievements }) },
+        { question: "Subject Deep Dive", answer: JSON.stringify(onboardingData.subjects || {}) },
+        { question: "Aptitude Quiz", answer: JSON.stringify(onboardingData.quizAnswers || {}) },
+        { question: "Primary Goal", answer: onboardingData.goal || "" },
     ];
     
     try {
@@ -181,6 +234,7 @@ export function OnboardingStepper() {
   };
   
   const totalSteps = 4;
+  const isFinalStep = step === totalSteps;
 
   return (
     <FormProvider {...methods}>
@@ -200,7 +254,7 @@ export function OnboardingStepper() {
                 <div>
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">10th Standard Details</h3>
                     <div className="grid md:grid-cols-3 gap-6">
-                        <FormField control={methods.control} name="board10th" render={({ field }) => (
+                        <FormField control={methods.control} name="onboardingData.board10th" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Board</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -210,10 +264,10 @@ export function OnboardingStepper() {
                                 <FormMessage />
                             </FormItem>
                         )}/>
-                         <FormField control={methods.control} name="year10th" render={({ field }) => (
+                         <FormField control={methods.control} name="onboardingData.year10th" render={({ field }) => (
                             <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2020" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
-                         <FormField control={methods.control} name="score10th" render={({ field }) => (
+                         <FormField control={methods.control} name="onboardingData.score10th" render={({ field }) => (
                             <FormItem><FormLabel>Overall Score (%)</FormLabel><FormControl><Input placeholder="e.g., 85" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                     </div>
@@ -221,16 +275,16 @@ export function OnboardingStepper() {
                 <div>
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">12th Standard / Diploma (if applicable)</h3>
                      <div className="grid md:grid-cols-4 gap-6">
-                         <FormField control={methods.control} name="stream12th" render={({ field }) => (
+                         <FormField control={methods.control} name="onboardingData.stream12th" render={({ field }) => (
                             <FormItem><FormLabel>Stream</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Stream" /></SelectTrigger></FormControl><SelectContent><SelectItem value="pcm">Science (PCM)</SelectItem><SelectItem value="pcb">Science (PCB)</SelectItem><SelectItem value="commerce">Commerce</SelectItem><SelectItem value="arts">Arts/Humanities</SelectItem><SelectItem value="diploma">Diploma</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                         )}/>
-                         <FormField control={methods.control} name="board12th" render={({ field }) => (
+                         <FormField control={methods.control} name="onboardingData.board12th" render={({ field }) => (
                             <FormItem><FormLabel>Board</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger></FormControl><SelectContent><SelectItem value="cbse">CBSE</SelectItem><SelectItem value="icse">ICSE</SelectItem><SelectItem value="state">State Board</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                         )}/>
-                         <FormField control={methods.control} name="year12th" render={({ field }) => (
+                         <FormField control={methods.control} name="onboardingData.year12th" render={({ field }) => (
                             <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2022" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
-                         <FormField control={methods.control} name="score12th" render={({ field }) => (
+                         <FormField control={methods.control} name="onboardingData.score12th" render={({ field }) => (
                             <FormItem><FormLabel>Overall Score (%)</FormLabel><FormControl><Input placeholder="e.g., 90" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                     </div>
@@ -238,7 +292,7 @@ export function OnboardingStepper() {
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Your Early Achievements (The "Spark" Finder)</h3>
                     <p className="text-sm text-muted-foreground mb-4">Think back to your school days. What were you known for? (e.g., Olympiads, Debate, Coding, Sports, Art, Leadership)</p>
-                     <FormField control={methods.control} name="achievements" render={({ field }) => (
+                     <FormField control={methods.control} name="onboardingData.achievements" render={({ field }) => (
                         <FormItem><FormControl><Textarea placeholder="List a few of your passions or achievements..." {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
@@ -252,20 +306,43 @@ export function OnboardingStepper() {
                 </div>
                 <div className="space-y-6">
                     {subjects.map((subject) => {
-                        const feeling = methods.watch(`subjects.${subject}.feeling`);
+                        const subjectId = `${formId}-${subject.replace(/\s+/g, '-')}`;
+                        const feeling = methods.watch(`onboardingData.subjects.${subject}.feeling`);
                         return (
-                        <Card key={subject}>
-                            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                                <FormLabel className="text-base font-semibold md:col-span-1">{subject}</FormLabel>
+                        <Card key={subject} className="p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                <FormLabel className="text-base font-semibold md:col-span-1">
+                                    {subject}
+                                </FormLabel>
                                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                                     <FormField control={methods.control} name={`subjects.${subject}.score`} render={({ field }) => (
-                                        <FormItem><FormLabel>Your Score (%)</FormLabel><FormControl><Input placeholder="e.g., 95" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormField
+                                        control={methods.control}
+                                        name={`onboardingData.subjects.${subject}.score`}
+                                        render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel htmlFor={`${subjectId}-score`}>Your Score (%)</FormLabel>
+                                            <FormControl>
+                                                <Input id={`${subjectId}-score`} placeholder="e.g., 95" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
                                     )}/>
-                                    <Controller control={methods.control} name={`subjects.${subject}.feeling`} render={({ field, fieldState }) => (
-                                        <FormItem><FormLabel>Your Feeling</FormLabel><div className="flex items-center space-x-2 pt-2"><Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button><Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button><Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button></div>{fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}</FormItem>
+                                    <Controller
+                                        control={methods.control}
+                                        name={`onboardingData.subjects.${subject}.feeling`}
+                                        render={({ field, fieldState }) => (
+                                        <FormItem>
+                                            <FormLabel>Your Feeling</FormLabel>
+                                            <div className="flex items-center space-x-2 pt-2">
+                                                <Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
+                                                <Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
+                                                <Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
+                                            </div>
+                                            {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
+                                        </FormItem>
                                     )}/>
                                 </div>
-                            </CardContent>
+                            </div>
                         </Card>
                     )})}
                 </div>
@@ -277,23 +354,61 @@ export function OnboardingStepper() {
                     <h3 className="text-lg font-semibold mb-2">The Profile Scanner</h3>
                     <p className="text-sm text-muted-foreground mb-4">Let's calibrate your Compass. This isn't a test; it's a quick challenge to discover your hidden strengths.</p>
                 </div>
-                <div className="space-y-6">
-                    {QUIZ_QUESTIONS.map((q) => (
-                        <FormField key={q.id} control={methods.control} name={`quizAnswers.${q.id}`} render={({ field }) => (
-                            <FormItem className="space-y-3"><FormLabel className="text-base">{q.question}</FormLabel><FormControl><RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">{q.options.map((option, index) => (<FormItem key={index} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent"><FormControl><RadioGroupItem value={option} id={`${q.id}-${index}`} /></FormControl><Label htmlFor={`${q.id}-${index}`} className="font-normal flex-1 cursor-pointer">{option}</Label></FormItem>))}</RadioGroup></FormControl><FormMessage /></FormItem>
-                        )}/>
-                    ))}
-                </div>
+                <FormField control={methods.control} name="onboardingData.quizAnswers" render={() => (
+                    <FormItem className="space-y-6">
+                        {QUIZ_QUESTIONS.map((q) => (
+                            <FormField
+                                key={q.id}
+                                control={methods.control}
+                                name={`onboardingData.quizAnswers.${q.id}`}
+                                render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                    <FormLabel className="text-base">{q.question}</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                                            {q.options.map((option, index) => (
+                                            <FormItem key={index} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
+                                                <FormControl>
+                                                    <RadioGroupItem value={option} id={`${formId}-${q.id}-${index}`} />
+                                                </FormControl>
+                                                <FormLabel htmlFor={`${formId}-${q.id}-${index}`} className="font-normal flex-1 cursor-pointer">{option}</FormLabel>
+                                            </FormItem>
+                                            ))}
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                        ))}
+                    </FormItem>
+                )}/>
             </div>
-            
+
             {/* --- STEP 4: Direction --- */}
             <div className={cn("space-y-8", step !== 4 && "hidden")}>
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
                     <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
                 </div>
-                <FormField control={methods.control} name="goal" render={({ field }) => (
-                    <FormItem className="space-y-4"><FormControl><RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-1 md:grid-cols-2 gap-4">{GOAL_OPTIONS.map((option) => (<FormItem key={option.id}><FormControl><RadioGroupItem value={option.title} id={option.id} className="sr-only" /></FormControl><Label htmlFor={option.id} className={cn("flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover")}><h4 className="font-semibold mb-1">{option.title}</h4><p className="text-sm text-muted-foreground text-center">{option.description}</p></Label></FormItem>))}</RadioGroup></FormControl><FormMessage /></FormItem>
+                <FormField control={methods.control} name="onboardingData.goal" render={({ field }) => (
+                    <FormItem className="space-y-4">
+                        <FormControl>
+                            <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {GOAL_OPTIONS.map((option) => (
+                                <FormItem key={option.id}>
+                                    <FormControl>
+                                        <RadioGroupItem value={option.title} id={`${formId}-${option.id}`} className="sr-only" />
+                                    </FormControl>
+                                    <FormLabel htmlFor={`${formId}-${option.id}`} className={cn("flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover")}>
+                                        <h4 className="font-semibold mb-1">{option.title}</h4>
+                                        <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                    </FormLabel>
+                                </FormItem>
+                                ))}
+                            </RadioGroup>
+                        </FormControl>
+                        <div className="text-center"><FormMessage /></div>
+                    </FormItem>
                 )}/>
             </div>
 
@@ -302,11 +417,11 @@ export function OnboardingStepper() {
                 <Button type="button" variant="ghost" onClick={handleBack} disabled={step === 1}>
                     <ChevronLeft className="mr-2" /> Back
                 </Button>
-                 {step < totalSteps && (
+                 {!isFinalStep && (
                     <Button type="button" onClick={handleNext}>Next</Button>
                 )}
-                {step === totalSteps && (
-                    <Button type="submit" disabled={loading}>
+                {isFinalStep && (
+                    <Button type="submit" disabled={loading || !methods.watch('onboardingData.goal')}>
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Finish
                     </Button>
