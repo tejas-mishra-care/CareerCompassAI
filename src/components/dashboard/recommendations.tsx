@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Lightbulb, BookOpen, ChevronRight } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -24,21 +23,20 @@ import {
 } from '../ui/accordion';
 
 const RecommendationsSkeleton = () => (
-  <Card className="shadow-md">
+  <Card className="shadow-md h-full">
     <CardHeader>
       <CardTitle className="font-headline flex items-center gap-2 text-2xl">
         <Lightbulb className="h-6 w-6" />
-        Personalized Recommendations
+        Recommended For You
       </CardTitle>
       <CardDescription>
-        AI-powered career suggestions based on your profile.
+        Generating AI-powered suggestions...
       </CardDescription>
     </CardHeader>
     <CardContent className="space-y-4">
-      {[...Array(2)].map((_, i) => (
+      {[...Array(3)].map((_, i) => (
         <Skeleton key={i} className="h-12 w-full rounded-md" />
       ))}
-      <Skeleton className="h-20 w-full rounded-md" />
     </CardContent>
   </Card>
 );
@@ -87,27 +85,27 @@ export function Recommendations() {
   }
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md h-full">
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2 text-2xl">
+        <CardTitle className="font-headline flex items-center gap-2 text-xl">
           <Lightbulb className="h-6 w-6" />
-          Personalized Recommendations
+          Recommended For You
         </CardTitle>
         <CardDescription>
-          AI-powered career suggestions based on your profile.
+          AI-powered actions based on your profile.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="single" collapsible className="w-full" defaultValue="recommendations">
           <AccordionItem value="recommendations">
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-              Top Career Paths For You
+              Top Career Paths
             </AccordionTrigger>
             <AccordionContent className="pt-2 space-y-3">
               {recommendations.careerRecommendations.map((rec) => (
                 <div
                   key={rec}
-                  className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
+                  className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <BookOpen className="h-5 w-5 text-primary" />
@@ -120,7 +118,7 @@ export function Recommendations() {
           </AccordionItem>
           <AccordionItem value="reasoning">
             <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-              Why These Recommendations?
+              Why These?
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               <p className="text-sm text-muted-foreground whitespace-pre-line">

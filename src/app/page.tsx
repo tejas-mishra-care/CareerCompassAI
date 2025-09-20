@@ -21,9 +21,13 @@ export default function DashboardPage() {
         {!isProfileComplete ? (
           <WelcomeCard />
         ) : (
-          <div className="space-y-6">
-            <SkillDashboard />
-            <Recommendations />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="lg:col-span-2 grid gap-6">
+              <SkillDashboard />
+            </div>
+            <div className="lg:col-span-1">
+              <Recommendations />
+            </div>
           </div>
         )}
       </div>
