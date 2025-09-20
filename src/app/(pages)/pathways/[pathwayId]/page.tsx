@@ -16,7 +16,24 @@ export default function PathwayDetailPage({ params }: { params: { pathwayId: str
   const pathway = userProfile?.activePathways?.find(p => slugify(p.title) === params.pathwayId);
 
   const handleStepToggle = (pathwayTitle: string, stepIndex: number, completed: boolean) => {
-    if (!userProfile?.activePathways) return;
+    if (!userProfile?.activePathways || !userProfile.skills) return;
+
+    // --- Start of SP Awarding Logic ---
+    const SKILL_POINTS_AWARDED = 10;
+    
+    // Simulate awarding SP to the first 2 skills for demonstration.
+    // A real implementation would have skills associated with each step.
+    const newSkills = [...userProfile.skills].map((skill, index) => {
+        if (index < 2) { // Award points to the first two skills
+            const newProficiency = completed
+                ? Math.min(100, skill.proficiency + SKILL_POINTS_AWARDED)
+                : Math.max(0, skill.proficiency - SKILL_POINTS_AWARDED);
+            return { ...skill, proficiency: newProficiency };
+        }
+        return skill;
+    });
+    // --- End of SP Awarding Logic ---
+
 
     const newPathways = userProfile.activePathways.map(p => {
       if (p.title === pathwayTitle) {
@@ -27,7 +44,7 @@ export default function PathwayDetailPage({ params }: { params: { pathwayId: str
       return p;
     });
 
-    setUserProfile({ ...userProfile, activePathways: newPathways });
+    setUserProfile({ ...userProfile, activePathways: newPathways, skills: newSkills });
   };
 
   if (loading) {
@@ -73,7 +90,7 @@ export default function PathwayDetailPage({ params }: { params: { pathwayId: str
               <GraduationCap className="text-primary h-6 w-6" /> {pathway.title.replace('Learning Pathway for: ', '')}
             </CardTitle>
             <CardDescription>
-              Check off the steps as you complete them to track your progress.
+              Check off the steps as you complete them to track your progress and earn Skill Points (SP)!
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4 space-y-6">
