@@ -10,7 +10,7 @@ import React, {
   useMemo,
 } from 'react';
 import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, clearIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { app, db } from '@/lib/firebase';
 
@@ -58,8 +58,6 @@ export const UserProfileProvider = ({
           }
         } catch (error) {
           console.error("Failed to get user profile from Firestore. This might be due to API key restrictions or network issues.", error);
-          // We will keep the app in a loading state, but not crash.
-          // The user will be redirected to /login if they are not authenticated.
           setUserProfileState(null);
         } finally {
           setLoading(false);
@@ -115,3 +113,5 @@ export const useUserProfile = () => {
   }
   return context;
 };
+
+    

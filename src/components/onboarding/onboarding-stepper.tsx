@@ -1,13 +1,13 @@
 
 'use client';
 
-import React, { useState, useId } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Loader2, Smile, Meh, Frown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useForm, FormProvider, Controller, useFormContext } from 'react-hook-form';
+import { Loader2, Smile, Meh, Frown, ChevronLeft } from 'lucide-react';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -20,10 +20,16 @@ import type { UserProfile } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { Progress } from '../ui/progress';
 
+// --- Zod Schemas for Validation ---
+const subjectSchema = z.object({
+    score: z.string().min(1, "Score is required.").max(3, "Invalid score."),
+    feeling: z.enum(['loved', 'okay', 'disliked'], { required_error: "Please select a feeling."}),
+});
 
-// --- Validation Schemas ---
-const foundationSchema = z.object({
+const onboardingSchema = z.object({
+  // Step 1
   board10th: z.string().min(1, "Please select your 10th standard board."),
   year10th: z.string().min(4, "Please enter a valid year.").max(4),
   score10th: z.string().min(1, "Please enter your score."),
@@ -32,200 +38,15 @@ const foundationSchema = z.object({
   year12th: z.string().optional(),
   score12th: z.string().optional(),
   achievements: z.string().optional(),
+  // Step 2
+  subjects: z.record(subjectSchema).optional(),
+  // Step 3
+  quizAnswers: z.record(z.string().min(1, "Please select an answer.")).optional(),
+  // Step 4
+  goal: z.string({ required_error: "Please select a goal to continue." }).min(1, "Please select a goal to continue."),
 });
 
-const subjectSchema = z.object({
-    score: z.string().min(1, "Score is required."),
-    feeling: z.enum(['loved', 'okay', 'disliked'], { required_error: "Please select a feeling."}),
-});
-
-const deepDiveSchema = z.object({
-    subjects: z.record(subjectSchema)
-});
-
-const quizSchema = z.object({
-  quizAnswers: z.record(z.string().min(1, "Please select an answer."))
-});
-
-const directionSchema = z.object({
-  goal: z.string({
-    required_error: "Please select a goal to continue."
-  }).min(1, "Please select a goal to continue.")
-});
-
-
-// --- Step Components ---
-
-const Step1Foundation = ({ onComplete, initialData }: { onComplete: (data: z.infer<typeof foundationSchema>) => void, initialData: any }) => {
-    const methods = useForm<z.infer<typeof foundationSchema>>({
-        resolver: zodResolver(foundationSchema),
-        defaultValues: initialData || {
-            board10th: '',
-            year10th: '',
-            score10th: '',
-            stream12th: '',
-            board12th: '',
-            year12th: '',
-            score12th: '',
-            achievements: '',
-        }
-    });
-
-    return (
-        <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
-                <div>
-                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">10th Standard Details</h3>
-                    <div className="grid md:grid-cols-3 gap-6">
-                        <FormField
-                            control={methods.control}
-                            name="board10th"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Board</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="cbse">CBSE</SelectItem>
-                                            <SelectItem value="icse">ICSE</SelectItem>
-                                            <SelectItem value="state">State Board</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={methods.control}
-                            name="year10th"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Year of Passing</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="e.g., 2020" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={methods.control}
-                            name="score10th"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Overall Score (%)</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="e.g., 85" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">12th Standard / Diploma (if applicable)</h3>
-                     <div className="grid md:grid-cols-4 gap-6">
-                         <FormField
-                            control={methods.control}
-                            name="stream12th"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Stream</FormLabel>
-                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger><SelectValue placeholder="Select Stream" /></SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="pcm">Science (PCM)</SelectItem>
-                                            <SelectItem value="pcb">Science (PCB)</SelectItem>
-                                            <SelectItem value="commerce">Commerce</SelectItem>
-                                            <SelectItem value="arts">Arts/Humanities</SelectItem>
-                                            <SelectItem value="diploma">Diploma</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={methods.control}
-                            name="board12th"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Board</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="cbse">CBSE</SelectItem>
-                                            <SelectItem value="icse">ICSE</SelectItem>
-                                            <SelectItem value="state">State Board</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={methods.control}
-                            name="year12th"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Year of Passing</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="e.g., 2022" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={methods.control}
-                            name="score12th"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Overall Score (%)</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="e.g., 90" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                </div>
-
-                 <div>
-                    <h3 className="text-lg font-semibold mb-2">Your Early Achievements (The "Spark" Finder)</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Think back to your school days. What were you known for? What did you enjoy doing? (e.g., Olympiads, Debate, Coding, Sports, Art, Leadership)</p>
-                     <FormField
-                        control={methods.control}
-                        name="achievements"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <Textarea placeholder="List a few of your passions or achievements..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                
-                <div className="flex justify-end pt-4">
-                    <Button type="submit">Next <ChevronRight className="ml-2" /></Button>
-                </div>
-            </form>
-        </FormProvider>
-    );
-};
+type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 const STREAM_SUBJECTS: Record<string, string[]> = {
     pcm: ['Physics', 'Chemistry', 'Mathematics', 'English'],
@@ -235,99 +56,6 @@ const STREAM_SUBJECTS: Record<string, string[]> = {
     diploma: ['Engineering Mathematics', 'Applied Physics', 'Applied Chemistry', 'Communication Skills'],
     default: ['Science', 'Mathematics', 'Social Studies', 'English', 'Second Language'],
 }
-
-const SubjectRow = ({ subject }: { subject: string }) => {
-    const { control, watch } = useFormContext();
-    const id = useId();
-    const feeling = watch(`subjects.${subject}.feeling`);
-
-    return (
-        <Card>
-            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <label htmlFor={`score-${id}`} className="text-base font-semibold md:col-span-1">{subject}</label>
-                
-                <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                     <FormField
-                        control={control}
-                        name={`subjects.${subject}.score`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel htmlFor={`score-${id}`}>Your Score (%)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g., 95" {...field} id={`score-${id}`} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <Controller
-                        control={control}
-                        name={`subjects.${subject}.feeling`}
-                        render={({ field, fieldState }) => (
-                            <FormItem>
-                                <FormLabel>Your Feeling</FormLabel>
-                                <div className="flex items-center space-x-2 pt-2">
-                                    <Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
-                                    <Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
-                                    <Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
-                                </div>
-                                 {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
-                            </FormItem>
-                        )}
-                    />
-                </div>
-            </CardContent>
-        </Card>
-    )
-}
-
-const Step2DeepDive = ({ onComplete, onBack, previousData, initialData }: { onComplete: (data: any) => void, onBack: () => void, previousData: any, initialData: any }) => {
-    const stream = previousData.foundation?.stream12th || 'default';
-    const subjects = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
-
-    const defaultValues = subjects.reduce((acc, subject) => {
-        acc[subject] = initialData?.[subject] || { score: '', feeling: undefined };
-        return acc;
-    }, {} as Record<string, { score: string, feeling: 'loved' | 'okay' | 'disliked' | undefined }>);
-    
-    const methods = useForm({
-        defaultValues: { subjects: defaultValues }
-    });
-    const { toast } = useToast();
-
-    const onSubmit = (data: any) => {
-        // Simple validation check
-        for (const subject of subjects) {
-            const subjectData = data.subjects[subject];
-            if (!subjectData || !subjectData.score || !subjectData.feeling) {
-                toast({ variant: 'destructive', title: `Please complete all fields for ${subject}.`});
-                return;
-            }
-        }
-        onComplete(data);
-    }
-
-    return (
-        <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
-                 <div>
-                    <h3 className="text-lg font-semibold mb-2">Subject-Level Deep Dive</h3>
-                    <p className="text-sm text-muted-foreground mb-4">This is where we deconstruct the average score to find the real story. For each subject, tell us your score and how you *really* felt about it.</p>
-                </div>
-
-                <div className="space-y-6">
-                    {subjects.map((subject) => <SubjectRow key={subject} subject={subject} />)}
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                    <Button type="button" variant="ghost" onClick={onBack}><ChevronLeft className="mr-2" /> Back</Button>
-                    <Button type="submit">Next <ChevronRight className="ml-2" /></Button>
-                </div>
-            </form>
-        </FormProvider>
-    )
-};
-
 
 const QUIZ_QUESTIONS = [
     {
@@ -347,69 +75,6 @@ const QUIZ_QUESTIONS = [
     }
 ]
 
-const Step3Quiz = ({ onComplete, onBack, initialData }: { onComplete: (data: any) => void, onBack: () => void, initialData: any }) => {
-    const defaultValues = QUIZ_QUESTIONS.reduce((acc, q) => {
-        acc[q.id] = initialData?.[q.id] || '';
-        return acc;
-    }, {} as Record<string, string>);
-    
-    const methods = useForm({
-        resolver: zodResolver(quizSchema),
-        defaultValues: { quizAnswers: defaultValues }
-    });
-
-    return (
-        <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
-                <div>
-                    <h3 className="text-lg font-semibold mb-2">The Profile Scanner</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Let's calibrate your Compass. This isn't a test; it's a quick challenge to discover your hidden strengths.</p>
-                </div>
-
-                <div className="space-y-6">
-                    {QUIZ_QUESTIONS.map((q) => (
-                        <FormField
-                            key={q.id}
-                            control={methods.control}
-                            name={`quizAnswers.${q.id}`}
-                            render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <FormLabel className="text-base">{q.question}</FormLabel>
-                                    <FormControl>
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            className="flex flex-col space-y-1"
-                                        >
-                                            {q.options.map((option, index) => (
-                                                <FormItem key={index} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
-                                                    <FormControl>
-                                                        <RadioGroupItem value={option} id={`${q.id}-${index}`} />
-                                                    </FormControl>
-                                                    <Label htmlFor={`${q.id}-${index}`} className="font-normal flex-1 cursor-pointer">
-                                                        {option}
-                                                    </Label>
-                                                </FormItem>
-                                            ))}
-                                        </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    ))}
-                </div>
-
-                <div className="flex justify-between pt-4">
-                    <Button type="button" variant="ghost" onClick={onBack}><ChevronLeft className="mr-2" /> Back</Button>
-                    <Button type="submit">Next <ChevronRight className="ml-2" /></Button>
-                </div>
-            </form>
-        </FormProvider>
-    )
-};
-
-
 const GOAL_OPTIONS = [
     { id: 'dream_career', title: "I have a dream career", description: "You have a specific job title in mind." },
     { id: 'field_of_interest', title: "I have a field of interest", description: "You're interested in a broad area like 'Technology' or 'Healthcare'." },
@@ -418,102 +83,66 @@ const GOAL_OPTIONS = [
     { id: 'entrance_exam', title: "I'm focused on an exam", description: "You're preparing for a competitive entrance exam." },
 ]
 
-const Step4Direction = ({ onComplete, onBack, initialData }: { onComplete: (data: z.infer<typeof directionSchema>) => void, onBack: () => void, initialData: any }) => {
-    const methods = useForm<z.infer<typeof directionSchema>>({
-        resolver: zodResolver(directionSchema),
-        defaultValues: { goal: initialData?.goal || '' }
-    });
-
-    return (
-        <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
-                 <div>
-                    <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
-                </div>
-                <FormField
-                  control={methods.control}
-                  name="goal"
-                  render={({ field }) => (
-                    <FormItem className="space-y-4">
-                        <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                            >
-                              {GOAL_OPTIONS.map((option) => (
-                                <FormItem key={option.id}>
-                                  <FormControl>
-                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
-                                  </FormControl>
-                                  <Label
-                                    htmlFor={option.id}
-                                    className={cn(
-                                        "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
-                                        field.value === option.title
-                                        ? "border-primary bg-accent"
-                                        : "border-muted bg-popover"
-                                    )}
-                                  >
-                                    <h4 className="font-semibold mb-1">{option.title}</h4>
-                                    <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                                  </Label>
-                                </FormItem>
-                              ))}
-                            </RadioGroup>
-                        </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex justify-between pt-4">
-                    <Button type="button" variant="ghost" onClick={onBack}><ChevronLeft className="mr-2" /> Back</Button>
-                    <Button type="submit">Finish</Button>
-                </div>
-            </form>
-        </FormProvider>
-    )
-};
-
-
 export function OnboardingStepper() {
   const { user, userProfile, setUserProfile } = useUserProfile();
   const { toast } = useToast();
   const router = useRouter();
   
   const [step, setStep] = useState(1);
-  const [onboardingData, setOnboardingData] = useState<any>({});
   const [loading, setLoading] = useState(false);
 
-  const handleStepComplete = (data: any) => {
-    const [dataKey] = Object.keys(data);
-    const newData = { ...onboardingData, [dataKey]: data[dataKey] };
-    setOnboardingData(newData);
-    
-    if (step === 4) {
-      handleFinish(newData);
-    } else {
+  const methods = useForm<OnboardingFormData>({
+    resolver: zodResolver(onboardingSchema),
+    defaultValues: {
+        board10th: '', year10th: '', score10th: '',
+        stream12th: '', board12th: '', year12th: '', score12th: '',
+        achievements: '',
+        goal: '',
+    },
+    mode: 'onChange' // Validate on change to enable/disable Next button
+  });
+  
+  const { trigger, formState: { errors } } = methods;
+
+  const stream = methods.watch('stream12th') || 'default';
+  const subjects = useMemo(() => STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default, [stream]);
+
+  const handleNext = async () => {
+    let fieldsToValidate: (keyof OnboardingFormData)[] = [];
+    if (step === 1) {
+        fieldsToValidate = ['board10th', 'year10th', 'score10th'];
+    } else if (step === 2) {
+        fieldsToValidate = [`subjects`];
+    } else if (step === 3) {
+        fieldsToValidate = ['quizAnswers'];
+    }
+
+    const isValid = await trigger(fieldsToValidate);
+    if (isValid) {
       setStep(s => s + 1);
+    } else {
+        // This helps show errors if fields are empty and user clicks next
+        if (step === 2) {
+            toast({ variant: 'destructive', title: 'Please fill out all fields for each subject.' });
+        }
     }
   };
   
-  const goToPreviousStep = () => {
+  const handleBack = () => {
     if (step > 1) {
       setStep(s => s - 1);
     }
   }
 
-  const handleFinish = async (finalData: any) => {
+  const onSubmit = async (data: OnboardingFormData) => {
     if (!user || !userProfile) return;
     setLoading(true);
-    
+
     const answers = [
-        { question: "Academics and Achievements", answer: JSON.stringify(finalData.foundation || {}) },
-        { question: "Subject Deep Dive", answer: JSON.stringify(finalData.subjects || {}) },
-        { question: "Aptitude Quiz", answer: JSON.stringify(finalData.quizAnswers || {}) },
-        { question: "Primary Goal", answer: finalData.goal || "" },
+        { question: "Academics and Achievements", answer: JSON.stringify({ board10th: data.board10th, year10th: data.year10th, score10th: data.score10th, stream12th: data.stream12th, board12th: data.board12th, year12th: data.year12th, score12th: data.score12th, achievements: data.achievements }) },
+        { question: "Subject Deep Dive", answer: JSON.stringify(data.subjects || {}) },
+        { question: "Aptitude Quiz", answer: JSON.stringify(data.quizAnswers || {}) },
+        { question: "Primary Goal", answer: data.goal || "" },
     ];
     
     try {
@@ -544,53 +173,150 @@ export function OnboardingStepper() {
         toast({
             variant: 'destructive',
             title: 'Error',
-            description: 'Could not create your profile from your answers.',
+            description: 'Could not create your profile. Please try again.',
         });
     } finally {
         setLoading(false);
     }
   };
-
-  const renderStep = () => {
-    switch(step) {
-      case 1:
-        return <Step1Foundation onComplete={(data) => handleStepComplete({ foundation: data })} initialData={onboardingData.foundation} />;
-      case 2:
-        return <Step2DeepDive onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} previousData={onboardingData} initialData={onboardingData.subjects} />;
-      case 3:
-        return <Step3Quiz onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} initialData={onboardingData.quizAnswers} />;
-      case 4:
-        return <Step4Direction onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} initialData={onboardingData} />;
-      default:
-        return <Step1Foundation onComplete={(data) => handleStepComplete({ foundation: data })} initialData={onboardingData.foundation} />;
-    }
-  }
+  
+  const totalSteps = 4;
 
   return (
-    <div className="py-4 space-y-6 min-h-[300px]">
-      {loading ? (
-        <div className="flex flex-col items-center justify-center text-center space-y-2 h-[400px]">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="font-semibold">Calibrating Your Compass...</p>
-            <p className="text-sm text-muted-foreground">This may take a moment. We're analyzing your unique path!</p>
-        </div>
-      ) : (
-        <>
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-lg">
-                    Step {step}: {
-                        step === 1 ? "Your Foundation" :
-                        step === 2 ? "Subject-Level Deep Dive" :
-                        step === 3 ? "The Profile Scanner" : "Defining Your Direction"
-                    }
-                </h3>
-                 <p className="text-sm text-muted-foreground">
-                    Step {step} of 4
-                </p>
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(onSubmit)} className="py-4 space-y-8">
+        {loading ? (
+           <div className="flex flex-col items-center justify-center text-center space-y-2 h-[400px]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="font-semibold">Calibrating Your Compass...</p>
+                <p className="text-sm text-muted-foreground">This may take a moment. We're analyzing your unique path!</p>
             </div>
-            {renderStep()}
-        </>
-      )}
-    </div>
+        ) : (
+          <>
+            <Progress value={(step / totalSteps) * 100} className="w-full" />
+            
+            {/* --- STEP 1: Foundation --- */}
+            <div className={cn("space-y-8", step !== 1 && "hidden")}>
+                <div>
+                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">10th Standard Details</h3>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <FormField control={methods.control} name="board10th" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Board</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger></FormControl>
+                                    <SelectContent><SelectItem value="cbse">CBSE</SelectItem><SelectItem value="icse">ICSE</SelectItem><SelectItem value="state">State Board</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}/>
+                         <FormField control={methods.control} name="year10th" render={({ field }) => (
+                            <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2020" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={methods.control} name="score10th" render={({ field }) => (
+                            <FormItem><FormLabel>Overall Score (%)</FormLabel><FormControl><Input placeholder="e.g., 85" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                    </div>
+                </div>
+                <div>
+                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">12th Standard / Diploma (if applicable)</h3>
+                     <div className="grid md:grid-cols-4 gap-6">
+                         <FormField control={methods.control} name="stream12th" render={({ field }) => (
+                            <FormItem><FormLabel>Stream</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Stream" /></SelectTrigger></FormControl><SelectContent><SelectItem value="pcm">Science (PCM)</SelectItem><SelectItem value="pcb">Science (PCB)</SelectItem><SelectItem value="commerce">Commerce</SelectItem><SelectItem value="arts">Arts/Humanities</SelectItem><SelectItem value="diploma">Diploma</SelectItem></SelectContent></Select><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={methods.control} name="board12th" render={({ field }) => (
+                            <FormItem><FormLabel>Board</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger></FormControl><SelectContent><SelectItem value="cbse">CBSE</SelectItem><SelectItem value="icse">ICSE</SelectItem><SelectItem value="state">State Board</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={methods.control} name="year12th" render={({ field }) => (
+                            <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2022" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={methods.control} name="score12th" render={({ field }) => (
+                            <FormItem><FormLabel>Overall Score (%)</FormLabel><FormControl><Input placeholder="e.g., 90" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                    </div>
+                </div>
+                 <div>
+                    <h3 className="text-lg font-semibold mb-2">Your Early Achievements (The "Spark" Finder)</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Think back to your school days. What were you known for? (e.g., Olympiads, Debate, Coding, Sports, Art, Leadership)</p>
+                     <FormField control={methods.control} name="achievements" render={({ field }) => (
+                        <FormItem><FormControl><Textarea placeholder="List a few of your passions or achievements..." {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                </div>
+            </div>
+
+            {/* --- STEP 2: Deep Dive --- */}
+            <div className={cn("space-y-8", step !== 2 && "hidden")}>
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">Subject-Level Deep Dive</h3>
+                    <p className="text-sm text-muted-foreground mb-4">For each subject, tell us your score and how you *really* felt about it.</p>
+                </div>
+                <div className="space-y-6">
+                    {subjects.map((subject) => {
+                        const feeling = methods.watch(`subjects.${subject}.feeling`);
+                        return (
+                        <Card key={subject}>
+                            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                <FormLabel className="text-base font-semibold md:col-span-1">{subject}</FormLabel>
+                                <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                                     <FormField control={methods.control} name={`subjects.${subject}.score`} render={({ field }) => (
+                                        <FormItem><FormLabel>Your Score (%)</FormLabel><FormControl><Input placeholder="e.g., 95" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                    <Controller control={methods.control} name={`subjects.${subject}.feeling`} render={({ field, fieldState }) => (
+                                        <FormItem><FormLabel>Your Feeling</FormLabel><div className="flex items-center space-x-2 pt-2"><Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button><Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button><Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button></div>{fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}</FormItem>
+                                    )}/>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )})}
+                </div>
+            </div>
+
+            {/* --- STEP 3: Quiz --- */}
+            <div className={cn("space-y-8", step !== 3 && "hidden")}>
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">The Profile Scanner</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Let's calibrate your Compass. This isn't a test; it's a quick challenge to discover your hidden strengths.</p>
+                </div>
+                <div className="space-y-6">
+                    {QUIZ_QUESTIONS.map((q) => (
+                        <FormField key={q.id} control={methods.control} name={`quizAnswers.${q.id}`} render={({ field }) => (
+                            <FormItem className="space-y-3"><FormLabel className="text-base">{q.question}</FormLabel><FormControl><RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">{q.options.map((option, index) => (<FormItem key={index} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent"><FormControl><RadioGroupItem value={option} id={`${q.id}-${index}`} /></FormControl><Label htmlFor={`${q.id}-${index}`} className="font-normal flex-1 cursor-pointer">{option}</Label></FormItem>))}</RadioGroup></FormControl><FormMessage /></FormItem>
+                        )}/>
+                    ))}
+                </div>
+            </div>
+            
+            {/* --- STEP 4: Direction --- */}
+            <div className={cn("space-y-8", step !== 4 && "hidden")}>
+                 <div>
+                    <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
+                </div>
+                <FormField control={methods.control} name="goal" render={({ field }) => (
+                    <FormItem className="space-y-4"><FormControl><RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-1 md:grid-cols-2 gap-4">{GOAL_OPTIONS.map((option) => (<FormItem key={option.id}><FormControl><RadioGroupItem value={option.title} id={option.id} className="sr-only" /></FormControl><Label htmlFor={option.id} className={cn("flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover")}><h4 className="font-semibold mb-1">{option.title}</h4><p className="text-sm text-muted-foreground text-center">{option.description}</p></Label></FormItem>))}</RadioGroup></FormControl><FormMessage /></FormItem>
+                )}/>
+            </div>
+
+            {/* --- Navigation --- */}
+            <div className="flex justify-between pt-4">
+                <Button type="button" variant="ghost" onClick={handleBack} disabled={step === 1}>
+                    <ChevronLeft className="mr-2" /> Back
+                </Button>
+                 {step < totalSteps && (
+                    <Button type="button" onClick={handleNext}>Next</Button>
+                )}
+                {step === totalSteps && (
+                    <Button type="submit" disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Finish
+                    </Button>
+                )}
+            </div>
+          </>
+        )}
+      </form>
+    </FormProvider>
   );
 }
+
+    
