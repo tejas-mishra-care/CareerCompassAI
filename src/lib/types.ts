@@ -14,6 +14,15 @@ export interface Pathway {
   steps: PathwayStep[];
 }
 
+export interface Simulation {
+    id: string;
+    title: string;
+    description: string;
+    skills: string[];
+    spYield: number;
+    imageHint: string;
+}
+
 export interface UserProfile {
   name: string;
   bio: string;

@@ -24,6 +24,7 @@ import {
   Compass,
   ClipboardList,
   Users,
+  SquareTerminal,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { cn } from '@/lib/utils';
@@ -63,6 +64,11 @@ const navItems = [
     href: '/my-skills',
     label: 'My Skills',
     icon: ClipboardList,
+  },
+  {
+    href: '/simulations',
+    label: 'Simulations',
+    icon: SquareTerminal,
   },
   {
     href: '/connect',
