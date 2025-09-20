@@ -5,14 +5,16 @@ import { Button } from '@/components/ui/button';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { Loader2, Smile, Meh, Frown } from 'lucide-react';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '../ui/textarea';
+import { cn } from '@/lib/utils';
+import { Card, CardContent } from '../ui/card';
 
 // --- Validation Schemas ---
 const foundationSchema = z.object({
@@ -26,9 +28,19 @@ const foundationSchema = z.object({
   achievements: z.string().optional(),
 });
 
+const subjectSchema = z.object({
+    score: z.string().min(1, "Score is required."),
+    feeling: z.enum(['loved', 'okay', 'disliked'], { required_error: "Please select a feeling."}),
+});
+
+const deepDiveSchema = z.object({
+    subjects: z.record(subjectSchema)
+});
+
+
 // --- Step Components ---
 
-const Step1Foundation = ({ onComplete }: { onComplete: (data: any) => void }) => {
+const Step1Foundation = ({ onComplete }: { onComplete: (data: z.infer<typeof foundationSchema>) => void }) => {
     const methods = useForm<z.infer<typeof foundationSchema>>({
         resolver: zodResolver(foundationSchema),
         defaultValues: {
@@ -43,13 +55,9 @@ const Step1Foundation = ({ onComplete }: { onComplete: (data: any) => void }) =>
         }
     });
 
-    const onSubmit = (data: z.infer<typeof foundationSchema>) => {
-        onComplete(data);
-    };
-
     return (
         <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
                 <div>
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">10th Standard Details</h3>
                     <div className="grid md:grid-cols-3 gap-6">
@@ -195,7 +203,7 @@ const Step1Foundation = ({ onComplete }: { onComplete: (data: any) => void }) =>
                     />
                 </div>
                 
-                <div className="flex justify-end">
+                <div className="flex justify-end pt-4">
                     <Button type="submit">Next</Button>
                 </div>
             </form>
@@ -203,19 +211,96 @@ const Step1Foundation = ({ onComplete }: { onComplete: (data: any) => void }) =>
     );
 };
 
-const Step2DeepDive = ({ onComplete }: { onComplete: (data: any) => void }) => (
-    <div>
-        <h3 className="font-semibold mb-4">Step 2: Subject-Level Deep Dive</h3>
-        <p className="text-muted-foreground mb-4">Form for Subject Scores & Feelings will go here.</p>
-        <Button onClick={() => onComplete({ step2: 'data' })}>Next</Button>
-    </div>
-);
+const STREAM_SUBJECTS: Record<string, string[]> = {
+    pcm: ['Physics', 'Chemistry', 'Mathematics', 'English'],
+    pcb: ['Physics', 'Chemistry', 'Biology', 'English'],
+    commerce: ['Accountancy', 'Business Studies', 'Economics', 'English'],
+    arts: ['History', 'Political Science', 'Sociology', 'English'],
+    diploma: ['Engineering Mathematics', 'Applied Physics', 'Applied Chemistry', 'Communication Skills'],
+    default: ['Subject 1', 'Subject 2', 'Subject 3', 'Subject 4', 'Subject 5'],
+}
+
+const Step2DeepDive = ({ onComplete, previousData }: { onComplete: (data: any) => void, previousData: any }) => {
+    const stream = previousData.stream12th || 'default';
+    const subjects = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
+
+    const defaultValues = subjects.reduce((acc, subject) => {
+        acc[subject] = { score: '', feeling: '' };
+        return acc;
+    }, {} as Record<string, { score: string, feeling: string }>);
+
+    const methods = useForm({
+        // resolver: zodResolver(deepDiveSchema), // Add validation later
+        defaultValues: { subjects: defaultValues }
+    });
+
+    return (
+        <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
+                 <div>
+                    <h3 className="text-lg font-semibold mb-2">Subject-Level Deep Dive</h3>
+                    <p className="text-sm text-muted-foreground mb-4">This is where we deconstruct the average score to find the real story. For each subject, tell us your score and how you *really* felt about it.</p>
+                </div>
+
+                <div className="space-y-6">
+                    {subjects.map((subject) => (
+                        <Card key={subject} className="bg-secondary/50">
+                            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                <FormLabel className="text-base font-semibold md:col-span-1">{subject}</FormLabel>
+                                
+                                <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                                     <FormField
+                                        control={methods.control}
+                                        name={`subjects.${subject}.score`}
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Your Score (%)</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="e.g., 95" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Controller
+                                        control={methods.control}
+                                        name={`subjects.${subject}.feeling`}
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Your Feeling</FormLabel>
+                                                <div className="flex items-center space-x-2 pt-2">
+                                                    <Button type="button" variant={field.value === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
+                                                    <Button type="button" variant={field.value === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
+                                                    <Button type="button" variant={field.value === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
+                                                </div>
+                                                 <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+                
+                <div className="flex justify-between pt-4">
+                    <Button type="button" variant="ghost">Back</Button>
+                    <Button type="submit">Next</Button>
+                </div>
+            </form>
+        </FormProvider>
+    )
+};
+
 
 const Step3Quiz = ({ onComplete }: { onComplete: (data: any) => void }) => (
     <div>
         <h3 className="font-semibold mb-4">Step 3: The Adaptive Knowledge Quiz</h3>
         <p className="text-muted-foreground mb-4">The adaptive quiz will be generated here.</p>
-        <Button onClick={() => onComplete({ step3: 'data' })}>Next</Button>
+        <div className="flex justify-between pt-4">
+            <Button type="button" variant="ghost">Back</Button>
+            <Button onClick={() => onComplete({ step3: 'data' })}>Next</Button>
+        </div>
     </div>
 );
 
@@ -223,7 +308,10 @@ const Step4Direction = ({ onComplete }: { onComplete: (data: any) => void }) => 
     <div>
         <h3 className="font-semibold mb-4">Step 4: Defining Your Direction</h3>
         <p className="text-muted-foreground mb-4">Form for user goals and motivations will go here.</p>
-        <Button onClick={() => onComplete({ step4: 'data' })}>Finish</Button>
+        <div className="flex justify-between pt-4">
+            <Button type="button" variant="ghost">Back</Button>
+            <Button onClick={() => onComplete({ step4: 'data' })}>Finish</Button>
+        </div>
     </div>
 );
 
@@ -234,7 +322,7 @@ export function OnboardingStepper() {
   const router = useRouter();
   
   const [step, setStep] = useState(1);
-  const [onboardingData, setOnboardingData] = useState({});
+  const [onboardingData, setOnboardingData] = useState<any>({});
   const [loading, setLoading] = useState(false);
 
   const handleStepComplete = (data: any) => {
@@ -247,6 +335,13 @@ export function OnboardingStepper() {
       setStep(step + 1);
     }
   };
+  
+  const goToPreviousStep = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  }
+
 
   const handleFinish = async (finalData: any) => {
     if (!userProfile) return;
@@ -290,7 +385,7 @@ export function OnboardingStepper() {
       case 1:
         return <Step1Foundation onComplete={handleStepComplete} />;
       case 2:
-        return <Step2DeepDive onComplete={handleStepComplete} />;
+        return <Step2DeepDive onComplete={handleStepComplete} previousData={onboardingData} />;
       case 3:
         return <Step3Quiz onComplete={handleStepComplete} />;
       case 4:
