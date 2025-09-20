@@ -16,7 +16,10 @@ export function ProfileProcessor() {
 
   useEffect(() => {
     const processProfile = async () => {
-      if (!userProfile || !userProfile.onboardingData || !user) return;
+      if (!userProfile || !userProfile.onboardingData || !user) {
+          setIsProcessing(false);
+          return;
+      };
 
       // Prevent re-processing if skills are already populated
       if (userProfile.skills && userProfile.skills.length > 0) {
@@ -27,21 +30,13 @@ export function ProfileProcessor() {
       setIsProcessing(true);
       try {
         const data = userProfile.onboardingData;
-        const answers = [
-            { question: "Academics and Achievements", answer: JSON.stringify({
-                board10th: data.board10th,
-                score10th: data.score10th,
-                year10th: data.year10th,
-                board12th: data.board12th,
-                score12th: data.score12th,
-                stream12th: data.stream12th,
-                achievements: data.achievements
-            })},
-            { question: "Subject Deep Dive", answer: JSON.stringify(data.subjects || {}) },
-            { question: "Aptitude Quiz", answer: JSON.stringify(data.quizAnswers || {}) },
-            { question: "Primary Goal", answer: data.goal || "" },
-        ];
         
+        // The data is already a single object from react-hook-form
+        const answers = Object.keys(data).map(key => ({
+            question: key,
+            answer: JSON.stringify(data[key]),
+        }));
+
         const generatedProfile = await createProfileFromOnboarding({ 
             answers,
             userName: user.displayName || userProfile.name 
@@ -54,18 +49,20 @@ export function ProfileProcessor() {
           skills: generatedProfile.skills,
         };
         
+        // This will trigger a re-render on the dashboard
         await setUserProfile(finalProfile);
 
         toast({
           title: "Your Profile is Ready!",
           description: "We've created your personalized dashboard.",
         });
+
       } catch (error) {
         console.error("Failed to process profile:", error);
         toast({
           variant: 'destructive',
           title: 'Error Building Profile',
-          description: 'There was an issue creating your profile with AI. Please try again later.',
+          description: 'There was an issue creating your profile with AI. Please try refreshing.',
         });
       } finally {
         setIsProcessing(false);
@@ -73,8 +70,9 @@ export function ProfileProcessor() {
     };
 
     processProfile();
+  // We only want this to run when the component mounts and userProfile is available
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, userProfile]);
+  }, [user, userProfile?.onboardingData]);
 
   if (!isProcessing) return null;
 

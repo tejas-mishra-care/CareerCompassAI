@@ -18,7 +18,7 @@ import { Card } from '../ui/card';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Progress } from '../ui/progress';
-import { Label } from '../ui/label';
+import { Label } from '@/components/ui/label';
 
 const subjectSchema = z.object({
     score: z.string().min(1, "Score is required.").max(3, "Invalid score."),
@@ -60,6 +60,22 @@ const STREAM_SUBJECTS: Record<string, string[]> = {
     default: ['Science', 'Mathematics', 'Social Studies', 'English', 'Second Language'],
 };
 
+const onboardingSchema = z.object({
+    board10th: z.string().min(1, "Please select your 10th standard board."),
+    year10th: z.string().min(4, "Please enter a valid year.").max(4),
+    score10th: z.string().min(1, "Please enter your score."),
+    stream12th: z.string().optional(),
+    board12th: z.string().optional(),
+    year12th: z.string().optional(),
+    score12th: z.string().optional(),
+    achievements: z.string().optional(),
+    subjects: z.record(subjectSchema),
+    quizAnswers: z.record(z.string()),
+    goal: z.string({ required_error: "Please select a goal to continue." }).min(1, "Please select a goal to continue."),
+  });
+
+type OnboardingFormData = z.infer<typeof onboardingSchema>;
+
 const generateDefaultValues = (stream: string = 'default') => {
     const subjectsForStream = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
     const defaultSubjects = subjectsForStream.reduce((acc, subject) => {
@@ -87,27 +103,6 @@ const generateDefaultValues = (stream: string = 'default') => {
     };
   };
 
-const onboardingSchema = z.object({
-    board10th: z.string().min(1, "Please select your 10th standard board."),
-    year10th: z.string().min(4, "Please enter a valid year.").max(4),
-    score10th: z.string().min(1, "Please enter your score."),
-    stream12th: z.string().optional(),
-    board12th: z.string().optional(),
-    year12th: z.string().optional(),
-    score12th: z.string().optional(),
-    achievements: z.string().optional(),
-    subjects: z.record(subjectSchema).refine(
-      (subjects) => Object.values(subjects).every(subject => subject.score && subject.feeling),
-      { message: "Please fill out all fields for each subject." }
-    ),
-    quizAnswers: z.record(z.string().min(1, "Please select an answer.")).refine(
-      (answers) => Object.keys(answers).length >= QUIZ_QUESTIONS.length,
-      { message: "Please answer all quiz questions." }
-    ),
-    goal: z.string({ required_error: "Please select a goal to continue." }).min(1, "Please select a goal to continue."),
-  });
-
-type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 export function OnboardingStepper() {
   const { userProfile, setUserProfile } = useUserProfile();
@@ -118,7 +113,6 @@ export function OnboardingStepper() {
   const [loading, setLoading] = useState(false);
 
   const methods = useForm<OnboardingFormData>({
-    resolver: zodResolver(onboardingSchema),
     defaultValues: generateDefaultValues(),
     mode: 'onChange',
   });
@@ -130,24 +124,41 @@ export function OnboardingStepper() {
 
   React.useEffect(() => {
     const currentSubjects = getValues('subjects');
-    const newSubjects = (STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default).reduce((acc, subject) => {
+    const newSubjects = subjects.reduce((acc, subject) => {
         acc[subject] = currentSubjects[subject] || { score: '', feeling: undefined as any };
         return acc;
     }, {} as any);
-    methods.setValue('subjects', newSubjects, { shouldValidate: true });
-  }, [watchedStream, methods, getValues]);
+    methods.setValue('subjects', newSubjects);
+  }, [watchedStream, subjects, methods, getValues]);
 
 
   const handleNext = async () => {
-    let fieldsToValidate: (keyof OnboardingFormData | `subjects.${string}.score` | `subjects.${string}.feeling` | `quizAnswers.${string}`)[] = [];
+    let fieldsToValidate: (keyof OnboardingFormData | `subjects.${string}` | `quizAnswers.${string}`)[] = [];
+    
     if (step === 1) fieldsToValidate = ['board10th', 'year10th', 'score10th'];
     if (step === 2) {
-      fieldsToValidate = subjects.flatMap(s => [`subjects.${s}.score`, `subjects.${s}.feeling`]);
+       fieldsToValidate = subjects.map(s => `subjects.${s}`);
     }
     if (step === 3) {
       fieldsToValidate = QUIZ_QUESTIONS.map(q => `quizAnswers.${q.id}`);
     }
     
+    // Zod schema for partial validation
+    let validationSchema;
+    if(step === 2) {
+        const subjectsSchema = z.record(subjectSchema).refine(
+            (s) => Object.values(s).every(sub => sub.score && sub.feeling), 
+            { message: "Please fill out all fields for each subject." }
+        );
+        validationSchema = z.object({ subjects: subjectsSchema });
+    } else if (step === 3) {
+        const quizSchema = z.record(z.string().min(1, "Please select an answer.")).refine(
+            (answers) => Object.keys(answers).length >= QUIZ_QUESTIONS.length,
+            { message: "Please answer all quiz questions." }
+        );
+        validationSchema = z.object({ quizAnswers: quizSchema });
+    }
+
     const isValid = await trigger(fieldsToValidate as any);
     
     if (isValid) {
@@ -173,7 +184,7 @@ export function OnboardingStepper() {
         });
 
         toast({
-            title: "Profile Data Saved!",
+            title: "Progress Saved!",
             description: "Redirecting to your dashboard to build your profile.",
         });
 
@@ -182,7 +193,6 @@ export function OnboardingStepper() {
     } catch (error) {
       console.error("Error saving to Firestore:", error);
       toast({ variant: 'destructive', title: 'Error Saving Progress', description: 'Could not save your progress. Please check your connection and try again.' });
-    } finally {
       setLoading(false);
     }
   };
@@ -196,8 +206,8 @@ export function OnboardingStepper() {
       <form onSubmit={methods.handleSubmit(handleFinish)} className="py-4 space-y-8">
         <Progress value={(step / totalSteps) * 100} className="w-full mb-8" />
         
-          <div className="min-h-[450px]">
-            <div className={cn("space-y-8", step !== 1 && "hidden")}>
+          <div className="min-h-[450px] relative">
+            <div className={cn("space-y-8 transition-opacity duration-300", step === 1 ? "opacity-100" : "opacity-0 absolute inset-0 -z-10")}>
                  <div>
                     <h3 className="text-lg font-semibold mb-4 border-b pb-2">10th Standard Details</h3>
                     <div className="grid md:grid-cols-3 gap-6">
@@ -238,7 +248,7 @@ export function OnboardingStepper() {
                 </div>
             </div>
 
-            <div className={cn("space-y-6", step !== 2 && "hidden")}>
+            <div className={cn("space-y-6 transition-opacity duration-300", step === 2 ? "opacity-100" : "opacity-0 absolute inset-0 -z-10")}>
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Subject-Level Deep Dive</h3>
                     <p className="text-sm text-muted-foreground mb-4">For each subject, tell us your score and how you *really* felt about it.</p>
@@ -268,7 +278,7 @@ export function OnboardingStepper() {
                     )})}
             </div>
 
-            <div className={cn("space-y-6", step !== 3 && "hidden")}>
+            <div className={cn("space-y-6 transition-opacity duration-300", step === 3 ? "opacity-100" : "opacity-0 absolute inset-0 -z-10")}>
                 <div>
                     <h3 className="text-lg font-semibold mb-2">The Profile Scanner</h3>
                     <p className="text-sm text-muted-foreground mb-4">Let's calibrate your Compass. This isn't a test; it's a quick challenge to discover your hidden strengths.</p>
@@ -289,7 +299,7 @@ export function OnboardingStepper() {
                 ))}
             </div>
 
-            <div className={cn("space-y-6", step !== 4 && "hidden")}>
+            <div className={cn("space-y-6 transition-opacity duration-300", step === 4 ? "opacity-100" : "opacity-0 absolute inset-0 -z-10")}>
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
                     <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>

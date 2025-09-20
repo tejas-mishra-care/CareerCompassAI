@@ -13,7 +13,11 @@ import { ProfileProcessor } from '@/components/dashboard/profile-processor';
 export default function DashboardPage() {
   const { userProfile, isProfileComplete } = useUserProfile();
 
+  // Scenarios:
+  // 1. User is new, has not completed onboarding.
   const needsOnboarding = !userProfile?.onboardingCompleted;
+  
+  // 2. User has finished onboarding, but the AI has not generated the profile yet.
   const needsProcessing = userProfile?.onboardingCompleted && !isProfileComplete;
 
   return (
