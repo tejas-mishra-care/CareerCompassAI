@@ -39,9 +39,12 @@ export const UserProfileProvider = ({
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setLoading(true);
-      setUser(firebaseUser);
+      setLoading(true); // Start loading on auth state change
       if (firebaseUser) {
+        setUser(firebaseUser);
+        setLoading(false); // Stop loading once user is confirmed
+
+        // Fetch profile data in the background
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         try {
           const docSnap = await getDoc(userDocRef);
@@ -60,13 +63,14 @@ export const UserProfileProvider = ({
           }
         } catch (error) {
           console.error('Failed to get or create user profile in Firestore', error);
-          setUserProfileState(null);
+          setUserProfileState(null); // Clear profile on error
         }
       } else {
         // User is signed out
+        setUser(null);
         setUserProfileState(null);
+        setLoading(false); // Stop loading
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
