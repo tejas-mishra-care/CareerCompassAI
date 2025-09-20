@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -122,18 +123,19 @@ export function OnboardingStepper() {
     mode: 'onChange',
   });
   
-  const { trigger } = methods;
+  const { trigger, getValues } = methods;
 
   const watchedStream = methods.watch('stream12th') || 'default';
   const subjects = useMemo(() => STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default, [watchedStream]);
 
   React.useEffect(() => {
-    const defaultSubjects = (STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default).reduce((acc, subject) => {
-        acc[subject] = { score: '', feeling: undefined as any };
+    const currentSubjects = getValues('subjects');
+    const newSubjects = (STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default).reduce((acc, subject) => {
+        acc[subject] = currentSubjects[subject] || { score: '', feeling: undefined as any };
         return acc;
     }, {} as any);
-    methods.setValue('subjects', defaultSubjects);
-  }, [watchedStream, methods]);
+    methods.setValue('subjects', newSubjects);
+  }, [watchedStream, methods, getValues]);
 
   const handleNext = async () => {
     let fieldsToValidate: (keyof OnboardingFormData | `subjects.${string}.score` | `subjects.${string}.feeling` | `quizAnswers.${string}`)[] = [];
@@ -161,8 +163,7 @@ export function OnboardingStepper() {
     setLoading(true);
 
     try {
-      // Just save the raw data and redirect. Processing will happen on the dashboard.
-      setUserProfile({
+      await setUserProfile({
         ...userProfile,
         onboardingData: data,
         onboardingCompleted: true,
@@ -322,3 +323,5 @@ export function OnboardingStepper() {
     </FormProvider>
   );
 }
+
+    
