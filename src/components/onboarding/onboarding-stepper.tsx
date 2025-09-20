@@ -31,7 +31,7 @@ const LoadingSkeleton = () => (
 );
 
 export function OnboardingStepper({ onFinish }: { onFinish: () => void }) {
-  const { userProfile, setUserProfile } = useUserProfile();
+  const { user, userProfile, setUserProfile } = useUserProfile();
   const { toast } = useToast();
   
   const [step, setStep] = useState(0);
@@ -75,19 +75,21 @@ export function OnboardingStepper({ onFinish }: { onFinish: () => void }) {
   };
 
   const handleFinish = () => {
+    if (!userProfile) return;
+
     // A more sophisticated implementation would use AI to extract skills and interests.
     // For now, we'll create a basic profile.
     const finalProfile: UserProfile = {
-      name: userProfile?.name || 'New User', // This should be captured in a dedicated step
+      ...userProfile,
+      name: user?.displayName || userProfile.name, // Use display name from auth
       bio: answers.map(a => `Q: ${a.question}\nA: ${a.answer}`).join('\n\n'),
-      skills: [], // Skills would be extracted and quantified here
+      // In a real scenario, an AI flow would parse `answers` to populate skills
+      skills: [
+        { name: "Problem Solving", proficiency: 30 },
+        { name: "Creativity", proficiency: 25 },
+        { name: "Communication", proficiency: 20 },
+      ], 
     };
-    
-    // A placeholder for name if not set, ideally this would be step 0
-    if (!userProfile?.name) {
-        const name = prompt("What's your name?");
-        finalProfile.name = name || 'Anonymous';
-    }
 
     setUserProfile(finalProfile);
     onFinish();
