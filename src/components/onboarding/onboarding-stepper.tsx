@@ -428,19 +428,16 @@ const Step4Direction = ({ onComplete, onBack, initialData }: { onComplete: (data
         resolver: zodResolver(directionSchema),
         defaultValues: { goal: initialData?.goal || '' }
     });
-    
-    const { control, handleSubmit, watch } = methods;
-    const selectedGoal = watch('goal');
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onComplete)} className="space-y-8">
+            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
                     <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
                 </div>
                 <FormField
-                  control={control}
+                  control={methods.control}
                   name="goal"
                   render={({ field }) => (
                     <FormItem className="space-y-4">
@@ -452,6 +449,9 @@ const Step4Direction = ({ onComplete, onBack, initialData }: { onComplete: (data
                             >
                               {GOAL_OPTIONS.map((option) => (
                                 <FormItem key={option.id}>
+                                  <FormControl>
+                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                  </FormControl>
                                   <Label
                                     htmlFor={option.id}
                                     className={cn(
@@ -461,9 +461,6 @@ const Step4Direction = ({ onComplete, onBack, initialData }: { onComplete: (data
                                         : "border-muted bg-popover"
                                     )}
                                   >
-                                    <FormControl>
-                                      <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
-                                    </FormControl>
                                     <h4 className="font-semibold mb-1">{option.title}</h4>
                                     <p className="text-sm text-muted-foreground text-center">{option.description}</p>
                                   </Label>
@@ -601,3 +598,5 @@ export function OnboardingStepper() {
     </div>
   );
 }
+
+    
