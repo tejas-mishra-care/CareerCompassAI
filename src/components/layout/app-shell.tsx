@@ -1,8 +1,9 @@
+
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -34,10 +35,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '../ui/scroll-area';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { Skeleton } from '../ui/skeleton';
 
 const navItems = [
   {
-    href: '/',
+    href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
   },
@@ -113,8 +116,33 @@ const MobileNav = () => (
   </Sheet>
 );
 
+const AppShellSkeleton = () => (
+    <div className="flex items-center justify-center h-screen">
+      <Skeleton className="h-16 w-16 rounded-full" />
+    </div>
+);
+
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
+  const { user, loading } = useUserProfile();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  React.useEffect(() => {
+    if (!loading && !user && pathname !== '/login') {
+      router.push('/login');
+    }
+  }, [user, loading, router, pathname]);
+
+  if (loading) {
+    return <AppShellSkeleton />;
+  }
+
+  if (!user) {
+    return <AppShellSkeleton />;
+  }
+  
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <Sidebar>
