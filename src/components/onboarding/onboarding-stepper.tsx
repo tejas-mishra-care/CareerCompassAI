@@ -11,8 +11,8 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '../ui/textarea';
 import { Card } from '../ui/card';
@@ -134,8 +134,9 @@ export function OnboardingStepper() {
         acc[subject] = currentSubjects[subject] || { score: '', feeling: undefined as any };
         return acc;
     }, {} as any);
-    methods.setValue('subjects', newSubjects);
+    methods.setValue('subjects', newSubjects, { shouldValidate: false });
   }, [watchedStream, methods, getValues]);
+
 
   const handleNext = async () => {
     let fieldsToValidate: (keyof OnboardingFormData | `subjects.${string}.score` | `subjects.${string}.feeling` | `quizAnswers.${string}`)[] = [];
@@ -323,5 +324,3 @@ export function OnboardingStepper() {
     </FormProvider>
   );
 }
-
-    

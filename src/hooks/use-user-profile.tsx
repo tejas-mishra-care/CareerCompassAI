@@ -18,7 +18,7 @@ import { useRouter, usePathname } from 'next/navigation';
 interface UserProfileContextType {
   user: User | null;
   userProfile: UserProfile | null;
-  setUserProfile: (profile: UserProfile | null) => void;
+  setUserProfile: (profile: UserProfile | null) => Promise<void>;
   isProfileComplete: boolean;
   loading: boolean;
 }
@@ -86,6 +86,8 @@ export const UserProfileProvider = ({
             await setDoc(userDocRef, profile, { merge: true });
         } catch (error) {
             console.error("Failed to save user profile to Firestore", error);
+            // Optionally re-throw or handle the error in UI
+            throw error;
         }
       }
     },
@@ -94,23 +96,25 @@ export const UserProfileProvider = ({
   
   const isProfileComplete = useMemo(() => {
       if (!userProfile) return false;
-      return userProfile.onboardingCompleted === true && userProfile.skills && userProfile.skills.length > 0;
+      // Profile is complete if it has a bio and at least one skill.
+      return !!userProfile.bio && userProfile.skills && userProfile.skills.length > 0;
   }, [userProfile]);
 
   // Navigation logic
    useEffect(() => {
     if (loading) return;
 
-    const publicPaths = ['/login'];
+    const publicPaths = ['/login', '/'];
     const isPublicPath = publicPaths.includes(pathname);
 
     if (!user && !isPublicPath) {
       router.push('/login');
     } else if (user) {
-      if (pathname === '/login') {
+      if (isPublicPath) {
          router.push('/dashboard');
       }
       else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
+        // If onboarding isn't done, force user to the profile page to start it.
         router.push('/profile');
       }
     }

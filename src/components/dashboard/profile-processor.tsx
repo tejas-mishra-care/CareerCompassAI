@@ -18,6 +18,12 @@ export function ProfileProcessor() {
     const processProfile = async () => {
       if (!userProfile || !userProfile.onboardingData || !user) return;
 
+      // Prevent re-processing if skills are already populated
+      if (userProfile.skills && userProfile.skills.length > 0) {
+        setIsProcessing(false);
+        return;
+      }
+
       setIsProcessing(true);
       try {
         const answers = [
@@ -37,11 +43,9 @@ export function ProfileProcessor() {
           name: generatedProfile.name,
           bio: generatedProfile.bio,
           skills: generatedProfile.skills,
-          activePathways: userProfile.activePathways || [],
-          // Keep onboardingData but clear it if you want to prevent re-processing
         };
         
-        setUserProfile(finalProfile);
+        await setUserProfile(finalProfile);
 
         toast({
           title: "Your Profile is Ready!",
@@ -60,7 +64,10 @@ export function ProfileProcessor() {
     };
 
     processProfile();
-  }, [user, userProfile, setUserProfile, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, userProfile?.onboardingData]);
+
+  if (!isProcessing) return null;
 
   return (
     <Card>

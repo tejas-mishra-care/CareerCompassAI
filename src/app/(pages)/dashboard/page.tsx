@@ -13,7 +13,7 @@ import { ProfileProcessor } from '@/components/dashboard/profile-processor';
 export default function DashboardPage() {
   const { userProfile, isProfileComplete } = useUserProfile();
 
-  const needsOnboarding = !userProfile?.onboardingCompleted && !isProfileComplete;
+  const needsOnboarding = !userProfile?.onboardingCompleted;
   const needsProcessing = userProfile?.onboardingCompleted && !isProfileComplete;
 
   return (
