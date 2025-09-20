@@ -85,7 +85,7 @@ const SidebarNavigation = () => {
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton
             asChild
-            isActive={pathname === item.href}
+            isActive={pathname.startsWith(item.href)}
             tooltip={{ children: item.label, side: 'right' }}
           >
             <Link href={item.href}>
@@ -132,22 +132,41 @@ const AppShellSkeleton = () => (
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
-  const { user, loading } = useUserProfile();
+  const { user, loading, isProfileComplete } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
 
   React.useEffect(() => {
-    if (!loading && !user && pathname !== '/login') {
+    // If still loading, do nothing yet.
+    if (loading) return;
+
+    // If no user, redirect to login.
+    if (!user) {
       router.push('/login');
+      return;
     }
-  }, [user, loading, router, pathname]);
+
+    // If user is logged in but profile is not complete, redirect to profile setup.
+    // Allow access only to the profile page itself.
+    if (user && !isProfileComplete && pathname !== '/profile') {
+      router.push('/profile');
+    }
+    
+  }, [user, loading, isProfileComplete, router, pathname]);
 
   if (loading) {
     return <AppShellSkeleton />;
   }
 
+  // If user is not authenticated, the redirect is happening. Show skeleton in the meantime.
   if (!user) {
     return <AppShellSkeleton />;
+  }
+
+  // If user is authenticated but profile is incomplete, and they are not on the profile page,
+  // the redirect is happening. Show skeleton.
+  if (!isProfileComplete && pathname !== '/profile') {
+      return <AppShellSkeleton />;
   }
   
   return (

@@ -3,14 +3,26 @@
 
 import React from 'react';
 import { AppShell } from '@/components/layout/app-shell';
-import { WelcomeCard } from '@/components/dashboard/welcome-card';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { SkillDashboard } from '@/components/dashboard/skill-dashboard';
 import { Recommendations } from '@/components/dashboard/recommendations';
 import { MyActivePathways } from '@/components/dashboard/active-pathways';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
-  const { userProfile, isProfileComplete } = useUserProfile();
+  const { isProfileComplete } = useUserProfile();
+
+  // The redirect is handled in AppShell, but we can show a skeleton while it happens.
+  if (!isProfileComplete) {
+    return (
+        <AppShell>
+            <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+                <Skeleton className="h-8 w-1/4" />
+                <Skeleton className="h-64 w-full" />
+            </div>
+        </AppShell>
+    )
+  }
 
   return (
     <AppShell>
@@ -20,10 +32,7 @@ export default function DashboardPage() {
             Dashboard
           </h1>
         </div>
-        {!isProfileComplete ? (
-          <WelcomeCard />
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="lg:col-span-2 grid gap-6">
               <SkillDashboard />
               <MyActivePathways />
@@ -31,8 +40,7 @@ export default function DashboardPage() {
             <div className="lg:col-span-1">
               <Recommendations />
             </div>
-          </div>
-        )}
+        </div>
       </div>
     </AppShell>
   );

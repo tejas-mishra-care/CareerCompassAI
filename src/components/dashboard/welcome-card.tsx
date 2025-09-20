@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -8,16 +9,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { OnboardingDialog } from '../onboarding/onboarding-dialog';
 import Image from 'next/image';
 import { placeholderImages } from '@/lib/placeholder-images';
+import { useRouter } from 'next/navigation';
 
 export function WelcomeCard() {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const router = useRouter();
   const welcomeImage = placeholderImages.find(p => p.id === 'welcome');
 
   return (
-    <>
       <Card>
         <div className="grid md:grid-cols-2 items-center">
             <div className="p-6">
@@ -30,7 +30,7 @@ export function WelcomeCard() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <Button onClick={() => setDialogOpen(true)}>Get Started</Button>
+                    <Button onClick={() => router.push('/profile')}>Get Started</Button>
                 </CardContent>
             </div>
             {welcomeImage && (
@@ -47,7 +47,5 @@ export function WelcomeCard() {
             )}
         </div>
       </Card>
-      <OnboardingDialog open={dialogOpen} onOpenChange={setDialogOpen} />
-    </>
   );
 }
