@@ -12,7 +12,7 @@ import React, {
 import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
 
 interface UserProfileContextType {
   user: User | null;
@@ -35,11 +35,9 @@ export const UserProfileProvider = ({
   const [userProfile, setUserProfileState] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const auth = getAuth(app);
-  const db = getFirestore(app);
-
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setLoading(true); // Start loading on auth state change
       if (firebaseUser) {
         setUser(firebaseUser);
         setLoading(false); // Stop loading once user is confirmed
@@ -58,11 +56,15 @@ export const UserProfileProvider = ({
                 skills: [],
                 activePathways: [],
             }
-            await setDoc(userDocRef, newProfile);
-            setUserProfileState(newProfile);
+            try {
+              await setDoc(userDocRef, newProfile);
+              setUserProfileState(newProfile);
+            } catch (e) {
+               console.error("Failed to get or create user profile in Firestore", e);
+            }
           }
         } catch (error) {
-          console.error('Failed to get or create user profile in Firestore', error);
+          console.error('Failed to get user profile from Firestore', error);
           setUserProfileState(null); // Clear profile on error
         }
       } else {
