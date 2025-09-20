@@ -10,7 +10,7 @@ import React, {
   useMemo,
 } from 'react';
 import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, clearIndexedDbPersistence } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { app, db } from '@/lib/firebase';
 
@@ -26,6 +26,9 @@ const UserProfileContext = createContext<UserProfileContextType | undefined>(
   undefined
 );
 
+// A one-time flag to ensure we only try to clear persistence once.
+let persistenceCleared = false;
+
 export const UserProfileProvider = ({
   children,
 }: {
@@ -37,46 +40,67 @@ export const UserProfileProvider = ({
   const auth = getAuth(app);
   
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        setLoading(false); // Stop loading once user is confirmed
-
-        // Fetch profile data in the background
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
+    const initialize = async () => {
+      // One-time attempt to clear persistence if it hasn't been done.
+      if (!persistenceCleared) {
         try {
-          const docSnap = await getDoc(userDocRef);
-          if (docSnap.exists()) {
-            setUserProfileState(docSnap.data() as UserProfile);
-          } else {
-            // If no profile exists, create a basic one in Firestore.
-            const newProfile: UserProfile = {
-                name: firebaseUser.displayName || 'New User',
-                bio: '',
-                skills: [],
-                activePathways: [],
-            }
-            try {
+          await clearIndexedDbPersistence(db);
+          console.log('Successfully cleared Firestore IndexedDB persistence.');
+        } catch (err) {
+          console.error('Could not clear Firestore persistence:', err);
+        } finally {
+          persistenceCleared = true;
+        }
+      }
+
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        setLoading(true); // Set loading true at the start of auth change
+        if (firebaseUser) {
+          setUser(firebaseUser);
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          try {
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+              setUserProfileState(docSnap.data() as UserProfile);
+            } else {
+              const newProfile: UserProfile = {
+                  name: firebaseUser.displayName || 'New User',
+                  bio: '',
+                  skills: [],
+                  activePathways: [],
+              }
               await setDoc(userDocRef, newProfile);
               setUserProfileState(newProfile);
-            } catch (e) {
-               console.error("Failed to get or create user profile in Firestore", e);
             }
+          } catch (error) {
+            console.error('Failed to get user profile from Firestore', error);
+            setUserProfileState(null);
+          } finally {
+            setLoading(false);
           }
-        } catch (error) {
-          console.error('Failed to get user profile from Firestore', error);
-          setUserProfileState(null); // Clear profile on error
+        } else {
+          setUser(null);
+          setUserProfileState(null);
+          setLoading(false);
         }
-      } else {
-        // User is signed out
-        setUser(null);
-        setUserProfileState(null);
-        setLoading(false); // Stop loading
+      });
+      
+      return unsubscribe;
+    };
+
+    let unsubscribe: (() => void) | undefined;
+    initialize().then(unsub => {
+      if (unsub) {
+        unsubscribe = unsub;
       }
     });
 
-    return () => unsubscribe();
-  }, [auth, db]);
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [auth]);
 
   const setUserProfile = useCallback(
     async (profile: UserProfile | null) => {
@@ -84,14 +108,13 @@ export const UserProfileProvider = ({
       if (profile && user) {
         const userDocRef = doc(db, 'users', user.uid);
         try {
-            // Use setDoc with merge to create or update the document
             await setDoc(userDocRef, profile, { merge: true });
         } catch (error) {
             console.error("Failed to save user profile to Firestore", error);
         }
       }
     },
-    [user, db]
+    [user]
   );
 
   const isProfileComplete = useMemo(

@@ -406,44 +406,52 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: z.infer<typ
         defaultValues: { goal: '' }
     });
     
-    const { watch } = methods;
+    const { control, handleSubmit, watch } = methods;
     const selectedGoal = watch('goal');
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
+            <form onSubmit={handleSubmit(onComplete)} className="space-y-8">
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
                     <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
                 </div>
-
-                <Controller
-                    control={methods.control}
-                    name="goal"
-                    render={({ field }) => (
+                <FormField
+                  control={control}
+                  name="goal"
+                  render={({ field }) => (
+                    <FormItem className="space-y-4">
+                      <FormControl>
                         <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="grid grid-cols-1 md:grid-cols-2 gap-4"
                         >
-                            {GOAL_OPTIONS.map(option => (
-                                <Label 
-                                    key={option.id}
-                                    htmlFor={option.id} 
-                                    className={cn(
-                                        "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
-                                        field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover"
-                                    )}
-                                >
-                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
-                                    <h4 className="font-semibold mb-1">{option.title}</h4>
-                                    <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                                </Label>
-                            ))}
+                          {GOAL_OPTIONS.map((option) => (
+                            <FormItem key={option.id}>
+                              <FormControl>
+                                <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                              </FormControl>
+                              <Label
+                                htmlFor={option.id}
+                                className={cn(
+                                  "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                                  field.value === option.title
+                                    ? "border-primary bg-accent"
+                                    : "border-muted bg-popover"
+                                )}
+                              >
+                                <h4 className="font-semibold mb-1">{option.title}</h4>
+                                <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                              </Label>
+                            </FormItem>
+                          ))}
                         </RadioGroup>
-                    )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-
 
                 <div className="flex justify-between pt-4">
                     <Button type="button" variant="ghost" onClick={onBack}><ChevronLeft className="mr-2" /> Back</Button>
@@ -570,5 +578,3 @@ export function OnboardingStepper() {
     </div>
   );
 }
-
-    
