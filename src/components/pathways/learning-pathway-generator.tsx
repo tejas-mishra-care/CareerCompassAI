@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { exploreCareersWithChatbot } from '@/ai/flows/explore-careers-with-chatbot';
 import { useToast } from '@/hooks/use-toast';
-import { GraduationCap, Wand2 } from 'lucide-react';
+import { GraduationCap, Wand2, PlusCircle } from 'lucide-react';
 
 interface PathwayStep {
   title: string;
@@ -25,7 +25,7 @@ const parsePathway = (text: string): Pathway | null => {
       if (lines.length === 0) return null;
   
       const titleLine = lines.find(line => line.startsWith('#') || line.toLowerCase().includes('pathway for:')) || `Learning Pathway`;
-      const title = titleLine.replace(/#|\*/g, '').trim();
+      const title = titleLine.replace(/#|\*/g, '').replace('Learning Pathway for:', '').trim();
 
       const steps: PathwayStep[] = [];
       let currentStep: PathwayStep | null = null;
@@ -58,7 +58,7 @@ const parsePathway = (text: string): Pathway | null => {
       
       if (steps.length === 0) return null;
   
-      return { title, steps };
+      return { title: `Learning Pathway for: ${title}`, steps };
     } catch (error) {
       console.error("Failed to parse pathway:", error);
       return null;
@@ -106,6 +106,15 @@ export function LearningPathwayGenerator() {
       setLoading(false);
     }
   };
+  
+  const handleStartPathway = () => {
+    if (!pathway) return;
+    // In a real application, this would save the pathway to the user's profile.
+    toast({
+        title: "Pathway Started!",
+        description: `You've started the "${pathway.title}" pathway.`,
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -170,6 +179,11 @@ export function LearningPathwayGenerator() {
               ))}
             </div>
           </CardContent>
+          <CardFooter className="border-t pt-6 justify-end">
+                <Button onClick={handleStartPathway}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Start Pathway
+                </Button>
+          </CardFooter>
         </Card>
       )}
     </div>
