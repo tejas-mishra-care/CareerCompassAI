@@ -56,10 +56,10 @@ const directionSchema = z.object({
 
 // --- Step Components ---
 
-const Step1Foundation = ({ onComplete }: { onComplete: (data: z.infer<typeof foundationSchema>) => void }) => {
+const Step1Foundation = ({ onComplete, initialData }: { onComplete: (data: z.infer<typeof foundationSchema>) => void, initialData: any }) => {
     const methods = useForm<z.infer<typeof foundationSchema>>({
         resolver: zodResolver(foundationSchema),
-        defaultValues: {
+        defaultValues: initialData || {
             board10th: '',
             year10th: '',
             score10th: '',
@@ -236,12 +236,12 @@ const STREAM_SUBJECTS: Record<string, string[]> = {
     default: ['Science', 'Mathematics', 'Social Studies', 'English', 'Second Language'],
 }
 
-const Step2DeepDive = ({ onComplete, onBack, previousData }: { onComplete: (data: any) => void, onBack: () => void, previousData: any }) => {
-    const stream = previousData.stream12th || 'default';
+const Step2DeepDive = ({ onComplete, onBack, previousData, initialData }: { onComplete: (data: any) => void, onBack: () => void, previousData: any, initialData: any }) => {
+    const stream = previousData.foundation?.stream12th || 'default';
     const subjects = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
 
     const defaultValues = subjects.reduce((acc, subject) => {
-        acc[subject] = { score: '', feeling: undefined };
+        acc[subject] = initialData?.[subject] || { score: '', feeling: undefined };
         return acc;
     }, {} as Record<string, { score: string, feeling: 'loved' | 'okay' | 'disliked' | undefined }>);
 
@@ -282,7 +282,7 @@ const Step2DeepDive = ({ onComplete, onBack, previousData }: { onComplete: (data
                                     <Controller
                                         control={control}
                                         name={`subjects.${subject}.feeling`}
-                                        render={({ field }) => (
+                                        render={({ field, fieldState }) => (
                                             <FormItem>
                                                 <FormLabel>Your Feeling</FormLabel>
                                                 <div className="flex items-center space-x-2 pt-2">
@@ -290,7 +290,7 @@ const Step2DeepDive = ({ onComplete, onBack, previousData }: { onComplete: (data
                                                     <Button type="button" variant={field.value === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
                                                     <Button type="button" variant={field.value === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
                                                 </div>
-                                                 <FormMessage />
+                                                 {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
                                             </FormItem>
                                         )}
                                     />
@@ -328,13 +328,14 @@ const QUIZ_QUESTIONS = [
     }
 ]
 
-const Step3Quiz = ({ onComplete, onBack }: { onComplete: (data: any) => void, onBack: () => void }) => {
+const Step3Quiz = ({ onComplete, onBack, initialData }: { onComplete: (data: any) => void, onBack: () => void, initialData: any }) => {
     const defaultValues = QUIZ_QUESTIONS.reduce((acc, q) => {
-        acc[q.id] = '';
+        acc[q.id] = initialData?.[q.id] || '';
         return acc;
     }, {} as Record<string, string>);
     
     const methods = useForm({
+        resolver: zodResolver(quizSchema),
         defaultValues: { quizAnswers: defaultValues }
     });
 
@@ -398,10 +399,10 @@ const GOAL_OPTIONS = [
     { id: 'entrance_exam', title: "I'm focused on an exam", description: "You're preparing for a competitive entrance exam." },
 ]
 
-const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: z.infer<typeof directionSchema>) => void, onBack: () => void }) => {
+const Step4Direction = ({ onComplete, onBack, initialData }: { onComplete: (data: z.infer<typeof directionSchema>) => void, onBack: () => void, initialData: any }) => {
     const methods = useForm<z.infer<typeof directionSchema>>({
         resolver: zodResolver(directionSchema),
-        defaultValues: { goal: '' }
+        defaultValues: { goal: initialData?.goal || '' }
     });
     
     const { control, handleSubmit, watch } = methods;
@@ -419,7 +420,6 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: z.infer<typ
                   name="goal"
                   render={({ field }) => (
                     <FormItem className="space-y-4">
-                      <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
                           value={field.value}
@@ -427,6 +427,9 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: z.infer<typ
                         >
                           {GOAL_OPTIONS.map((option) => (
                             <FormItem key={option.id}>
+                                <FormControl>
+                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                </FormControl>
                                 <Label
                                 htmlFor={option.id}
                                 className={cn(
@@ -436,16 +439,12 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: z.infer<typ
                                     : "border-muted bg-popover"
                                 )}
                                 >
-                                <FormControl>
-                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
-                                </FormControl>
                                 <h4 className="font-semibold mb-1">{option.title}</h4>
                                 <p className="text-sm text-muted-foreground text-center">{option.description}</p>
                               </Label>
                             </FormItem>
                           ))}
                         </RadioGroup>
-                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -536,15 +535,15 @@ export function OnboardingStepper() {
   const renderStep = () => {
     switch(step) {
       case 1:
-        return <Step1Foundation onComplete={(data) => handleStepComplete({ foundation: data })} />;
+        return <Step1Foundation onComplete={(data) => handleStepComplete({ foundation: data })} initialData={onboardingData.foundation} />;
       case 2:
-        return <Step2DeepDive onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} previousData={onboardingData.foundation || {}} />;
+        return <Step2DeepDive onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} previousData={onboardingData} initialData={onboardingData.subjects} />;
       case 3:
-        return <Step3Quiz onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} />;
+        return <Step3Quiz onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} initialData={onboardingData.quizAnswers} />;
       case 4:
-        return <Step4Direction onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} />;
+        return <Step4Direction onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} initialData={onboardingData} />;
       default:
-        return <Step1Foundation onComplete={(data) => handleStepComplete({ foundation: data })} />;
+        return <Step1Foundation onComplete={(data) => handleStepComplete({ foundation: data })} initialData={onboardingData.foundation} />;
     }
   }
 
@@ -576,3 +575,5 @@ export function OnboardingStepper() {
     </div>
   );
 }
+
+    
