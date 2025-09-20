@@ -314,7 +314,7 @@ export function OnboardingStepper() {
              {!isFinalStep ? (
                 <Button type="button" onClick={handleNext} disabled={loading}>Next</Button>
             ) : (
-                <Button type="submit" disabled={loading || !methods.watch('goal')}>
+                <Button type="submit" disabled={loading || !methods.formState.isValid}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Finish
                 </Button>

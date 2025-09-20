@@ -1,7 +1,6 @@
-
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getFirestore, initializeFirestore, memoryLocalCache } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 
 const firebaseConfig = {
   projectId: "studio-9295250327-e0fca",
@@ -15,11 +14,21 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firestore with memory cache as a fallback.
-// The actual persistence is handled in the useUserProfile hook to manage cleanup.
-const db = initializeFirestore(app, {
-  localCache: memoryLocalCache(),
-});
+const db = getFirestore(app);
+
+// Enable offline persistence
+try {
+    enableIndexedDbPersistence(db)
+    .catch((err) => {
+        if (err.code === 'failed-precondition') {
+            console.warn('Firestore persistence failed: Multiple tabs open');
+        } else if (err.code === 'unimplemented') {
+            console.warn('Firestore persistence failed: Browser does not support it');
+        }
+    });
+} catch (err) {
+    console.error("Error enabling persistence:", err);
+}
 
 
 export { app, db };
