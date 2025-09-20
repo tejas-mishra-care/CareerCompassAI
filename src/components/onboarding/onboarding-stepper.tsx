@@ -47,7 +47,9 @@ const quizSchema = z.object({
 });
 
 const directionSchema = z.object({
-  goal: z.string().min(1, "Please select a goal.")
+  goal: z.string({
+    required_error: "Please select a goal to continue."
+  })
 });
 
 
@@ -346,7 +348,7 @@ const Step3Quiz = ({ onComplete, onBack }: { onComplete: (data: any) => void, on
                 </div>
 
                 <div className="space-y-6">
-                    {QUIZ_QUESTIONS.map(q => (
+                    {QUIZ_QUESTIONS.map((q, qIndex) => (
                         <FormField
                             key={q.id}
                             control={methods.control}
@@ -363,9 +365,9 @@ const Step3Quiz = ({ onComplete, onBack }: { onComplete: (data: any) => void, on
                                             {q.options.map((option, index) => (
                                                 <FormItem key={index} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
                                                     <FormControl>
-                                                        <RadioGroupItem value={option} />
+                                                        <RadioGroupItem value={option} id={`${q.id}-${index}`} />
                                                     </FormControl>
-                                                    <Label htmlFor={q.id + index} className="font-normal flex-1 cursor-pointer">
+                                                    <Label htmlFor={`${q.id}-${index}`} className="font-normal flex-1 cursor-pointer">
                                                         {option}
                                                     </Label>
                                                 </FormItem>
@@ -415,7 +417,7 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: any) => voi
                     control={methods.control}
                     name="goal"
                     render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="space-y-4">
                              <FormControl>
                                 <RadioGroup
                                     onValueChange={field.onChange}
@@ -424,13 +426,13 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: any) => voi
                                 >
                                     {GOAL_OPTIONS.map(option => (
                                         <FormItem key={option.id}>
-                                            <FormControl>
-                                                <RadioGroupItem value={option.title} className="sr-only" id={option.id} />
-                                            </FormControl>
-                                            <Label htmlFor={option.id} className="flex flex-col h-full items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary cursor-pointer">
-                                                <h4 className="font-semibold mb-1">{option.title}</h4>
-                                                <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                                            </Label>
+                                                <FormControl>
+                                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                                </FormControl>
+                                                <Label htmlFor={option.id} className="flex flex-col h-full items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has(:checked)]:border-primary cursor-pointer">
+                                                    <h4 className="font-semibold mb-1">{option.title}</h4>
+                                                    <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                                </Label>
                                         </FormItem>
                                     ))}
                                 </RadioGroup>
@@ -565,5 +567,3 @@ export function OnboardingStepper() {
     </div>
   );
 }
-
-    
