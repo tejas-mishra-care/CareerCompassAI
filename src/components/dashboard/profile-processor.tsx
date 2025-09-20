@@ -26,11 +26,20 @@ export function ProfileProcessor() {
 
       setIsProcessing(true);
       try {
+        const data = userProfile.onboardingData;
         const answers = [
-            { question: "Academics and Achievements", answer: JSON.stringify(userProfile.onboardingData) },
-            { question: "Subject Deep Dive", answer: JSON.stringify(userProfile.onboardingData.subjects || {}) },
-            { question: "Aptitude Quiz", answer: JSON.stringify(userProfile.onboardingData.quizAnswers || {}) },
-            { question: "Primary Goal", answer: userProfile.onboardingData.goal || "" },
+            { question: "Academics and Achievements", answer: JSON.stringify({
+                board10th: data.board10th,
+                score10th: data.score10th,
+                year10th: data.year10th,
+                board12th: data.board12th,
+                score12th: data.score12th,
+                stream12th: data.stream12th,
+                achievements: data.achievements
+            })},
+            { question: "Subject Deep Dive", answer: JSON.stringify(data.subjects || {}) },
+            { question: "Aptitude Quiz", answer: JSON.stringify(data.quizAnswers || {}) },
+            { question: "Primary Goal", answer: data.goal || "" },
         ];
         
         const generatedProfile = await createProfileFromOnboarding({ 
@@ -65,7 +74,7 @@ export function ProfileProcessor() {
 
     processProfile();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, userProfile?.onboardingData]);
+  }, [user, userProfile]);
 
   if (!isProcessing) return null;
 

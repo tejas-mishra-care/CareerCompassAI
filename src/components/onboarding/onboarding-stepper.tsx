@@ -12,13 +12,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '../ui/textarea';
 import { Card } from '../ui/card';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Progress } from '../ui/progress';
+import { Label } from '../ui/label';
 
 const subjectSchema = z.object({
     score: z.string().min(1, "Score is required.").max(3, "Invalid score."),
@@ -160,38 +160,29 @@ export function OnboardingStepper() {
   const handleBack = () => step > 1 && setStep(s => s - 1);
 
   const handleFinish = async (data: OnboardingFormData) => {
-    console.log("--- Step 1: handleFinish function triggered ---");
-    console.log("--- Step 2: Aggregated Onboarding Data ---", data);
-    
     if (!userProfile) {
-        console.error("User profile not found, cannot save.");
         toast({ variant: 'destructive', title: 'Error', description: 'User profile not found. Please try logging in again.' });
         return;
     }
-    
     setLoading(true);
-
     try {
-        console.log("--- Step 3: Attempting to save to Firestore... ---");
         await setUserProfile({
             ...userProfile,
             onboardingData: data,
             onboardingCompleted: true,
         });
-        console.log("--- Step 4: SUCCESS! Data saved to Firestore. ---");
 
         toast({
             title: "Profile Data Saved!",
             description: "Redirecting to your dashboard to build your profile.",
         });
 
-      // The redirect is handled by the useUserProfile hook now,
-      // but we can push it here as a fallback.
       router.push('/dashboard');
 
     } catch (error) {
-      console.error("--- Step 4: FAILED! Error saving to Firestore: ---", error);
+      console.error("Error saving to Firestore:", error);
       toast({ variant: 'destructive', title: 'Error Saving Progress', description: 'Could not save your progress. Please check your connection and try again.' });
+    } finally {
       setLoading(false);
     }
   };

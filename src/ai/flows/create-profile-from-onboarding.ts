@@ -9,13 +9,12 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { Skill } from '@/lib/types';
 
 const CreateProfileFromOnboardingInputSchema = z.object({
     answers: z.array(z.object({
         question: z.string(),
         answer: z.string()
-    })).describe('A list of questions and answers from the multi-step onboarding journey. The answers are stringified JSON.'),
+    })).describe('A list of questions and answers from the multi-step onboarding journey. The answers are stringified JSON from different steps.'),
     userName: z.string().optional().describe('The user\'s name, if available from the auth provider.')
 });
 export type CreateProfileFromOnboardingInput = z.infer<typeof CreateProfileFromOnboardingInputSchema>;
@@ -45,7 +44,7 @@ const prompt = ai.definePrompt({
 
 User's Name: {{{userName}}}
 
-Onboarding Data:
+Onboarding Data (provided as a series of stringified JSON objects):
 {{#each answers}}
 - Question: {{this.question}}
   - Answer: {{this.answer}}

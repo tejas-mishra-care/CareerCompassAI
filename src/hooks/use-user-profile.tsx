@@ -10,7 +10,7 @@ import React, {
   useMemo,
 } from 'react';
 import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { app, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
@@ -58,7 +58,7 @@ export const UserProfileProvider = ({
           if (docSnap.exists()) {
             setUserProfileState(docSnap.data() as UserProfile);
           } else {
-            // This case might happen on first-time social sign-in if the doc creation is delayed.
+            // This might happen on first-time social sign-in.
             const newProfile: UserProfile = {
                 name: user.displayName || 'New User',
                 bio: '',
@@ -71,7 +71,7 @@ export const UserProfileProvider = ({
           setLoading(false);
         }, 
         (error) => {
-          console.error("Failed to get user profile from Firestore. This might be due to API key restrictions or network issues.", error);
+          console.error("Failed to get user profile from Firestore.", error);
           setUserProfileState(null);
           setLoading(false);
         }
@@ -86,8 +86,6 @@ export const UserProfileProvider = ({
 
   const setUserProfile = useCallback(
     async (profile: UserProfile | null) => {
-      // We keep the local state update for immediate UI feedback, 
-      // but the onSnapshot listener will soon overwrite it with the canonical DB state.
       setUserProfileState(profile); 
       if (profile && user) {
         const userDocRef = doc(db, 'users', user.uid);
@@ -95,7 +93,6 @@ export const UserProfileProvider = ({
             await setDoc(userDocRef, profile, { merge: true });
         } catch (error) {
             console.error("Failed to save user profile to Firestore", error);
-            // Re-throw to be caught by the calling function's try/catch
             throw error;
         }
       }
@@ -105,7 +102,6 @@ export const UserProfileProvider = ({
   
   const isProfileComplete = useMemo(() => {
       if (!userProfile) return false;
-      // Profile is complete if it has a bio and at least one skill.
       return !!userProfile.bio && userProfile.skills && userProfile.skills.length > 0;
   }, [userProfile]);
 
@@ -123,7 +119,6 @@ export const UserProfileProvider = ({
          router.push('/dashboard');
       }
       else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
-        // If onboarding isn't done, force user to the profile page to start it.
         router.push('/profile');
       }
     }
