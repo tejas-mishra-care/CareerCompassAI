@@ -50,7 +50,7 @@ const quizSchema = z.object({
 const directionSchema = z.object({
   goal: z.string({
     required_error: "Please select a goal to continue."
-  })
+  }).min(1, "Please select a goal to continue.")
 });
 
 
@@ -246,6 +246,7 @@ const Step2DeepDive = ({ onComplete, onBack, previousData, initialData }: { onCo
     }, {} as Record<string, { score: string, feeling: 'loved' | 'okay' | 'disliked' | undefined }>);
 
     const methods = useForm({
+        // resolver: zodResolver(deepDiveSchema), // Can't easily validate dynamic fields this way
         defaultValues: { subjects: defaultValues }
     });
     
@@ -420,31 +421,31 @@ const Step4Direction = ({ onComplete, onBack, initialData }: { onComplete: (data
                   name="goal"
                   render={({ field }) => (
                     <FormItem className="space-y-4">
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                        >
-                          {GOAL_OPTIONS.map((option) => (
-                            <FormItem key={option.id}>
-                                <FormControl>
+                        <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                            >
+                              {GOAL_OPTIONS.map((option) => (
+                                <FormItem key={option.id}>
+                                    <Label
+                                    htmlFor={option.id}
+                                    className={cn(
+                                        "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                                        field.value === option.title
+                                        ? "border-primary bg-accent"
+                                        : "border-muted bg-popover"
+                                    )}
+                                    >
                                     <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
-                                </FormControl>
-                                <Label
-                                htmlFor={option.id}
-                                className={cn(
-                                    "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
-                                    field.value === option.title
-                                    ? "border-primary bg-accent"
-                                    : "border-muted bg-popover"
-                                )}
-                                >
-                                <h4 className="font-semibold mb-1">{option.title}</h4>
-                                <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                              </Label>
-                            </FormItem>
-                          ))}
-                        </RadioGroup>
+                                    <h4 className="font-semibold mb-1">{option.title}</h4>
+                                    <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                  </Label>
+                                </FormItem>
+                              ))}
+                            </RadioGroup>
+                        </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -575,5 +576,3 @@ export function OnboardingStepper() {
     </div>
   );
 }
-
-    
