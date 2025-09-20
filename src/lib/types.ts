@@ -28,4 +28,6 @@ export interface UserProfile {
   bio: string;
   skills: Skill[];
   activePathways?: Pathway[];
+  onboardingCompleted?: boolean;
+  onboardingData?: any;
 }

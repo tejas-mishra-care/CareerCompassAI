@@ -15,8 +15,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '../ui/textarea';
 import { Card } from '../ui/card';
-import { createProfileFromOnboarding } from '@/ai/flows/create-profile-from-onboarding';
-import type { UserProfile } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Progress } from '../ui/progress';
@@ -111,7 +109,7 @@ const onboardingSchema = z.object({
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 export function OnboardingStepper() {
-  const { user, userProfile, setUserProfile } = useUserProfile();
+  const { userProfile, setUserProfile } = useUserProfile();
   const { toast } = useToast();
   const router = useRouter();
   
@@ -124,7 +122,7 @@ export function OnboardingStepper() {
     mode: 'onChange',
   });
   
-  const { trigger, formState: { errors } } = methods;
+  const { trigger } = methods;
 
   const watchedStream = methods.watch('stream12th') || 'default';
   const subjects = useMemo(() => STREAM_SUBJECTS[watchedStream] || STREAM_SUBJECTS.default, [watchedStream]);
@@ -138,7 +136,7 @@ export function OnboardingStepper() {
   }, [watchedStream, methods]);
 
   const handleNext = async () => {
-    let fieldsToValidate: (keyof OnboardingFormData | `subjects.${string}` | `quizAnswers.${string}`)[] = [];
+    let fieldsToValidate: (keyof OnboardingFormData | `subjects.${string}.score` | `subjects.${string}.feeling` | `quizAnswers.${string}`)[] = [];
     if (step === 1) fieldsToValidate = ['board10th', 'year10th', 'score10th'];
     if (step === 2) {
       fieldsToValidate = subjects.flatMap(s => [`subjects.${s}.score`, `subjects.${s}.feeling`]);
@@ -159,27 +157,26 @@ export function OnboardingStepper() {
   const handleBack = () => step > 1 && setStep(s => s - 1);
 
   const handleFinish = async (data: OnboardingFormData) => {
-    if (!user || !userProfile) return;
+    if (!userProfile) return;
     setLoading(true);
 
-    const answers = [
-        { question: "Academics and Achievements", answer: JSON.stringify({ board10th: data.board10th, year10th: data.year10th, score10th: data.score10th, stream12th: data.stream12th, board12th: data.board12th, year12th: data.year12th, score12th: data.score12th, achievements: data.achievements }) },
-        { question: "Subject Deep Dive", answer: JSON.stringify(data.subjects || {}) },
-        { question: "Aptitude Quiz", answer: JSON.stringify(data.quizAnswers || {}) },
-        { question: "Primary Goal", answer: data.goal || "" },
-    ];
-    
     try {
-        const generatedProfile = await createProfileFromOnboarding({ answers, userName: user.displayName || userProfile.name });
-        const finalProfile: UserProfile = { ...userProfile, name: generatedProfile.name, bio: generatedProfile.bio, skills: generatedProfile.skills, activePathways: userProfile.activePathways || [] };
-        
-        setUserProfile(finalProfile);
-        toast({ title: "Compass Calibrated!", description: "Your new AI-powered profile is ready." });
-        router.push('/dashboard');
+      // Just save the raw data and redirect. Processing will happen on the dashboard.
+      setUserProfile({
+        ...userProfile,
+        onboardingData: data,
+        onboardingCompleted: true,
+      });
+
+      toast({
+        title: "Profile Data Saved!",
+        description: "Redirecting to your dashboard to build your profile.",
+      });
+
+      router.push('/dashboard');
     } catch (error) {
-        console.error("Failed to create profile:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not create your profile. Please try again.' });
-    } finally {
+        console.error("Failed to save onboarding data:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not save your progress. Please try again.' });
         setLoading(false);
     }
   };
@@ -192,13 +189,6 @@ export function OnboardingStepper() {
       <form onSubmit={methods.handleSubmit(handleFinish)} className="py-4 space-y-8">
         <Progress value={(step / totalSteps) * 100} className="w-full mb-8" />
         
-        {loading ? (
-           <div className="flex flex-col items-center justify-center text-center space-y-2 h-[400px]">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="font-semibold">Calibrating Your Compass...</p>
-                <p className="text-sm text-muted-foreground">This may take a moment. We're analyzing your unique path!</p>
-            </div>
-        ) : (
           <div className="min-h-[450px]">
             <div className={cn("space-y-8", step !== 1 && "hidden")}>
                  <div>
@@ -254,7 +244,7 @@ export function OnboardingStepper() {
                                 <FormLabel className="text-base font-semibold md:col-span-1">{subject}</FormLabel>
                                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                                     <FormField control={methods.control} name={`subjects.${subject}.score`} render={({ field }) => (
-                                        <FormItem><FormLabel>Your Score (%)</FormLabel><FormControl><Input placeholder="e.g., 95" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>Your Score (%)</FormLabel><FormControl><Input placeholder="e.g., 95" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                                     )}/>
                                     <FormField control={methods.control} name={`subjects.${subject}.feeling`} render={({ field }) => (
                                         <FormItem><FormLabel>Your Feeling</FormLabel><FormControl>
@@ -284,7 +274,7 @@ export function OnboardingStepper() {
                                 {q.options.map((option, oIndex) => (
                                 <FormItem key={oIndex} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
                                     <FormControl><RadioGroupItem value={option} id={`${q.id}-${oIndex}`} /></FormControl>
-                                    <FormLabel htmlFor={`${q.id}-${oIndex}`} className="font-normal flex-1 cursor-pointer">{option}</FormLabel>
+                                    <Label htmlFor={`${q.id}-${oIndex}`} className="font-normal flex-1 cursor-pointer">{option}</Label>
                                 </FormItem>
                                 ))}</RadioGroup></FormControl><FormMessage />
                         </FormItem>
@@ -314,7 +304,6 @@ export function OnboardingStepper() {
                 )}/>
             </div>
           </div>
-        )}
 
         <div className="flex justify-between pt-4 border-t">
             <Button type="button" variant="ghost" onClick={handleBack} disabled={step === 1 || loading}>

@@ -25,6 +25,7 @@ import {
   ClipboardList,
   Users,
   SquareTerminal,
+  User as UserIcon,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { cn } from '@/lib/utils';
@@ -44,44 +45,64 @@ const navItems = [
     href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
+    authRequired: true,
   },
   {
     href: '/explore',
     label: 'Explore Careers',
     icon: Bot,
+     authRequired: true,
   },
   {
     href: '/search',
     label: 'Search',
     icon: Search,
+     authRequired: true,
   },
   {
     href: '/pathways',
     label: 'Learning Pathways',
     icon: GraduationCap,
+     authRequired: true,
   },
   {
     href: '/my-skills',
     label: 'My Skills',
     icon: ClipboardList,
+     authRequired: true,
   },
   {
     href: '/simulations',
     label: 'Simulations',
     icon: SquareTerminal,
+     authRequired: true,
   },
   {
     href: '/connect',
     label: 'Connect',
     icon: Users,
+     authRequired: true,
+  },
+   {
+    href: '/profile',
+    label: 'My Profile',
+    icon: UserIcon,
+    authRequired: true,
   },
 ];
 
 const SidebarNavigation = () => {
   const pathname = usePathname();
+  const { isProfileComplete } = useUserProfile();
+
+  const visibleNavItems = navItems.filter(item => {
+      if(item.href === '/profile') return isProfileComplete; // Only show profile link if complete
+      return true;
+  });
+
   return (
     <SidebarMenu>
-      {navItems.map((item) => (
+      {visibleNavItems.map((item) => (
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton
             asChild
@@ -124,49 +145,23 @@ const MobileNav = () => (
 );
 
 const AppShellSkeleton = () => (
-    <div className="flex items-center justify-center h-screen">
-      <Skeleton className="h-16 w-16 rounded-full" />
+    <div className="flex h-screen w-full items-center justify-center">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
     </div>
 );
 
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
-  const { user, loading, isProfileComplete } = useUserProfile();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  React.useEffect(() => {
-    // If still loading, do nothing yet.
-    if (loading) return;
-
-    // If no user, redirect to login.
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    // If user is logged in but profile is not complete, redirect to profile setup.
-    // Allow access only to the profile page itself.
-    if (user && !isProfileComplete && pathname !== '/profile') {
-      router.push('/profile');
-    }
-    
-  }, [user, loading, isProfileComplete, router, pathname]);
-
+  const { user, loading } = useUserProfile();
+  
   if (loading) {
     return <AppShellSkeleton />;
   }
 
-  // If user is not authenticated, the redirect is happening. Show skeleton in the meantime.
+  // The navigation logic is now centralized in UserProfileProvider
   if (!user) {
     return <AppShellSkeleton />;
-  }
-
-  // If user is authenticated but profile is incomplete, and they are not on the profile page,
-  // the redirect is happening. Show skeleton.
-  if (!isProfileComplete && pathname !== '/profile') {
-      return <AppShellSkeleton />;
   }
   
   return (

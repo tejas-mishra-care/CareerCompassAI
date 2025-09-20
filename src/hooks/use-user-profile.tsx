@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, {
@@ -12,6 +13,7 @@ import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { app, db } from '@/lib/firebase';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface UserProfileContextType {
   user: User | null;
@@ -34,6 +36,8 @@ export const UserProfileProvider = ({
   const [userProfile, setUserProfileState] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const auth = getAuth(app);
+  const router = useRouter();
+  const pathname = usePathname();
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -51,6 +55,7 @@ export const UserProfileProvider = ({
                 bio: '',
                 skills: [],
                 activePathways: [],
+                onboardingCompleted: false,
             }
             await setDoc(userDocRef, newProfile);
             setUserProfileState(newProfile);
@@ -86,14 +91,31 @@ export const UserProfileProvider = ({
     },
     [user]
   );
+  
+  const isProfileComplete = useMemo(() => {
+      if (!userProfile) return false;
+      return userProfile.onboardingCompleted === true && userProfile.skills && userProfile.skills.length > 0;
+  }, [userProfile]);
 
-  const isProfileComplete = useMemo(
-    () =>
-      !!userProfile?.name &&
-      userProfile.skills &&
-      userProfile.skills.length > 0,
-    [userProfile]
-  );
+  // Navigation logic
+   useEffect(() => {
+    if (loading) return;
+
+    const publicPaths = ['/login'];
+    const isPublicPath = publicPaths.includes(pathname);
+
+    if (!user && !isPublicPath) {
+      router.push('/login');
+    } else if (user) {
+      if (pathname === '/login') {
+         router.push('/dashboard');
+      }
+      else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
+        router.push('/profile');
+      }
+    }
+  }, [user, userProfile, loading, pathname, router]);
+
 
   const value = { user, userProfile, setUserProfile, isProfileComplete, loading };
 

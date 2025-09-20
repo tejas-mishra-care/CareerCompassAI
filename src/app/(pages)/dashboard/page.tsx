@@ -7,22 +7,14 @@ import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { SkillDashboard } from '@/components/dashboard/skill-dashboard';
 import { Recommendations } from '@/components/dashboard/recommendations';
 import { MyActivePathways } from '@/components/dashboard/active-pathways';
-import { Skeleton } from '@/components/ui/skeleton';
+import { WelcomeCard } from '@/components/dashboard/welcome-card';
+import { ProfileProcessor } from '@/components/dashboard/profile-processor';
 
 export default function DashboardPage() {
-  const { isProfileComplete } = useUserProfile();
+  const { userProfile, isProfileComplete } = useUserProfile();
 
-  // The redirect is handled in AppShell, but we can show a skeleton while it happens.
-  if (!isProfileComplete) {
-    return (
-        <AppShell>
-            <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-                <Skeleton className="h-8 w-1/4" />
-                <Skeleton className="h-64 w-full" />
-            </div>
-        </AppShell>
-    )
-  }
+  const needsOnboarding = !userProfile?.onboardingCompleted && !isProfileComplete;
+  const needsProcessing = userProfile?.onboardingCompleted && !isProfileComplete;
 
   return (
     <AppShell>
@@ -32,7 +24,12 @@ export default function DashboardPage() {
             Dashboard
           </h1>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {needsOnboarding ? (
+          <WelcomeCard />
+        ) : needsProcessing ? (
+          <ProfileProcessor />
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="lg:col-span-2 grid gap-6">
               <SkillDashboard />
               <MyActivePathways />
@@ -40,7 +37,8 @@ export default function DashboardPage() {
             <div className="lg:col-span-1">
               <Recommendations />
             </div>
-        </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );
