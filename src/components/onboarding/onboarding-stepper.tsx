@@ -1,13 +1,13 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Loader2, Smile, Meh, Frown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
+import { useForm, FormProvider, Controller, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -236,6 +236,50 @@ const STREAM_SUBJECTS: Record<string, string[]> = {
     default: ['Science', 'Mathematics', 'Social Studies', 'English', 'Second Language'],
 }
 
+const SubjectRow = ({ subject }: { subject: string }) => {
+    const { control } = useFormContext();
+    const id = useId();
+
+    return (
+        <Card>
+            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <label htmlFor={`score-${id}`} className="text-base font-semibold md:col-span-1">{subject}</label>
+                
+                <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                     <FormField
+                        control={control}
+                        name={`subjects.${subject}.score`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel htmlFor={`score-${id}`}>Your Score (%)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., 95" {...field} id={`score-${id}`} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <Controller
+                        control={control}
+                        name={`subjects.${subject}.feeling`}
+                        render={({ field, fieldState }) => (
+                            <FormItem>
+                                <FormLabel>Your Feeling</FormLabel>
+                                <div className="flex items-center space-x-2 pt-2">
+                                    <Button type="button" variant={field.value === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
+                                    <Button type="button" variant={field.value === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
+                                    <Button type="button" variant={field.value === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
+                                </div>
+                                 {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
 const Step2DeepDive = ({ onComplete, onBack, previousData, initialData }: { onComplete: (data: any) => void, onBack: () => void, previousData: any, initialData: any }) => {
     const stream = previousData.foundation?.stream12th || 'default';
     const subjects = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
@@ -244,61 +288,40 @@ const Step2DeepDive = ({ onComplete, onBack, previousData, initialData }: { onCo
         acc[subject] = initialData?.[subject] || { score: '', feeling: undefined };
         return acc;
     }, {} as Record<string, { score: string, feeling: 'loved' | 'okay' | 'disliked' | undefined }>);
+    
+    // A simple validation function for this dynamic step
+    const validateStep2 = (data: any) => {
+        for (const subject of subjects) {
+            const subjectData = data.subjects[subject];
+            if (!subjectData || !subjectData.score || !subjectData.feeling) {
+                toast({ variant: 'destructive', title: `Please complete all fields for ${subject}.`});
+                return false;
+            }
+        }
+        return true;
+    }
 
     const methods = useForm({
-        // resolver: zodResolver(deepDiveSchema), // Can't easily validate dynamic fields this way
         defaultValues: { subjects: defaultValues }
     });
-    
-    const { control, handleSubmit } = methods;
+    const { toast } = useToast();
+
+    const onSubmit = (data: any) => {
+        if (validateStep2(data)) {
+            onComplete(data);
+        }
+    }
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onComplete)} className="space-y-8">
+            <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Subject-Level Deep Dive</h3>
                     <p className="text-sm text-muted-foreground mb-4">This is where we deconstruct the average score to find the real story. For each subject, tell us your score and how you *really* felt about it.</p>
                 </div>
 
                 <div className="space-y-6">
-                    {subjects.map((subject) => (
-                        <Card key={subject} className="bg-card">
-                            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                                <FormLabel className="text-base font-semibold md:col-span-1">{subject}</FormLabel>
-                                
-                                <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                                     <FormField
-                                        control={control}
-                                        name={`subjects.${subject}.score`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Your Score (%)</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="e.g., 95" {...field} id={`score-${subject}`} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <Controller
-                                        control={control}
-                                        name={`subjects.${subject}.feeling`}
-                                        render={({ field, fieldState }) => (
-                                            <FormItem>
-                                                <FormLabel>Your Feeling</FormLabel>
-                                                <div className="flex items-center space-x-2 pt-2">
-                                                    <Button type="button" variant={field.value === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
-                                                    <Button type="button" variant={field.value === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
-                                                    <Button type="button" variant={field.value === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
-                                                </div>
-                                                 {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    {subjects.map((subject) => <SubjectRow key={subject} subject={subject} />)}
                 </div>
                 
                 <div className="flex justify-between pt-4">
@@ -429,7 +452,7 @@ const Step4Direction = ({ onComplete, onBack, initialData }: { onComplete: (data
                             >
                               {GOAL_OPTIONS.map((option) => (
                                 <FormItem key={option.id}>
-                                    <Label
+                                  <Label
                                     htmlFor={option.id}
                                     className={cn(
                                         "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
@@ -437,8 +460,10 @@ const Step4Direction = ({ onComplete, onBack, initialData }: { onComplete: (data
                                         ? "border-primary bg-accent"
                                         : "border-muted bg-popover"
                                     )}
-                                    >
-                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                  >
+                                    <FormControl>
+                                      <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                    </FormControl>
                                     <h4 className="font-semibold mb-1">{option.title}</h4>
                                     <p className="text-sm text-muted-foreground text-center">{option.description}</p>
                                   </Label>
