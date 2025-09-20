@@ -3,13 +3,10 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { exploreCareersWithChatbot } from '@/ai/flows/explore-careers-with-chatbot';
 import { useToast } from '@/hooks/use-toast';
-import { GraduationCap, Wand2, ArrowRight } from 'lucide-react';
-import { Separator } from '../ui/separator';
+import { GraduationCap, Wand2 } from 'lucide-react';
 
 interface PathwayStep {
   title: string;
@@ -21,36 +18,51 @@ interface Pathway {
   steps: PathwayStep[];
 }
 
-// Simple parser to handle potential markdown in AI response
+// More robust parser to handle markdown lists and bold titles
 const parsePathway = (text: string): Pathway | null => {
-  try {
-    const lines = text.split('\n').filter(line => line.trim() !== '');
-    const title = lines[0].replace(/#|\*/g, '').trim();
-    const steps: PathwayStep[] = [];
-    let currentStep: PathwayStep | null = null;
+    try {
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      if (lines.length === 0) return null;
+  
+      const titleLine = lines.find(line => line.startsWith('#') || line.toLowerCase().includes('pathway for:')) || `Learning Pathway`;
+      const title = titleLine.replace(/#|\*/g, '').trim();
 
-    for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (line.startsWith('*') || /^\d+\./.test(line)) {
-            if (currentStep) {
-                steps.push(currentStep);
-            }
-            currentStep = { title: line.replace(/#|\*|^\d+\./g, '').trim(), description: '' };
-        } else if (currentStep && line) {
-            currentStep.description = (currentStep.description ? currentStep.description + ' ' : '') + line;
+      const steps: PathwayStep[] = [];
+      let currentStep: PathwayStep | null = null;
+  
+      lines.forEach(line => {
+        const trimmedLine = line.trim();
+        const isStepTitle = /^\d+\.\s/.test(trimmedLine) || /^\*\s/.test(trimmedLine) || /^\-\s/.test(trimmedLine);
+  
+        if (isStepTitle) {
+          if (currentStep) steps.push(currentStep);
+          // Extract title from formats like "1. **Title:** Description" or "1. Title"
+          const titleMatch = trimmedLine.match(/^\d+\.\s+\**(.+?)\**(\s*:\s*(.*))?$/);
+          if (titleMatch) {
+            currentStep = {
+              title: titleMatch[1].trim(),
+              description: titleMatch[3] ? titleMatch[3].trim() : ''
+            };
+          } else {
+             currentStep = { title: trimmedLine.replace(/^\d+\.\s*|^\*\s*|^\-\s*/, '').replace(/\*\*$/, '').trim(), description: '' };
+          }
+        } else if (currentStep && !currentStep.description) {
+            // Assign the first non-title line as the description
+            currentStep.description = trimmedLine;
+        } else if (currentStep) {
+            // Append to existing description if needed (though we aim for 1-sentence descriptions)
         }
+      });
+  
+      if (currentStep) steps.push(currentStep);
+      
+      if (steps.length === 0) return null;
+  
+      return { title, steps };
+    } catch (error) {
+      console.error("Failed to parse pathway:", error);
+      return null;
     }
-    if (currentStep) {
-        steps.push(currentStep);
-    }
-    
-    if (steps.length === 0) return null;
-
-    return { title, steps };
-  } catch (error) {
-    console.error("Failed to parse pathway:", error);
-    return null;
-  }
 };
 
 export function LearningPathwayGenerator() {
@@ -65,21 +77,22 @@ export function LearningPathwayGenerator() {
     setPathway(null);
     try {
       const prompt = `Generate a structured, step-by-step learning plan for "${topic}".
-      Start with a title like "Learning Pathway for: ${topic}".
-      Then, list at least 5 numbered or bulleted steps. For each step, provide a clear title and a brief one-sentence description of what to do.`;
+      The overall title should be "Learning Pathway for: ${topic}".
+      Provide exactly 5 numbered steps.
+      For each step, provide a clear title and a concise one-sentence description.
+      Format each step like this: "1. **Step Title:** Step description."`;
 
       const response = await exploreCareersWithChatbot({ question: prompt });
       const parsed = parsePathway(response.answer);
 
-      if (parsed) {
+      if (parsed && parsed.steps.length > 0) {
         setPathway(parsed);
       } else {
-        // Fallback for unparseable response
-        setPathway({ title: `Learning Pathway for: ${topic}`, steps: [{ title: 'Review the plan', description: response.answer }] });
+        setPathway({ title: `Learning Pathway for: ${topic}`, steps: [{ title: 'Review the generated plan', description: response.answer }] });
         toast({
           variant: 'default',
           title: 'Displaying Raw Plan',
-          description: 'Could not structure the AI response, showing the raw plan.',
+          description: 'Could not structure the AI response as a checklist, showing the raw plan.',
         });
       }
     } catch (error) {
@@ -111,15 +124,20 @@ export function LearningPathwayGenerator() {
       </div>
 
       {loading && (
-        <Card>
+        <Card className="shadow-md">
             <CardHeader>
                 <Skeleton className="h-8 w-3/4" />
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-8 pt-6">
                 {[...Array(4)].map((_, i) => (
-                    <div key={i} className="flex items-start space-x-3">
-                        <Skeleton className="h-5 w-5 rounded-sm" />
-                        <div className="space-y-2">
+                    <div key={i} className="flex items-start">
+                        <div className="flex h-full items-center pr-4">
+                            <div className="flex flex-col items-center">
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                                <Skeleton className="h-10 w-px mt-2" />
+                            </div>
+                        </div>
+                        <div className="flex-1 space-y-2 pt-1">
                             <Skeleton className="h-5 w-48" />
                             <Skeleton className="h-4 w-64" />
                         </div>
@@ -136,19 +154,15 @@ export function LearningPathwayGenerator() {
               <GraduationCap className="text-primary" /> {pathway.title}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
+          <CardContent className="pt-4">
+            <div className="relative space-y-2">
+              <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-border" aria-hidden="true" />
               {pathway.steps.map((step, index) => (
-                <div key={index} className="flex items-start">
-                    <div className="flex h-full items-center pr-4">
-                        <div className="flex flex-col items-center">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                                {index + 1}
-                            </div>
-                            {index < pathway.steps.length - 1 && <div className="h-10 w-px bg-border mt-2"></div>}
-                        </div>
+                <div key={index} className="flex items-start gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold z-10">
+                        {index + 1}
                     </div>
-                    <div className="flex-1 pb-10 border-l pl-4 -ml-px">
+                    <div className="flex-1 pt-1">
                         <p className="font-semibold text-lg">{step.title}</p>
                         <p className="text-muted-foreground">{step.description}</p>
                     </div>
