@@ -365,9 +365,9 @@ const Step3Quiz = ({ onComplete, onBack }: { onComplete: (data: any) => void, on
                                                     <FormControl>
                                                         <RadioGroupItem value={option} />
                                                     </FormControl>
-                                                    <FormLabel className="font-normal flex-1 cursor-pointer">
+                                                    <Label htmlFor={q.id + index} className="font-normal flex-1 cursor-pointer">
                                                         {option}
-                                                    </FormLabel>
+                                                    </Label>
                                                 </FormItem>
                                             ))}
                                         </RadioGroup>
@@ -415,23 +415,28 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: any) => voi
                     control={methods.control}
                     name="goal"
                     render={({ field }) => (
-                         <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                        >
-                            {GOAL_OPTIONS.map(option => (
-                                <FormItem key={option.id}>
-                                    <FormControl>
-                                        <RadioGroupItem value={option.title} className="sr-only" id={option.id} />
-                                    </FormControl>
-                                    <Label htmlFor={option.id} className="flex flex-col h-full items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary cursor-pointer">
-                                        <h4 className="font-semibold mb-1">{option.title}</h4>
-                                        <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                                    </Label>
-                                </FormItem>
-                            ))}
-                         </RadioGroup>
+                        <FormItem>
+                             <FormControl>
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                >
+                                    {GOAL_OPTIONS.map(option => (
+                                        <FormItem key={option.id}>
+                                            <FormControl>
+                                                <RadioGroupItem value={option.title} className="sr-only" id={option.id} />
+                                            </FormControl>
+                                            <Label htmlFor={option.id} className="flex flex-col h-full items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                                <h4 className="font-semibold mb-1">{option.title}</h4>
+                                                <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                            </Label>
+                                        </FormItem>
+                                    ))}
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage className="pt-2" />
+                        </FormItem>
                     )}
                 />
 
@@ -476,7 +481,7 @@ export function OnboardingStepper() {
     setLoading(true);
 
     const answers = [
-        { question: "10th/12th Academics", answer: JSON.stringify(finalData.foundation) },
+        { question: "Academics and Achievements", answer: JSON.stringify(finalData.foundation) },
         { question: "Subject Deep Dive", answer: JSON.stringify(finalData.subjects) },
         { question: "Aptitude Quiz", answer: JSON.stringify(finalData.quizAnswers) },
         { question: "Primary Goal", answer: finalData.goal },
@@ -528,7 +533,7 @@ export function OnboardingStepper() {
       case 4:
         return <Step4Direction onComplete={(data) => handleStepComplete(data)} onBack={goToPreviousStep} />;
       default:
-        return <Step1Foundation onComplete={handleStepComplete} />;
+        return <Step1Foundation onComplete={(data) => handleStepComplete({ foundation: data })} />;
     }
   }
 
@@ -560,3 +565,5 @@ export function OnboardingStepper() {
     </div>
   );
 }
+
+    
