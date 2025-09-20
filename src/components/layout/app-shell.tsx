@@ -21,6 +21,7 @@ import {
   LayoutDashboard,
   Search,
   Compass,
+  ClipboardList,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { cn } from '@/lib/utils';
@@ -53,6 +54,11 @@ const navItems = [
     href: '/pathways',
     label: 'Learning Pathways',
     icon: GraduationCap,
+  },
+  {
+    href: '/my-skills',
+    label: 'My Skills',
+    icon: ClipboardList,
   },
 ];
 
