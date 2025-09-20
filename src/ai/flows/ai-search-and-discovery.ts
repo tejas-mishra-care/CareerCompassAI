@@ -24,9 +24,9 @@ const AiSearchAndDiscoveryOutputSchema = z.object({
     z.object({
       title: z.string().describe('The title of the result.'),
       description: z.string().describe('A brief description of the result.'),
-      type: z.string().describe('The type of the result (career, skill, or course).'),
+      type: z.enum(['career', 'skill', 'course']).describe('The type of the result (career, skill, or course).'),
       link: z.string().optional().describe('A link to more information about the result.'),
-      relevanceScore: z.number().optional().describe('A score indicating the relevance of the result to the user profile.'),
+      relevanceScore: z.number().optional().describe('A score from 0 to 100 indicating the relevance of the result to the user profile (higher is better).'),
     })
   ),
 });
@@ -40,15 +40,20 @@ const prompt = ai.definePrompt({
   name: 'aiSearchAndDiscoveryPrompt',
   input: {schema: AiSearchAndDiscoveryInputSchema},
   output: {schema: AiSearchAndDiscoveryOutputSchema},
-  prompt: `You are an AI search assistant. Using the user's query and profile, find a list of relevant careers, skills, and courses.
+  prompt: `You are an AI search assistant for a career development platform. Your task is to find relevant careers, skills, and courses based on a user's query and their profile.
 
 User Query: {{{query}}}
 {{#if userProfile}}
 User Profile: {{{userProfile}}}
 {{/if}}
 
-Return the results as a JSON array of results.
-Each result should have a title, description, type (career, skill, or course), a link to more information if available, and a relevance score indicating how well it matches the user profile (higher is better).`,
+Return a diverse list of results as a JSON array. Each result must include:
+- A title.
+- A brief description.
+- A type: must be one of 'career', 'skill', or 'course'.
+- A link to more information, if a relevant one exists.
+- A relevanceScore (0-100) indicating how well the result matches the user's profile and query. A score of 100 is a perfect match. If no user profile is provided, base the score on the query alone.
+`,
 });
 
 const aiSearchAndDiscoveryFlow = ai.defineFlow(
