@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Creates a user profile from the onboarding quiz answers.
@@ -25,7 +26,7 @@ const CreateProfileFromOnboardingOutputSchema = z.object({
   skills: z.array(z.object({
     name: z.string(),
     proficiency: z.number().min(0).max(100),
-  })).describe('A list of 5-7 key skills identified from ALL of the user\'s answers (academics, feelings about subjects, achievements, and quiz responses). Assign a proficiency score (10-60) based on their inputs. A high score in a subject they disliked might translate to a skill but with lower proficiency than a subject they loved.'),
+  })).describe('A list of 5-7 key skills identified from ALL of the user\'s answers (academics, higher education, feelings about subjects, achievements, and quiz responses). Assign a proficiency score (10-60) based on their inputs. A high score in a subject they disliked might translate to a skill but with lower proficiency than a subject they loved.'),
 });
 export type CreateProfileFromOnboardingOutput = z.infer<typeof CreateProfileFromOnboardingOutputSchema>;
 
@@ -52,9 +53,9 @@ Onboarding Data (provided as a series of stringified JSON objects):
 
 From this rich data, perform the following actions:
 1.  **Set Name:** Use the provided user name. If none is provided, use a friendly placeholder like "New Explorer".
-2.  **Generate a Bio:** Write a 2-3 sentence professional bio in the first person (e.g., "I am a..."). It should synthesize their academic history (from the 'Academics' answer), their early achievements and passions, and their stated goals. The tone should be positive, professional, and encouraging.
+2.  **Generate a Bio:** Write a 2-3 sentence professional bio in the first person (e.g., "I am a..."). It should synthesize their academic history (from the 'Academics' and 'Higher Education' answers), their early achievements and passions, and their stated goals. The tone should be positive, professional, and encouraging.
 3.  **Extract Skills & Estimate Proficiency:** This is the most critical step. Analyze ALL the provided data:
-    - **Academics & Subject Deep Dive:** Look at their scores AND their "feelings". A high score in a subject they "loved" indicates a strong skill. A high score in a subject they "disliked" might still be a skill, but perhaps a less developed one (lower proficiency).
+    - **Academics, Higher Education & Subject Deep Dive:** Look at their scores AND their "feelings". A high score in a subject they "loved" indicates a strong skill. A high score in a subject they "disliked" might still be a skill, but perhaps a less developed one (lower proficiency). A PhD in a topic indicates expertise.
     - **Early Achievements:** The "achievements" string is a goldmine for soft skills like "Leadership," "Creative Writing," or "Debate."
     - **Aptitude Quiz:** The quiz answers reveal underlying competencies. For example, a logical answer points to "Problem Solving."
     - Identify 5 to 7 distinct skills from this synthesis.

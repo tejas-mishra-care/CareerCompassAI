@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Loader2, Smile, Meh, Frown, ChevronLeft } from 'lucide-react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { Loader2, Smile, Meh, Frown, ChevronLeft, PlusCircle, Trash2 } from 'lucide-react';
+import { useForm, FormProvider, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -23,6 +23,14 @@ import { Label } from '@/components/ui/label';
 const subjectSchema = z.object({
     score: z.string().min(1, "Score is required.").max(3, "Invalid score."),
     feeling: z.enum(['loved', 'okay', 'disliked'], { required_error: "Please select a feeling."}),
+});
+
+const educationSchema = z.object({
+    degree: z.string().min(1, "Degree is required."),
+    fieldOfStudy: z.string().min(1, "Field of study is required."),
+    university: z.string().min(1, "University is required."),
+    year: z.string().min(4, "Please enter a valid year.").max(4),
+    score: z.string().min(1, "Score is required."),
 });
 
 const QUIZ_QUESTIONS = [
@@ -68,6 +76,7 @@ const onboardingSchema = z.object({
     board12th: z.string().optional(),
     year12th: z.string().optional(),
     score12th: z.string().optional(),
+    higherEducation: z.array(educationSchema).optional(),
     achievements: z.string().optional(),
     subjects: z.record(subjectSchema),
     quizAnswers: z.record(z.string()),
@@ -96,6 +105,7 @@ const generateDefaultValues = (stream: string = 'default') => {
         board12th: '',
         year12th: '',
         score12th: '',
+        higherEducation: [],
         achievements: '',
         subjects: defaultSubjects,
         quizAnswers: defaultQuizAnswers,
@@ -103,6 +113,55 @@ const generateDefaultValues = (stream: string = 'default') => {
     };
   };
 
+const HigherEducationFields = () => {
+    const { control } = useFormContext<OnboardingFormData>();
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "higherEducation",
+    });
+
+    return (
+        <div>
+            <h3 className="text-lg font-semibold mb-4 border-b pb-2">Higher Education (if applicable)</h3>
+            <div className="space-y-4">
+                {fields.map((item, index) => (
+                    <Card key={item.id} className="p-4 relative">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                             <FormField control={control} name={`higherEducation.${index}.degree`} render={({ field }) => (
+                                <FormItem><FormLabel>Degree</FormLabel><FormControl><Input placeholder="e.g., Bachelor of Technology" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={control} name={`higherEducation.${index}.fieldOfStudy`} render={({ field }) => (
+                                <FormItem><FormLabel>Field of Study</FormLabel><FormControl><Input placeholder="e.g., Computer Science" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                             <FormField control={control} name={`higherEducation.${index}.university`} render={({ field }) => (
+                                <FormItem><FormLabel>University/College</FormLabel><FormControl><Input placeholder="e.g., MIT" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                             <FormField control={control} name={`higherEducation.${index}.year`} render={({ field }) => (
+                                <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2026" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={control} name={`higherEducation.${index}.score`} render={({ field }) => (
+                                <FormItem><FormLabel>Overall Score (CGPA/%)</FormLabel><FormControl><Input placeholder="e.g., 8.5 or 85%" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                        </div>
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </Card>
+                ))}
+            </div>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => append({ degree: '', fieldOfStudy: '', university: '', year: '', score: '' })}
+            >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Another Degree
+            </Button>
+        </div>
+    )
+}
 
 export function OnboardingStepper() {
   const { userProfile, setUserProfile } = useUserProfile();
@@ -113,6 +172,7 @@ export function OnboardingStepper() {
   const [loading, setLoading] = useState(false);
 
   const methods = useForm<OnboardingFormData>({
+    resolver: zodResolver(onboardingSchema),
     defaultValues: generateDefaultValues(),
     mode: 'onChange',
   });
@@ -143,22 +203,6 @@ export function OnboardingStepper() {
       fieldsToValidate = QUIZ_QUESTIONS.map(q => `quizAnswers.${q.id}`);
     }
     
-    // Zod schema for partial validation
-    let validationSchema;
-    if(step === 2) {
-        const subjectsSchema = z.record(subjectSchema).refine(
-            (s) => Object.values(s).every(sub => sub.score && sub.feeling), 
-            { message: "Please fill out all fields for each subject." }
-        );
-        validationSchema = z.object({ subjects: subjectsSchema });
-    } else if (step === 3) {
-        const quizSchema = z.record(z.string().min(1, "Please select an answer.")).refine(
-            (answers) => Object.keys(answers).length >= QUIZ_QUESTIONS.length,
-            { message: "Please answer all quiz questions." }
-        );
-        validationSchema = z.object({ quizAnswers: quizSchema });
-    }
-
     const isValid = await trigger(fieldsToValidate as any);
     
     if (isValid) {
@@ -239,6 +283,7 @@ export function OnboardingStepper() {
                         )}/>
                     </div>
                 </div>
+                <HigherEducationFields />
                  <div>
                     <h3 className="text-lg font-semibold mb-2">Your Early Achievements (The "Spark" Finder)</h3>
                     <p className="text-sm text-muted-foreground mb-4">Think back to your school days. What were you known for? (e.g., Olympiads, Debate, Coding, Sports, Art, Leadership)</p>
