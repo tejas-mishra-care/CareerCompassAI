@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState, useMemo, useId } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Loader2, Smile, Meh, Frown, ChevronLeft } from 'lucide-react';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '../ui/textarea';
@@ -63,9 +64,9 @@ const STREAM_SUBJECTS: Record<string, string[]> = {
 const generateDefaultValues = (stream: string = 'default') => {
     const subjectsForStream = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
     const defaultSubjects = subjectsForStream.reduce((acc, subject) => {
-      acc[subject] = { score: '', feeling: undefined as any };
+      acc[subject] = { score: '', feeling: undefined };
       return acc;
-    }, {} as Record<string, { score: string; feeling: 'loved' | 'okay' | 'disliked' }>);
+    }, {} as Record<string, { score: string; feeling?: 'loved' | 'okay' | 'disliked' }>);
   
     const defaultQuizAnswers = QUIZ_QUESTIONS.reduce((acc, q) => {
       acc[q.id] = '';
@@ -139,8 +140,12 @@ export function OnboardingStepper() {
   const handleNext = async () => {
     let fieldsToValidate: (keyof OnboardingFormData | `subjects.${string}` | `quizAnswers.${string}`)[] = [];
     if (step === 1) fieldsToValidate = ['board10th', 'year10th', 'score10th'];
-    if (step === 2) fieldsToValidate = ['subjects'];
-    if (step === 3) fieldsToValidate = ['quizAnswers'];
+    if (step === 2) {
+      fieldsToValidate = subjects.flatMap(s => [`subjects.${s}.score`, `subjects.${s}.feeling`]);
+    }
+    if (step === 3) {
+      fieldsToValidate = QUIZ_QUESTIONS.map(q => `quizAnswers.${q.id}`);
+    }
     
     const isValid = await trigger(fieldsToValidate as any);
     
@@ -168,7 +173,7 @@ export function OnboardingStepper() {
         const generatedProfile = await createProfileFromOnboarding({ answers, userName: user.displayName || userProfile.name });
         const finalProfile: UserProfile = { ...userProfile, name: generatedProfile.name, bio: generatedProfile.bio, skills: generatedProfile.skills, activePathways: userProfile.activePathways || [] };
         
-        await setUserProfile(finalProfile);
+        setUserProfile(finalProfile);
         toast({ title: "Compass Calibrated!", description: "Your new AI-powered profile is ready." });
         router.push('/dashboard');
     } catch (error) {
@@ -249,7 +254,7 @@ export function OnboardingStepper() {
                                 <FormLabel className="text-base font-semibold md:col-span-1">{subject}</FormLabel>
                                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                                     <FormField control={methods.control} name={`subjects.${subject}.score`} render={({ field }) => (
-                                        <FormItem><FormLabel>Your Score (%)</FormLabel><FormControl><Input placeholder="e.g., 95" {...field} /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>Your Score (%)</FormLabel><FormControl><Input placeholder="e.g., 95" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
                                     )}/>
                                     <FormField control={methods.control} name={`subjects.${subject}.feeling`} render={({ field }) => (
                                         <FormItem><FormLabel>Your Feeling</FormLabel><FormControl>
