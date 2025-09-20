@@ -18,6 +18,7 @@ import { Card, CardContent } from '../ui/card';
 import { createProfileFromOnboarding } from '@/ai/flows/create-profile-from-onboarding';
 import type { UserProfile } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 
 // --- Validation Schemas ---
