@@ -22,6 +22,7 @@ import {
   Search,
   Compass,
   ClipboardList,
+  Users,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { cn } from '@/lib/utils';
@@ -59,6 +60,11 @@ const navItems = [
     href: '/my-skills',
     label: 'My Skills',
     icon: ClipboardList,
+  },
+  {
+    href: '/connect',
+    label: 'Connect',
+    icon: Users,
   },
 ];
 
