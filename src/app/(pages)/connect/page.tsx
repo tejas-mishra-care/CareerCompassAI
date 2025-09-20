@@ -1,9 +1,15 @@
+
+'use client';
 import { AppShell } from '@/components/layout/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck, Users, Link as LinkIcon, HeartHandshake } from 'lucide-react';
+import { useState } from 'react';
+import { ShareProfileDialog } from '@/components/connect/share-profile-dialog';
 
 export default function ConnectPage() {
+    const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+
   return (
     <AppShell>
       <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -51,9 +57,9 @@ export default function ConnectPage() {
                     </p>
                 </CardContent>
                 <CardFooter>
-                    <Button disabled>
+                    <Button onClick={() => setIsShareDialogOpen(true)}>
                         <LinkIcon className="mr-2 h-4 w-4" />
-                        Generate Sharing Link (Coming Soon)
+                        Generate Sharing Link
                     </Button>
                 </CardFooter>
             </Card>
@@ -70,6 +76,7 @@ export default function ConnectPage() {
             </CardHeader>
         </Card>
       </div>
+      <ShareProfileDialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen} />
     </AppShell>
   );
 }
