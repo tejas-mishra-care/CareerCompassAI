@@ -7,7 +7,7 @@ import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Loader2, Smile, Meh, Frown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
+import { useForm, FormProvider, Controller, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -19,6 +19,7 @@ import { createProfileFromOnboarding } from '@/ai/flows/create-profile-from-onbo
 import type { UserProfile } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 
 // --- Validation Schemas ---
@@ -240,16 +241,16 @@ const Step2DeepDive = ({ onComplete, onBack, previousData }: { onComplete: (data
     const subjects = STREAM_SUBJECTS[stream] || STREAM_SUBJECTS.default;
 
     const defaultValues = subjects.reduce((acc, subject) => {
-        acc[subject] = { score: '', feeling: '' };
+        acc[subject] = { score: '', feeling: undefined };
         return acc;
-    }, {} as Record<string, { score: string, feeling: any }>);
+    }, {} as Record<string, { score: string, feeling: 'loved' | 'okay' | 'disliked' | undefined }>);
 
     const methods = useForm({
-        // resolver: zodResolver(deepDiveSchema), // Note: Zod validation can be tricky for dynamic fields, manual check might be simpler
+        // Note: Zod validation can be tricky for dynamic fields, manual check might be simpler
         defaultValues: { subjects: defaultValues }
     });
     
-    const { control, handleSubmit, formState } = methods;
+    const { control, handleSubmit } = methods;
 
     return (
         <FormProvider {...methods}>
@@ -348,7 +349,7 @@ const Step3Quiz = ({ onComplete, onBack }: { onComplete: (data: any) => void, on
                 </div>
 
                 <div className="space-y-6">
-                    {QUIZ_QUESTIONS.map((q, qIndex) => (
+                    {QUIZ_QUESTIONS.map((q) => (
                         <FormField
                             key={q.id}
                             control={methods.control}
@@ -399,12 +400,15 @@ const GOAL_OPTIONS = [
     { id: 'entrance_exam', title: "I'm focused on an exam", description: "You're preparing for a competitive entrance exam." },
 ]
 
-const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: any) => void, onBack: () => void }) => {
+const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: z.infer<typeof directionSchema>) => void, onBack: () => void }) => {
     const methods = useForm<z.infer<typeof directionSchema>>({
         resolver: zodResolver(directionSchema),
         defaultValues: { goal: '' }
     });
     
+    const { watch } = methods;
+    const selectedGoal = watch('goal');
+
     return (
         <FormProvider {...methods}>
             <form onSubmit={methods.handleSubmit(onComplete)} className="space-y-8">
@@ -413,35 +417,33 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: any) => voi
                     <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
                 </div>
 
-                <FormField
+                <Controller
                     control={methods.control}
                     name="goal"
                     render={({ field }) => (
-                        <FormItem className="space-y-4">
-                             <FormControl>
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        >
+                            {GOAL_OPTIONS.map(option => (
+                                <Label 
+                                    key={option.id}
+                                    htmlFor={option.id} 
+                                    className={cn(
+                                        "flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                                        field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover"
+                                    )}
                                 >
-                                    {GOAL_OPTIONS.map(option => (
-                                        <div key={option.id}>
-                                            <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
-                                            <Label 
-                                                htmlFor={option.id} 
-                                                className="flex flex-col h-full items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary cursor-pointer"
-                                            >
-                                                <h4 className="font-semibold mb-1">{option.title}</h4>
-                                                <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                                            </Label>
-                                        </div>
-                                    ))}
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage className="pt-2" />
-                        </FormItem>
+                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                    <h4 className="font-semibold mb-1">{option.title}</h4>
+                                    <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                </Label>
+                            ))}
+                        </RadioGroup>
                     )}
                 />
+
 
                 <div className="flex justify-between pt-4">
                     <Button type="button" variant="ghost" onClick={onBack}><ChevronLeft className="mr-2" /> Back</Button>
@@ -484,10 +486,10 @@ export function OnboardingStepper() {
     setLoading(true);
     
     const answers = [
-        { question: "Academics and Achievements", answer: JSON.stringify(finalData.foundation) },
-        { question: "Subject Deep Dive", answer: JSON.stringify(finalData.subjects) },
-        { question: "Aptitude Quiz", answer: JSON.stringify(finalData.quizAnswers) },
-        { question: "Primary Goal", answer: finalData.goal },
+        { question: "Academics and Achievements", answer: JSON.stringify(finalData.foundation || {}) },
+        { question: "Subject Deep Dive", answer: JSON.stringify(finalData.subjects || {}) },
+        { question: "Aptitude Quiz", answer: JSON.stringify(finalData.quizAnswers || {}) },
+        { question: "Primary Goal", answer: finalData.goal || "" },
     ];
     
     try {
@@ -568,3 +570,5 @@ export function OnboardingStepper() {
     </div>
   );
 }
+
+    
