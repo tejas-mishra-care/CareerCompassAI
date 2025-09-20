@@ -134,7 +134,7 @@ export function OnboardingStepper() {
         acc[subject] = currentSubjects[subject] || { score: '', feeling: undefined as any };
         return acc;
     }, {} as any);
-    methods.setValue('subjects', newSubjects, { shouldValidate: false });
+    methods.setValue('subjects', newSubjects, { shouldValidate: true });
   }, [watchedStream, methods, getValues]);
 
 
@@ -160,31 +160,45 @@ export function OnboardingStepper() {
   const handleBack = () => step > 1 && setStep(s => s - 1);
 
   const handleFinish = async (data: OnboardingFormData) => {
-    if (!userProfile) return;
+    console.log("--- Step 1: handleFinish function triggered ---");
+    console.log("--- Step 2: Aggregated Onboarding Data ---", data);
+    
+    if (!userProfile) {
+        console.error("User profile not found, cannot save.");
+        toast({ variant: 'destructive', title: 'Error', description: 'User profile not found. Please try logging in again.' });
+        return;
+    }
+    
     setLoading(true);
 
     try {
-      await setUserProfile({
-        ...userProfile,
-        onboardingData: data,
-        onboardingCompleted: true,
-      });
+        console.log("--- Step 3: Attempting to save to Firestore... ---");
+        await setUserProfile({
+            ...userProfile,
+            onboardingData: data,
+            onboardingCompleted: true,
+        });
+        console.log("--- Step 4: SUCCESS! Data saved to Firestore. ---");
 
-      toast({
-        title: "Profile Data Saved!",
-        description: "Redirecting to your dashboard to build your profile.",
-      });
+        toast({
+            title: "Profile Data Saved!",
+            description: "Redirecting to your dashboard to build your profile.",
+        });
 
+      // The redirect is handled by the useUserProfile hook now,
+      // but we can push it here as a fallback.
       router.push('/dashboard');
+
     } catch (error) {
-        console.error("Failed to save onboarding data:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not save your progress. Please try again.' });
-        setLoading(false);
+      console.error("--- Step 4: FAILED! Error saving to Firestore: ---", error);
+      toast({ variant: 'destructive', title: 'Error Saving Progress', description: 'Could not save your progress. Please check your connection and try again.' });
+      setLoading(false);
     }
   };
   
   const totalSteps = 4;
   const isFinalStep = step === totalSteps;
+  const isGoalSelected = !!methods.watch('goal');
 
   return (
     <FormProvider {...methods}>
@@ -314,7 +328,7 @@ export function OnboardingStepper() {
              {!isFinalStep ? (
                 <Button type="button" onClick={handleNext} disabled={loading}>Next</Button>
             ) : (
-                <Button type="submit" disabled={loading || !methods.formState.isValid}>
+                <Button type="submit" disabled={loading || !isGoalSelected}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Finish
                 </Button>

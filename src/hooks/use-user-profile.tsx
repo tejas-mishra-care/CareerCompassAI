@@ -10,7 +10,7 @@ import React, {
   useMemo,
 } from 'react';
 import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { app, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
@@ -40,53 +40,62 @@ export const UserProfileProvider = ({
   const pathname = usePathname();
   
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        setLoading(true);
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        try {
-          const docSnap = await getDoc(userDocRef);
+    const unsubscribeFromAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      if (!firebaseUser) {
+        setLoading(false);
+        setUserProfileState(null);
+      }
+    });
+    return () => unsubscribeFromAuth();
+  }, [auth]);
+
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, 'users', user.uid);
+      const unsubscribeFromProfile = onSnapshot(userDocRef, 
+        (docSnap) => {
           if (docSnap.exists()) {
             setUserProfileState(docSnap.data() as UserProfile);
           } else {
+            // This case might happen on first-time social sign-in if the doc creation is delayed.
             const newProfile: UserProfile = {
-                name: firebaseUser.displayName || 'New User',
+                name: user.displayName || 'New User',
                 bio: '',
                 skills: [],
                 activePathways: [],
                 onboardingCompleted: false,
-            }
-            await setDoc(userDocRef, newProfile);
-            setUserProfileState(newProfile);
+            };
+            setDoc(userDocRef, newProfile).then(() => setUserProfileState(newProfile));
           }
-        } catch (error) {
+          setLoading(false);
+        }, 
+        (error) => {
           console.error("Failed to get user profile from Firestore. This might be due to API key restrictions or network issues.", error);
-          setUserProfileState(null); // Clear profile on error
-        } finally {
-            setLoading(false);
+          setUserProfileState(null);
+          setLoading(false);
         }
-      } else {
-        // User is signed out
-        setUser(null);
-        setUserProfileState(null);
-        setLoading(false);
-      }
-    });
+      );
+      return () => unsubscribeFromProfile();
+    } else {
+      // No user, not loading.
+      setLoading(false);
+    }
+  }, [user]);
 
-    return () => unsubscribe();
-  }, [auth]);
 
   const setUserProfile = useCallback(
     async (profile: UserProfile | null) => {
-      setUserProfileState(profile);
+      // We keep the local state update for immediate UI feedback, 
+      // but the onSnapshot listener will soon overwrite it with the canonical DB state.
+      setUserProfileState(profile); 
       if (profile && user) {
         const userDocRef = doc(db, 'users', user.uid);
         try {
             await setDoc(userDocRef, profile, { merge: true });
         } catch (error) {
             console.error("Failed to save user profile to Firestore", error);
-            // Optionally re-throw or handle the error in UI
+            // Re-throw to be caught by the calling function's try/catch
             throw error;
         }
       }
