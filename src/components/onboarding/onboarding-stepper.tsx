@@ -1,9 +1,10 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import type { UserProfile, Skill } from '@/lib/types';
 import { getOnboardingQuestion, OnboardingQuestionOutput } from '@/ai/flows/onboarding-flow';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';

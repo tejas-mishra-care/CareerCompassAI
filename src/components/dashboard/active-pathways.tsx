@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Card,
@@ -6,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { GraduationCap } from 'lucide-react';
 import { Progress } from '../ui/progress';
 import Link from 'next/link';

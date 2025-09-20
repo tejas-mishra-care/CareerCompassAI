@@ -36,7 +36,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '../ui/scroll-area';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { Skeleton } from '../ui/skeleton';
 
 const navItems = [

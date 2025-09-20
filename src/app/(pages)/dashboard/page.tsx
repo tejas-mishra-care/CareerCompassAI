@@ -4,7 +4,7 @@
 import React from 'react';
 import { AppShell } from '@/components/layout/app-shell';
 import { WelcomeCard } from '@/components/dashboard/welcome-card';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { SkillDashboard } from '@/components/dashboard/skill-dashboard';
 import { Recommendations } from '@/components/dashboard/recommendations';
 import { MyActivePathways } from '@/components/dashboard/active-pathways';

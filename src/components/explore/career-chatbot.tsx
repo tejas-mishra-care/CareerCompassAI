@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -14,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Bot, Send, User, BrainCircuit } from 'lucide-react';
 import { exploreCareersWithChatbot } from '@/ai/flows/explore-careers-with-chatbot';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
 

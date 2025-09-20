@@ -1,10 +1,11 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import {
   getCareerRecommendations,
   type CareerRecommendationsOutput,
 } from '@/ai/flows/career-recommendations-from-profile';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import {
   Card,
   CardContent,

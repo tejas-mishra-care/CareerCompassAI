@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -5,7 +6,7 @@ import {
   aiSearchAndDiscovery,
   type AiSearchAndDiscoveryOutput,
 } from '@/ai/flows/ai-search-and-discovery';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {

@@ -1,6 +1,7 @@
+
 'use client';
 import { AppShell } from '@/components/layout/app-shell';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { notFound } from 'next/navigation';
 import { slugify } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';

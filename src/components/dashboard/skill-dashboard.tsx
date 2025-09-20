@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import {
   Card,
   CardContent,

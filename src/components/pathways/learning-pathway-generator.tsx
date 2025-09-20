@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,7 @@ import { exploreCareersWithChatbot } from '@/ai/flows/explore-careers-with-chatb
 import { useToast } from '@/hooks/use-toast';
 import { GraduationCap, Wand2, PlusCircle } from 'lucide-react';
 import type { Pathway } from '@/lib/types';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 
 interface ParsedPathway {
   title: string;
@@ -192,8 +193,7 @@ export function LearningPathwayGenerator() {
           <CardFooter className="border-t pt-6 justify-end">
                 <Button onClick={handleStartPathway} disabled={!userProfile}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Start Pathway
-                </Button>
-          </CardFooter>
+                </Button>          </CardFooter>
         </Card>
       )}
     </div>
