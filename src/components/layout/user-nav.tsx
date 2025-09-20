@@ -19,7 +19,7 @@ import { useRouter } from 'next/navigation';
 
 
 export function UserNav() {
-  const { user, loading } = useUserProfile();
+  const { user, loading, isProfileComplete } = useUserProfile();
   const router = useRouter();
   const auth = getAuth(app);
 

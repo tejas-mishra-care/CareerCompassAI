@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -39,71 +39,56 @@ import {
 } from '@/components/ui/sheet';
 import { ScrollArea } from '../ui/scroll-area';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
-import { Skeleton } from '../ui/skeleton';
 
 const navItems = [
   {
     href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
-    authRequired: true,
-  },
-  {
-    href: '/explore',
-    label: 'Explore Careers',
-    icon: Bot,
-     authRequired: true,
-  },
-  {
-    href: '/search',
-    label: 'Search',
-    icon: Search,
-     authRequired: true,
-  },
-  {
-    href: '/pathways',
-    label: 'Learning Pathways',
-    icon: GraduationCap,
-     authRequired: true,
   },
   {
     href: '/my-skills',
     label: 'My Skills',
     icon: ClipboardList,
-     authRequired: true,
+  },
+  {
+    href: '/pathways',
+    label: 'Learning Pathways',
+    icon: GraduationCap,
   },
   {
     href: '/simulations',
     label: 'Simulations',
     icon: SquareTerminal,
-     authRequired: true,
+  },
+  {
+    href: '/explore',
+    label: 'Explore Careers',
+    icon: Bot,
+  },
+  {
+    href: '/search',
+    label: 'Search',
+    icon: Search,
   },
   {
     href: '/connect',
     label: 'Connect',
     icon: Users,
-     authRequired: true,
   },
    {
     href: '/profile',
     label: 'My Profile',
     icon: UserIcon,
-    authRequired: true,
   },
 ];
 
 const SidebarNavigation = () => {
   const pathname = usePathname();
-  const { isProfileComplete } = useUserProfile();
-
-  const visibleNavItems = navItems.filter(item => {
-      if(item.href === '/profile') return isProfileComplete; // Only show profile link if complete
-      return true;
-  });
 
   return (
     <SidebarMenu>
-      {visibleNavItems.map((item) => (
+      {navItems.map((item) => (
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton
             asChild
@@ -160,7 +145,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return <AppShellSkeleton />;
   }
 
-  // The navigation logic is now centralized in UserProfileProvider
+  // The navigation logic is centralized in UserProfileProvider
   if (!user) {
     return <AppShellSkeleton />;
   }
