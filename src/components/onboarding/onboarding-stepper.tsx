@@ -242,14 +242,14 @@ const Step2DeepDive = ({ onComplete, onBack, previousData }: { onComplete: (data
     const defaultValues = subjects.reduce((acc, subject) => {
         acc[subject] = { score: '', feeling: '' };
         return acc;
-    }, {} as Record<string, { score: string, feeling: string }>);
+    }, {} as Record<string, { score: string, feeling: any }>);
 
     const methods = useForm({
-        // resolver: zodResolver(deepDiveSchema),
+        // resolver: zodResolver(deepDiveSchema), // Note: Zod validation can be tricky for dynamic fields, manual check might be simpler
         defaultValues: { subjects: defaultValues }
     });
     
-    const { control, handleSubmit } = methods;
+    const { control, handleSubmit, formState } = methods;
 
     return (
         <FormProvider {...methods}>
@@ -425,15 +425,16 @@ const Step4Direction = ({ onComplete, onBack }: { onComplete: (data: any) => voi
                                     className="grid grid-cols-1 md:grid-cols-2 gap-4"
                                 >
                                     {GOAL_OPTIONS.map(option => (
-                                        <FormItem key={option.id}>
-                                                <FormControl>
-                                                    <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
-                                                </FormControl>
-                                                <Label htmlFor={option.id} className="flex flex-col h-full items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has(:checked)]:border-primary cursor-pointer">
-                                                    <h4 className="font-semibold mb-1">{option.title}</h4>
-                                                    <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                                                </Label>
-                                        </FormItem>
+                                        <div key={option.id}>
+                                            <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                            <Label 
+                                                htmlFor={option.id} 
+                                                className="flex flex-col h-full items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                            >
+                                                <h4 className="font-semibold mb-1">{option.title}</h4>
+                                                <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                            </Label>
+                                        </div>
                                     ))}
                                 </RadioGroup>
                             </FormControl>
@@ -481,7 +482,7 @@ export function OnboardingStepper() {
   const handleFinish = async (finalData: any) => {
     if (!user || !userProfile) return;
     setLoading(true);
-
+    
     const answers = [
         { question: "Academics and Achievements", answer: JSON.stringify(finalData.foundation) },
         { question: "Subject Deep Dive", answer: JSON.stringify(finalData.subjects) },
