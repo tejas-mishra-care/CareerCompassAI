@@ -3,8 +3,20 @@ export interface Skill {
   proficiency: number; // 0-100
 }
 
+export interface PathwayStep {
+  title: string;
+  description: string;
+  completed: boolean;
+}
+
+export interface Pathway {
+  title: string;
+  steps: PathwayStep[];
+}
+
 export interface UserProfile {
   name: string;
   bio: string;
   skills: Skill[];
+  activePathways?: Pathway[];
 }

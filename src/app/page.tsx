@@ -6,6 +6,7 @@ import { WelcomeCard } from '@/components/dashboard/welcome-card';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { SkillDashboard } from '@/components/dashboard/skill-dashboard';
 import { Recommendations } from '@/components/dashboard/recommendations';
+import { MyActivePathways } from '@/components/dashboard/active-pathways';
 
 export default function DashboardPage() {
   const { userProfile, isProfileComplete } = useUserProfile();
@@ -24,6 +25,7 @@ export default function DashboardPage() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="lg:col-span-2 grid gap-6">
               <SkillDashboard />
+              <MyActivePathways />
             </div>
             <div className="lg:col-span-1">
               <Recommendations />

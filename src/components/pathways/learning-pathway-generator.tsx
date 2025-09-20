@@ -7,19 +7,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { exploreCareersWithChatbot } from '@/ai/flows/explore-careers-with-chatbot';
 import { useToast } from '@/hooks/use-toast';
 import { GraduationCap, Wand2, PlusCircle } from 'lucide-react';
+import type { Pathway } from '@/lib/types';
+import { useUserProfile } from '@/hooks/use-user-profile';
 
-interface PathwayStep {
+interface ParsedPathway {
   title: string;
-  description: string;
-}
-
-interface Pathway {
-  title: string;
-  steps: PathwayStep[];
+  steps: { title: string; description: string; }[];
 }
 
 // More robust parser to handle markdown lists and bold titles
-const parsePathway = (text: string): Pathway | null => {
+const parsePathway = (text: string): ParsedPathway | null => {
     try {
       const lines = text.split('\n').filter(line => line.trim() !== '');
       if (lines.length === 0) return null;
@@ -27,8 +24,8 @@ const parsePathway = (text: string): Pathway | null => {
       const titleLine = lines.find(line => line.startsWith('#') || line.toLowerCase().includes('pathway for:')) || `Learning Pathway`;
       const title = titleLine.replace(/#|\*/g, '').replace('Learning Pathway for:', '').trim();
 
-      const steps: PathwayStep[] = [];
-      let currentStep: PathwayStep | null = null;
+      const steps: { title: string; description: string; }[] = [];
+      let currentStep: { title: string; description: string; } | null = null;
   
       lines.forEach(line => {
         const trimmedLine = line.trim();
@@ -67,9 +64,10 @@ const parsePathway = (text: string): Pathway | null => {
 
 export function LearningPathwayGenerator() {
   const [topic, setTopic] = useState('');
-  const [pathway, setPathway] = useState<Pathway | null>(null);
+  const [pathway, setPathway] = useState<ParsedPathway | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { userProfile, setUserProfile } = useUserProfile();
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
@@ -108,8 +106,20 @@ export function LearningPathwayGenerator() {
   };
   
   const handleStartPathway = () => {
-    if (!pathway) return;
-    // In a real application, this would save the pathway to the user's profile.
+    if (!pathway || !userProfile) return;
+
+    const newPathway: Pathway = {
+      ...pathway,
+      steps: pathway.steps.map(step => ({...step, completed: false}))
+    };
+
+    const updatedProfile = {
+      ...userProfile,
+      activePathways: [...(userProfile.activePathways || []), newPathway],
+    };
+
+    setUserProfile(updatedProfile);
+
     toast({
         title: "Pathway Started!",
         description: `You've started the "${pathway.title}" pathway.`,
@@ -180,7 +190,7 @@ export function LearningPathwayGenerator() {
             </div>
           </CardContent>
           <CardFooter className="border-t pt-6 justify-end">
-                <Button onClick={handleStartPathway}>
+                <Button onClick={handleStartPathway} disabled={!userProfile}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Start Pathway
                 </Button>
           </CardFooter>

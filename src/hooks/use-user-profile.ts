@@ -21,12 +21,6 @@ const UserProfileContext = createContext<UserProfileContextType | undefined>(
   undefined
 );
 
-const defaultProfile: UserProfile = {
-  name: '',
-  bio: '',
-  skills: [],
-};
-
 export const UserProfileProvider = ({
   children,
 }: {
