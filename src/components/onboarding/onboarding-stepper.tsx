@@ -237,8 +237,9 @@ const STREAM_SUBJECTS: Record<string, string[]> = {
 }
 
 const SubjectRow = ({ subject }: { subject: string }) => {
-    const { control } = useFormContext();
+    const { control, watch } = useFormContext();
     const id = useId();
+    const feeling = watch(`subjects.${subject}.feeling`);
 
     return (
         <Card>
@@ -266,9 +267,9 @@ const SubjectRow = ({ subject }: { subject: string }) => {
                             <FormItem>
                                 <FormLabel>Your Feeling</FormLabel>
                                 <div className="flex items-center space-x-2 pt-2">
-                                    <Button type="button" variant={field.value === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
-                                    <Button type="button" variant={field.value === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
-                                    <Button type="button" variant={field.value === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
+                                    <Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
+                                    <Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
+                                    <Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
                                 </div>
                                  {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
                             </FormItem>
@@ -289,27 +290,21 @@ const Step2DeepDive = ({ onComplete, onBack, previousData, initialData }: { onCo
         return acc;
     }, {} as Record<string, { score: string, feeling: 'loved' | 'okay' | 'disliked' | undefined }>);
     
-    // A simple validation function for this dynamic step
-    const validateStep2 = (data: any) => {
-        for (const subject of subjects) {
-            const subjectData = data.subjects[subject];
-            if (!subjectData || !subjectData.score || !subjectData.feeling) {
-                toast({ variant: 'destructive', title: `Please complete all fields for ${subject}.`});
-                return false;
-            }
-        }
-        return true;
-    }
-
     const methods = useForm({
         defaultValues: { subjects: defaultValues }
     });
     const { toast } = useToast();
 
     const onSubmit = (data: any) => {
-        if (validateStep2(data)) {
-            onComplete(data);
+        // Simple validation check
+        for (const subject of subjects) {
+            const subjectData = data.subjects[subject];
+            if (!subjectData || !subjectData.score || !subjectData.feeling) {
+                toast({ variant: 'destructive', title: `Please complete all fields for ${subject}.`});
+                return;
+            }
         }
+        onComplete(data);
     }
 
     return (
@@ -493,7 +488,8 @@ export function OnboardingStepper() {
   const [loading, setLoading] = useState(false);
 
   const handleStepComplete = (data: any) => {
-    const newData = { ...onboardingData, ...data };
+    const [dataKey] = Object.keys(data);
+    const newData = { ...onboardingData, [dataKey]: data[dataKey] };
     setOnboardingData(newData);
     
     if (step === 4) {
@@ -598,5 +594,3 @@ export function OnboardingStepper() {
     </div>
   );
 }
-
-    
