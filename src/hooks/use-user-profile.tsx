@@ -38,13 +38,6 @@ export const UserProfileProvider = ({
   const db = getFirestore(app);
 
   useEffect(() => {
-    // Clear session storage on initial load to prevent cached auth errors
-    Object.keys(sessionStorage).forEach(key => {
-        if (key.startsWith('firebase:authUser:')) {
-            sessionStorage.removeItem(key);
-        }
-    });
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
       setUser(firebaseUser);
