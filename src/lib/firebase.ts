@@ -1,6 +1,6 @@
-
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps } from 'firebase/app';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 
 const firebaseConfig = {
   projectId: "studio-9295250327-e0fca",
@@ -16,5 +16,19 @@ const app = !getApps().length ? initializeApp(firebaseConfig, {
     // This can help with some auth issues on localhost
     authDomain: "studio-9295250327-e0fca.firebaseapp.com",
 }) : getApp();
+
+
+// Enable offline persistence
+const db = getFirestore(app);
+try {
+    enableIndexedDbPersistence(db);
+} catch (err: any) {
+    if (err.code === 'failed-precondition') {
+        console.warn('Firestore persistence failed: Multiple tabs open');
+    } else if (err.code === 'unimplemented') {
+        console.warn('Firestore persistence failed: Browser does not support it');
+    }
+}
+
 
 export { app };
