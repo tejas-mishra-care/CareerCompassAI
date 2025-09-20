@@ -1,5 +1,3 @@
-import data from './placeholder-images.json';
-
 export type ImagePlaceholder = {
   id: string;
   description: string;
@@ -7,4 +5,11 @@ export type ImagePlaceholder = {
   imageHint: string;
 };
 
-export const PlaceHolderImages: ImagePlaceholder[] = data.placeholderImages;
+export const placeholderImages: ImagePlaceholder[] = [
+  {
+    "id": "welcome",
+    "description": "A person looking at a crossroads, symbolizing career choices.",
+    "imageUrl": "https://picsum.photos/seed/welcome/300/300",
+    "imageHint": "career choice"
+  }
+];
