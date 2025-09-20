@@ -1,3 +1,4 @@
+
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps } from 'firebase/app';
 
@@ -11,6 +12,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = !getApps().length ? initializeApp(firebaseConfig, {
+    // This can help with some auth issues on localhost
+    authDomain: "studio-9295250327-e0fca.firebaseapp.com",
+}) : getApp();
 
 export { app };
