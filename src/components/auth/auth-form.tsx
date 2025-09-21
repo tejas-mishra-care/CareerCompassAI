@@ -82,7 +82,6 @@ export function AuthForm({ className, ...props }: React.HTMLAttributes<HTMLDivEl
         }
         router.push('/dashboard');
     } catch (error: any) {
-        console.error("Authentication Error Code:", error.code);
         let title = 'Authentication Failed';
         let description = 'An unexpected error occurred. Please try again.';
 
