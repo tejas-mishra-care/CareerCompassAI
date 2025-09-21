@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +28,7 @@ import {
   SquareTerminal,
   User as UserIcon,
   Loader2,
+  HeartHandshake,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { cn } from '@/lib/utils';
@@ -79,7 +81,7 @@ const navItems = [
   {
     href: '/connect',
     label: 'Connect',
-    icon: Users,
+    icon: HeartHandshake,
   },
    {
     href: '/profile',
@@ -143,7 +145,6 @@ const AppShellSkeleton = () => (
 
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const isMobile = useIsMobile();
   const { user, loading } = useUserProfile();
   
   if (loading) {
@@ -156,7 +157,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
   
   return (
-    <SidebarProvider defaultOpen={!isMobile}>
+    <SidebarProvider defaultOpen={false}>
       <Sidebar>
         <SidebarHeader className="border-b">
           <div className="flex h-14 items-center gap-2 px-4">
@@ -175,6 +176,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           <MobileNav />
+          <div className="hidden md:block">
+            <SidebarTrigger />
+          </div>
           <div className="relative ml-auto flex-1 md:grow-0">
             {/* Can be used for a global search */}
           </div>

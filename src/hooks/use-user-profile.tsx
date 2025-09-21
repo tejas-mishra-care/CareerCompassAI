@@ -14,6 +14,7 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { app, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface UserProfileContextType {
   user: User | null;
