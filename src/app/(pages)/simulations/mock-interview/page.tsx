@@ -12,6 +12,7 @@ import { generateInterviewQuestions, getInterviewFeedback } from '@/ai/flows/moc
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
 
 type Question = {
   type: 'behavioral' | 'technical';
