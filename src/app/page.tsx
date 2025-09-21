@@ -42,16 +42,16 @@ export default function LandingPage() {
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-4">
                   <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-                    Stop Guessing. Start Building Your Future.
+                    Unlock Your Future Career.
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    CareerCompassAI is your personal AI navigator for the complex world of careers. Discover your skills, explore your options, and build a concrete path to your goals.
+                    CareerCompassAI is your personal AI navigator. Discover your skills, explore options, and build a concrete path to your goals.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
                     <Link href="/login">
-                      Discover Your Path (It's Free)
+                      Find Your Path
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -71,8 +71,7 @@ export default function LandingPage() {
                               <Image
                                   src={image.imageUrl}
                                   alt={image.description}
-                                  width={600}
-                                  height={400}
+                                  fill
                                   data-ai-hint={image.imageHint}
                                   className="mx-auto overflow-hidden rounded-xl object-cover"
                               />
