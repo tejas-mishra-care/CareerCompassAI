@@ -1,2 +1,39 @@
 
-[]
+[
+  {
+    "id": "welcome-1",
+    "description": "A student looking at a futuristic compass interface, representing career guidance.",
+    "imageUrl": "/images/welcome-1.jpg",
+    "imageHint": "futuristic compass"
+  },
+  {
+    "id": "welcome-2",
+    "description": "A diverse group of students collaborating on a project with technology.",
+    "imageUrl": "/images/welcome-2.jpg",
+    "imageHint": "students collaborating"
+  },
+  {
+    "id": "welcome-3",
+    "description": "A glowing brain neural network, symbolizing AI and learning.",
+    "imageUrl": "/images/welcome-3.jpg",
+    "imageHint": "neural network"
+  },
+  {
+    "id": "welcome-4",
+    "description": "A young person confidently looking towards a bright, abstract future.",
+    "imageUrl": "/images/welcome-4.jpg",
+    "imageHint": "student future"
+  },
+  {
+    "id": "welcome-5",
+    "description": "An abstract visualization of data pathways and connections.",
+    "imageUrl": "/images/welcome-5.jpg",
+    "imageHint": "data pathways"
+  },
+  {
+    "id": "simulations",
+    "description": "A person engaged in a virtual reality simulation, representing experiential learning.",
+    "imageUrl": "/images/simulations-hero.jpg",
+    "imageHint": "virtual reality"
+  }
+]
