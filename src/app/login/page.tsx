@@ -1,12 +1,48 @@
 
+'use client';
+
 import { AuthForm } from "@/components/auth/auth-form";
 import { BrainCircuit } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import placeholderImagesData from '@/lib/placeholder-images.json';
+import type { ImagePlaceholder } from '@/lib/types';
+
 
 export default function LoginPage() {
+    const welcomeImages = (placeholderImagesData as ImagePlaceholder[]).filter(p => p.id.startsWith('welcome'));
+
   return (
     <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-        <div className="absolute inset-0 bg-primary" />
+        <Carousel
+            className="absolute inset-0"
+            plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
+            opts={{ loop: true }}
+        >
+            <CarouselContent className="h-full" data-embla-container>
+                {welcomeImages.map((image, index) => (
+                    <CarouselItem key={index} className="h-full">
+                        <Image
+                            src={image.imageUrl}
+                            alt={image.description}
+                            data-ai-hint={image.imageHint}
+                            fill
+                            className="object-cover"
+                        />
+                    </CarouselItem>
+                ))}
+            </CarouselContent>
+        </Carousel>
+
+        <div className="absolute inset-0 bg-zinc-900/60" />
+
         <div className="relative z-20 flex items-center text-lg font-medium font-headline">
           <BrainCircuit className="mr-2 h-6 w-6" />
           CareerCompassAI
