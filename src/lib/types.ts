@@ -1,3 +1,4 @@
+
 import type { CareerRecommendationsOutput } from "@/ai/flows/career-recommendations-from-profile";
 import type { Opportunity } from "@/ai/flows/opportunity-radar";
 
@@ -25,6 +26,13 @@ export interface Simulation {
     spYield: number;
     imageHint: string;
     href?: string;
+}
+
+export interface ImagePlaceholder {
+    id: string;
+    description: string;
+    imageUrl: string;
+    imageHint: string;
 }
 
 export interface UserProfile {

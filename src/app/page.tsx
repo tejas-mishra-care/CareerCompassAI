@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import placeholderImagesData from '@/lib/placeholder-images.json';
-import type { ImagePlaceholder } from '@/lib/placeholder-images';
+import type { ImagePlaceholder } from '@/lib/types';
 import { BrainCircuit, ChevronRight } from 'lucide-react';
 import {
   Carousel,
@@ -16,55 +16,32 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
+import { useRouter } from 'next/navigation';
 
 
 export default function LandingPage() {
   const welcomeImages = (placeholderImagesData as ImagePlaceholder[]).filter(p => p.id.startsWith('welcome'));
+  const router = useRouter();
 
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center">
-        <Link href="/dashboard" className="flex items-center justify-center" prefetch={false}>
+        <Link href="/" className="flex items-center justify-center" prefetch={false}>
           <BrainCircuit className="h-6 w-6 text-primary" />
           <span className="sr-only">CareerCompassAI</span>
         </Link>
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          <Button variant="ghost" onClick={() => router.push('/login')}>Sign In</Button>
+          <Button onClick={() => router.push('/login')}>Get Started</Button>
+        </nav>
       </header>
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
+        <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              {welcomeImages.length > 0 ? (
-                <Carousel 
-                  className="w-full max-w-full mx-auto lg:order-last"
-                  plugins={[Autoplay({ delay: 3000, stopOnInteraction: true })]}
-                  opts={{ loop: true }}
-                >
-                  <CarouselContent>
-                    {welcomeImages.map((image) => (
-                      <CarouselItem key={image.id}>
-                          <div className="aspect-video relative">
-                            <Image
-                                src={image.imageUrl}
-                                alt={image.description}
-                                fill
-                                data-ai-hint={image.imageHint}
-                                className="mx-auto overflow-hidden rounded-xl object-cover object-center"
-                            />
-                          </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious className="hidden sm:flex" />
-                  <CarouselNext className="hidden sm:flex" />
-                </Carousel>
-              ) : (
-                <div className="lg:order-last bg-muted rounded-xl flex items-center justify-center aspect-video">
-                  <p className="text-muted-foreground">Your images will appear here.</p>
-                </div>
-              )}
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-24">
               <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
+                <div className="space-y-4">
+                  <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
                     Stop Guessing. Start Building Your Future.
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
@@ -73,13 +50,44 @@ export default function LandingPage() {
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
-                    <Link href="/dashboard">
+                    <Link href="/login">
                       Discover Your Path (It's Free)
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                 </div>
               </div>
+               <div className="flex justify-center items-center">
+                {welcomeImages.length > 0 ? (
+                  <Carousel
+                    className="w-full max-w-sm"
+                    plugins={[Autoplay({ delay: 3000, stopOnInteraction: true })]}
+                    opts={{ loop: true }}
+                  >
+                    <CarouselContent>
+                      {welcomeImages.map((image) => (
+                        <CarouselItem key={image.id}>
+                            <div className="aspect-[9/16] relative">
+                              <Image
+                                  src={image.imageUrl}
+                                  alt={image.description}
+                                  fill
+                                  data-ai-hint={image.imageHint}
+                                  className="mx-auto overflow-hidden rounded-xl object-cover"
+                              />
+                            </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="hidden sm:flex left-[-2.5rem]" />
+                    <CarouselNext className="hidden sm:flex right-[-2.5rem]" />
+                  </Carousel>
+                ) : (
+                  <div className="w-full max-w-sm aspect-[9/16] bg-muted rounded-xl flex items-center justify-center">
+                    <p className="text-muted-foreground">Your images will appear here.</p>
+                  </div>
+                )}
+               </div>
             </div>
           </div>
         </section>
