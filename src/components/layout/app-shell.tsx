@@ -32,7 +32,6 @@ import {
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Sheet,
   SheetContent,
@@ -159,30 +158,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={false}>
       <Sidebar collapsible="offcanvas">
-        <SidebarHeader className="border-b">
-          <div className="flex h-14 items-center gap-2 px-4">
-            <BrainCircuit className="h-6 w-6 text-primary" />
-            <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-              <h2 className="font-bold text-base font-headline">
-                CareerCompassAI
-              </h2>
-            </div>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="pt-4">
           <SidebarNavigation />
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-          <MobileNav />
-          <div className="hidden md:block">
-            <SidebarTrigger />
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
+          <div className="flex items-center gap-2">
+            <MobileNav />
+            <div className="hidden md:block">
+              <SidebarTrigger />
+            </div>
+            <div className="items-center gap-2 hidden md:flex">
+              <BrainCircuit className="h-6 w-6 text-primary" />
+              <h2 className="font-bold text-base font-headline">
+                  CareerCompassAI
+              </h2>
+            </div>
           </div>
-          <div className="relative ml-auto flex-1 md:grow-0">
-            {/* Can be used for a global search */}
+
+          <div className="flex items-center gap-4">
+              <UserNav />
           </div>
-          <UserNav />
         </header>
         <main className="flex-1">{children}</main>
       </SidebarInset>
