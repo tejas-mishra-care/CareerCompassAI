@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import {
   Card,
@@ -8,9 +9,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '../ui/skeleton';
+import { Button } from '../ui/button';
+import { Edit } from 'lucide-react';
+import { EditProfileDialog } from '../profile/edit-profile-dialog';
 
 const getInitials = (name: string | undefined) => {
     if (!name) return 'U';
@@ -22,7 +27,8 @@ const getInitials = (name: string | undefined) => {
 };
 
 export function UserProfileCard() {
-  const { userProfile, loading } = useUserProfile();
+  const { user, userProfile, loading } = useUserProfile();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   if (loading) {
     return (
@@ -45,9 +51,11 @@ export function UserProfileCard() {
   }
 
   return (
+    <>
     <Card>
       <CardHeader className="items-center text-center">
         <Avatar className="h-24 w-24 text-3xl mb-2">
+            <AvatarImage src={user?.photoURL ?? undefined} alt={userProfile.name} />
             <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
         </Avatar>
         <CardTitle className="font-headline text-2xl">{userProfile.name}</CardTitle>
@@ -57,6 +65,13 @@ export function UserProfileCard() {
             {userProfile.bio || "No bio yet. Complete your onboarding to generate one!"}
         </CardDescription>
       </CardContent>
+      <CardFooter>
+        <Button variant="outline" className="w-full" onClick={() => setIsEditDialogOpen(true)}>
+            <Edit className="mr-2 h-4 w-4" /> Edit Profile
+        </Button>
+      </CardFooter>
     </Card>
+    <EditProfileDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
+    </>
   );
 }

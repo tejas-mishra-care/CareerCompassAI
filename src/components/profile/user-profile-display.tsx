@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import {
   Card,
@@ -10,7 +11,7 @@ import {
   CardTitle,
   CardFooter
 } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 import { BrainCircuit, Star, Edit, GraduationCap, School } from 'lucide-react';
 import {
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '../ui/button';
+import { EditProfileDialog } from './edit-profile-dialog';
 
 const getInitials = (name: string | undefined) => {
     if (!name) return 'U';
@@ -112,7 +114,8 @@ const EducationHistoryCard = () => {
 
 
 export function UserProfileDisplay() {
-  const { userProfile, loading } = useUserProfile();
+  const { user, userProfile, loading } = useUserProfile();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   if (loading) {
     return (
@@ -179,11 +182,13 @@ export function UserProfileDisplay() {
   );
 
   return (
+    <>
     <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1 space-y-6">
             <Card>
                 <CardHeader className="items-center text-center">
                     <Avatar className="h-24 w-24 text-3xl mb-2">
+                        <AvatarImage src={user?.photoURL ?? undefined} alt={userProfile.name} />
                         <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
                     </Avatar>
                     <CardTitle className="font-headline text-2xl">{userProfile.name}</CardTitle>
@@ -194,8 +199,8 @@ export function UserProfileDisplay() {
                     </CardDescription>
                 </CardContent>
                 <CardFooter>
-                    <Button variant="outline" className="w-full" disabled>
-                        <Edit className="mr-2 h-4 w-4" /> Edit Profile (Coming Soon)
+                    <Button variant="outline" className="w-full" onClick={() => setIsEditDialogOpen(true)}>
+                        <Edit className="mr-2 h-4 w-4" /> Edit Profile
                     </Button>
                 </CardFooter>
             </Card>
@@ -248,5 +253,7 @@ export function UserProfileDisplay() {
             <EducationHistoryCard />
         </div>
     </div>
+    <EditProfileDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
+    </>
   );
 }
