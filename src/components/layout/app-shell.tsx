@@ -122,7 +122,7 @@ const MobileNav = () => (
     </SheetTrigger>
     <SheetContent side="left" className="flex flex-col p-0">
       <SheetHeader className="p-4 border-b">
-        <Link href="/" className="flex items-center gap-2 font-bold">
+        <Link href="/dashboard" className="flex items-center gap-2 font-bold">
           <BrainCircuit className="h-6 w-6 text-primary" />
           <span className="font-headline text-lg">CareerCompassAI</span>
         </Link>
@@ -169,12 +169,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="hidden md:block">
               <SidebarTrigger />
             </div>
-            <div className="items-center gap-2 hidden md:flex">
+            <Link href="/dashboard" className="items-center gap-2 hidden md:flex">
               <BrainCircuit className="h-6 w-6 text-primary" />
               <h2 className="font-bold text-base font-headline">
                   CareerCompassAI
               </h2>
-            </div>
+            </Link>
           </div>
 
           <div className="flex items-center gap-4">
