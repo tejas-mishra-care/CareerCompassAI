@@ -3,41 +3,11 @@
 import { AppShell } from '@/components/layout/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, HeartHandshake, ArrowRight, Search, Plus, Bot, Laptop, Banknote } from 'lucide-react';
+import { Users, MessageSquare, HeartHandshake, ArrowRight, Search, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-
-const suggestedGroups = [
-    { name: 'AI & Machine Learning', members: 1204, category: 'Emerging Tech', icon: <Bot /> },
-    { name: 'Sustainable Tech & ESG', members: 458, category: 'Industry', icon: <Laptop /> },
-    { name: 'Fintech & DeFi Innovators', members: 891, category: 'Industry', icon: <Banknote /> },
-];
-
-const featuredMentors = [
-    {
-        name: 'Rohan Verma',
-        title: 'Senior Product Manager at Google',
-        avatar: '/avatars/01.png',
-    },
-    {
-        name: 'Anika Reddy',
-        title: 'Lead UX Designer at Swiggy',
-        avatar: '/avatars/02.png',
-    },
-]
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export default function CommunityPage() {
-  const { toast } = useToast();
-
-  const handleJoinGroup = (groupName: string) => {
-    toast({
-      title: 'Joining Group!',
-      description: `You've joined the "${groupName}" group. Welcome to the community!`,
-    });
-    // In a real app, this would involve a backend call to add the user to the group
-  };
   
   return (
     <AppShell>
@@ -60,34 +30,33 @@ export default function CommunityPage() {
                     <Users className="text-primary inline-block mr-3" /> Peer Groups
                 </CardTitle>
                 <CardDescription>
-                    Join groups based on your interests, goals, and location to learn and collaborate with like-minded peers.
+                    Join groups based on your interests, goals, and location. (Coming Soon)
                 </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-3">
-                {suggestedGroups.map(group => (
-                    <Card key={group.name} className="flex flex-col">
-                        <CardHeader>
-                             <div className="flex items-center gap-4">
-                                <Avatar className="h-12 w-12 bg-secondary text-secondary-foreground">
-                                    <AvatarFallback>{group.icon}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <CardTitle className="text-lg font-headline">{group.name}</CardTitle>
-                                    <CardDescription>{group.members.toLocaleString()} members</CardDescription>
+            <CardContent className="filter blur-sm opacity-50">
+                 <div className="grid gap-4 md:grid-cols-3">
+                    {['AI & Machine Learning', 'Sustainable Tech', 'Fintech Innovators'].map(name => (
+                        <Card key={name}>
+                            <CardHeader>
+                                 <div className="flex items-center gap-4">
+                                    <Avatar className="h-12 w-12 bg-secondary text-secondary-foreground">
+                                        <AvatarFallback>{name.substring(0,1)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <CardTitle className="text-lg font-headline">{name}</CardTitle>
+                                        <CardDescription>1,204 members</CardDescription>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-grow">
-                             <Badge variant="secondary">{group.category}</Badge>
-                        </CardContent>
-                        <CardFooter>
-                            <Button className="w-full" onClick={() => handleJoinGroup(group.name)}>Join Group</Button>
-                        </CardFooter>
-                    </Card>
-                ))}
+                            </CardHeader>
+                            <CardFooter>
+                                <Button className="w-full" disabled>Join Group</Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
             </CardContent>
              <CardFooter>
-                <Button variant="outline">
+                <Button variant="outline" disabled>
                     <Search className="mr-2" /> Explore More Groups
                 </Button>
             </CardFooter>
@@ -130,16 +99,15 @@ export default function CommunityPage() {
                     Find experienced professionals to guide you on your career journey. (Coming Soon)
                 </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-                {featuredMentors.map(mentor => (
-                    <div key={mentor.name} className="p-4 border rounded-lg flex items-center gap-4 filter blur-sm opacity-50">
+            <CardContent className="grid gap-4 md:grid-cols-2 filter blur-sm opacity-50">
+                {['Rohan Verma', 'Anika Reddy'].map(name => (
+                    <div key={name} className="p-4 border rounded-lg flex items-center gap-4">
                         <Avatar className="h-16 w-16">
-                            <AvatarImage src={`https://i.pravatar.cc/150?u=${mentor.name}`} />
-                            <AvatarFallback>{mentor.name.substring(0,2)}</AvatarFallback>
+                            <AvatarFallback>{name.substring(0,2)}</AvatarFallback>
                         </Avatar>
                         <div>
-                             <p className="font-bold">{mentor.name}</p>
-                             <p className="text-sm text-muted-foreground">{mentor.title}</p>
+                             <p className="font-bold">{name}</p>
+                             <p className="text-sm text-muted-foreground">Senior Product Manager</p>
                         </div>
                     </div>
                 ))}
