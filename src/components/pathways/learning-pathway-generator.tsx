@@ -33,26 +33,34 @@ const parsePathway = (text: string): ParsedPathway | null => {
         const isStepTitle = /^\d+\.\s/.test(trimmedLine) || /^\*\s/.test(trimmedLine) || /^\-\s/.test(trimmedLine);
   
         if (isStepTitle) {
-          if (currentStep) steps.push(currentStep);
-          // Extract title from formats like "1. **Title:** Description" or "1. Title"
-          const titleMatch = trimmedLine.match(/^\d+\.\s+\**(.+?)\**(\s*:\s*(.*))?$/);
-          if (titleMatch) {
-            currentStep = {
-              title: titleMatch[1].trim(),
-              description: titleMatch[3] ? titleMatch[3].trim() : ''
-            };
-          } else {
-             currentStep = { title: trimmedLine.replace(/^\d+\.\s*|^\*\s*|^\-\s*/, '').replace(/\*\*$/, '').trim(), description: '' };
+          if (currentStep) {
+            steps.push(currentStep);
           }
-        } else if (currentStep && !currentStep.description) {
-            // Assign the first non-title line as the description
+          // Reset for the new step
+          currentStep = { title: '', description: ''};
+
+          // Remove the list marker (e.g., "1. ", "* ", "- ")
+          const content = trimmedLine.replace(/^\d+\.\s*|^\*\s*|^\-\s*/, '');
+          
+          // Separate bolded title from description
+          const match = content.match(/\*\*(.*?)\*\*\s*[:\-–]?\s*(.*)/);
+          if (match) {
+            currentStep.title = match[1].trim();
+            currentStep.description = match[2].trim();
+          } else {
+            currentStep.title = content.trim();
+            // Description might be on the next line
+          }
+
+        } else if (currentStep && !currentStep.description && trimmedLine) {
+            // If the current step's title is set but the description is empty, this line is the description
             currentStep.description = trimmedLine;
-        } else if (currentStep) {
-            // Append to existing description if needed (though we aim for 1-sentence descriptions)
         }
       });
   
-      if (currentStep) steps.push(currentStep);
+      if (currentStep) {
+        steps.push(currentStep);
+      }
       
       if (steps.length === 0) return null;
   
