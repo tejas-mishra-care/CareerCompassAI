@@ -60,14 +60,14 @@ export default function LandingPage() {
                <div className="flex justify-center items-center">
                 {welcomeImages.length > 0 ? (
                   <Carousel
-                    className="w-full max-w-sm"
+                    className="w-full max-w-lg"
                     plugins={[Autoplay({ delay: 3000, stopOnInteraction: true })]}
                     opts={{ loop: true }}
                   >
                     <CarouselContent>
                       {welcomeImages.map((image) => (
                         <CarouselItem key={image.id}>
-                            <div className="aspect-[9/16] relative">
+                            <div className="aspect-video relative">
                               <Image
                                   src={image.imageUrl}
                                   alt={image.description}
@@ -83,7 +83,7 @@ export default function LandingPage() {
                     <CarouselNext className="hidden sm:flex right-[-2.5rem]" />
                   </Carousel>
                 ) : (
-                  <div className="w-full max-w-sm aspect-[9/16] bg-muted rounded-xl flex items-center justify-center">
+                  <div className="w-full max-w-lg aspect-video bg-muted rounded-xl flex items-center justify-center">
                     <p className="text-muted-foreground">Your images will appear here.</p>
                   </div>
                 )}
