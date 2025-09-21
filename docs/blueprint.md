@@ -1,95 +1,94 @@
 # Application Blueprint: CareerCompassAI
 
-This document outlines the core architecture and user flow for the CareerCompassAI application.
+This document outlines the architecture and core concepts behind the CareerCompassAI application. It is a living document that will evolve as the application grows.
 
----
+## 1. The Core Engine: A Trinity of Components
 
-## 1. Core Philosophy: The Human-AI Symbiosis
+The application is built on three foundational pillars that work together to create a deeply personalized user experience.
 
-CareerCompassAI is not just a tool; it's a partnership. The core philosophy is to augment the human experience—for students, parents, and counselors—with the power of AI. It provides data-driven insights and personalized roadmaps, enabling more informed and empathetic guidance.
+-   **The Dynamic User Profile (The "Soul"):** This is more than just a user record; it's a "living CV" stored in a Firestore document. It contains the user's skills, proficiency levels, goals, active learning pathways, and a history of their achievements. This profile is updated in real-time, serving as the central source of truth for the entire application. The `useUserProfile` hook provides seamless, real-time access to this data across all components.
 
----
+-   **The Personalization Engine (The "Brain"):** This is a collection of server-side Genkit AI flows. These flows act as the application's intelligence, processing the user's Dynamic Profile to generate tailored content, recommendations, and insights. This engine is responsible for everything from creating the initial user profile to suggesting career paths and matching users with opportunities.
 
-## 2. The Trinity Architecture
+-   **The Experiential UI (The "Nervous System"):** This is the Next.js and React frontend. It's designed to be more than just a display layer; it's an interactive environment. Through features like the Onboarding Stepper, Learning Pathways, and the Simulation Library, the UI actively engages the user, captures their progress, and feeds that data back into their Dynamic User Profile, creating a virtuous cycle of growth and personalization.
 
-The application is built on three foundational pillars:
+## 2. Key Features & User Journey
 
-### a. The Dynamic User Profile (The "Soul")
+The application is designed around a comprehensive user lifecycle, guiding them from self-discovery to career readiness.
 
--   **What it is:** A comprehensive, "living" profile for each user, stored as a single document in Firestore (`/users/{userId}`). It's the application's single source of truth for an individual.
--   **Implementation:**
-    -   **Data Model (`src/lib/types.ts`):** The `UserProfile` interface defines the structure, including `name`, `bio`, `skills`, `activePathways`, and the crucial `onboardingData`.
-    -   **Real-time Synchronization (`src/hooks/use-user-profile.tsx`):** The `useUserProfile` hook uses a real-time Firestore `onSnapshot` listener. This ensures that any change to the user's document in the database is immediately reflected across the entire application without needing a page refresh.
+-   **Intelligent Onboarding (`/profile`):** The user's journey begins with a gamified, multi-step onboarding process that feels more like a conversation than a form. It captures their academic history, passions, and aptitudes. The `createProfileFromOnboarding` AI flow then synthesizes this data into a rich, foundational user profile, complete with an initial skill map and a professional bio.
 
-### b. The Knowledge Graph (The "Brain")
+-   **The Dashboard (`/dashboard`):** This is the user's personalized home base. It provides an at-a-glance view of their `SkillDashboard` (a radar chart of their top skills), their `ActivePathways`, and AI-driven `Recommendations` for their next steps.
 
--   **What it is:** A vast, implicit network of information about careers, skills, courses, and learning pathways. This "brain" is powered by Google's Gemini models.
--   **Implementation:**
-    -   **Genkit AI Flows (`src/ai/flows/*.ts`):** A suite of specialized Genkit flows acts as the interface to the AI. Each flow is a purpose-built "expert" (e.g., `createProfileFromOnboarding`, `getCareerRecommendations`). They take user data as input and return structured, actionable JSON.
-    -   **Zod Schemas:** Each flow uses `zod` to define strict input and output schemas, ensuring data consistency and type safety between the application and the AI.
+-   **Learning Pathways (`/pathways`):** The `LearningPathwayGenerator` allows users to generate custom, step-by-step learning plans for any skill or career. Once a pathway is started, it's added to their profile, and they can track their progress, earning Skill Points (SP) as they complete each step.
 
-### c. The Personalization Engine (The "Nervous System")
+-   **The Experiential Library (`/simulations`):** This is where users can "test-drive" their future careers. The library contains interactive simulations, such as the `mock-interview`, that challenge users to apply their skills in real-world scenarios, earning significant SP upon completion.
 
--   **What it is:** The active process that connects the User Profile to the Knowledge Graph. It's responsible for fetching, interpreting, and displaying personalized content.
--   **Implementation:**
-    -   **React Components (`src/components/**/*.tsx`):** Components like `Recommendations`, `UnifiedSearch`, and `LearningPathwayGenerator` act as the "nerves." They use the `useUserProfile` hook to get the user's data and then call the appropriate Genkit flow to generate personalized content.
+-   **Connect & Share (`/connect`):** This feature acknowledges that career development isn't a solo journey. It provides a secure way for users to share their progress with parents, guardians, and career counselors, fostering a supportive ecosystem around the user.
 
----
+## 3. High-Impact Features
 
-## 3. The User Journey & Core Features
+These modules leverage the core engine to deliver proactive, high-value experiences that make the platform an indispensable career tool.
 
-### a. Onboarding: The First Handshake
+-   **Opportunity Radar:** A proactive job and internship matching engine. This feature utilizes an AI flow (`opportunity-radar`) to analyze the user's live skill profile and match it against simulated, realistic job listings relevant to the Indian market. It calculates a "Match Score" for each opportunity, directly answering the user's question, "What can I do with my skills *right now*?". This transforms the platform from just a learning tool into a career progression tool.
 
--   **Goal:** To gather enough information to build a valuable, personalized initial profile without overwhelming the user.
--   **Implementation:**
-    1.  **Trigger:** A new user is directed to `/profile`, where `onboardingCompleted: false` triggers the `OnboardingStepper`.
-    2.  **The Stepper (`src/components/onboarding/onboarding-stepper.tsx`):** A multi-step form that collects academic history, higher education details, interests, and aptitude quiz answers. It's designed to feel like a "calibration journey."
-    3.  **Finish & Redirect:** Upon clicking "Finish," the stepper performs **one simple, reliable action**: it saves the complete, raw form data to `onboardingData` in the user's Firestore document and sets `onboardingCompleted: true`. It then immediately redirects to `/dashboard`. This decouples the slow AI processing from the user's form submission action.
+-   **AI Mock Interview Simulator:** A powerful training ground for interview preparation. Found within the Experiential Library, this feature uses a dedicated AI flow (`mock-interview-flow`) to generate relevant technical and behavioral questions for a user-specified job role. After the user provides an answer, the AI delivers instant, constructive feedback, helping them refine their communication and storytelling skills in a safe, private environment.
 
-### b. Profile Generation: The AI's First Task
-
--   **Goal:** To transform the raw onboarding data into a structured, insightful user profile.
--   **Implementation:**
-    1.  **The Processor (`src/components/dashboard/profile-processor.tsx`):** After being redirected, the dashboard sees that `onboardingCompleted` is true but the profile is still missing a `bio` and `skills`. It renders the `ProfileProcessor` component.
-    2.  **Asynchronous AI Call:** This component displays a loading state (e.g., "Calibrating your compass...") while it calls the `createProfileFromOnboarding` Genkit flow in the background, sending the `onboardingData`.
-    3.  **Real-time Update:** Once the AI returns the generated `bio` and `skills`, the `ProfileProcessor` updates the user's document in Firestore. The `onSnapshot` listener in the `useUserProfile` hook automatically picks up this change, and the dashboard seamlessly re-renders to show the complete, personalized view.
-
-### c. Gamified Skill Progression
-
--   **Goal:** To create an engaging feedback loop that encourages learning and growth.
--   **Implementation:**
-    -   **Skill Points (SP):** The `proficiency` field in the `Skill` model acts as the user's SP for that skill.
-    -   **Pathway Completion:** Completing steps in a `Pathway` (`src/app/(pages)/pathways/[pathwayId]/page.tsx`) increases the SP of related skills, providing tangible rewards for learning.
-    -   **Visualization:** Components like `SkillDashboard` and `SkillRadarChart` provide a clear, visual representation of the user's strengths and progress.
-
-### d. The Human Layer
-
--   **Goal:** To facilitate meaningful conversations between users, counselors, and parents.
--   **Implementation:** The `ConnectPage` provides a dedicated space for this, with stubs for "Counselor Connect" and a "Parent & Guardian Portal," allowing for future integration of sharing and collaboration features.
-
----
+-   **Community & Mentorship Hub:** This feature adds a vital social layer to the application, fostering a network effect. The UI is structured to support Peer Groups (for collaborative learning), Q&A Forums (for crowd-sourced wisdom), and a Mentor Connect program to link users with experienced professionals. It aims to build the professional network users need to succeed.
 
 ## 4. Architectural Refinements
 
-Based on initial development, the following architectural improvements have been implemented to ensure scalability, reliability, and cost-effectiveness.
+As the application has evolved, several key architectural decisions have been made to ensure scalability, resilience, and cost-effectiveness.
 
-### a. Error Handling in `ProfileProcessor`
+-   **Robust Error Handling:** The `ProfileProcessor` component, which handles the initial AI-driven profile creation, now includes a dedicated error state. If the Genkit flow fails, the user is presented with a clear error message and a retry button, preventing them from being stuck in a permanent loading state.
 
--   **Challenge:** The `createProfileFromOnboarding` AI flow could potentially fail, leaving the user stuck in a loading state.
--   **Solution:** The `ProfileProcessor` component now includes a robust `try...catch` block. If the AI flow returns an error, the component displays an error state with a user-friendly message and a "Try Again" button, allowing the user to re-initiate the process.
+-   **Intelligent Caching for AI Flows:** To manage API costs and improve performance, AI-generated content like career recommendations and job opportunities are cached within the user's Firestore document. A timestamp (`recommendationsLastUpdated`, `opportunitiesLastUpdated`) is stored alongside the data. The frontend logic is configured to only re-run the expensive AI flows if the cached data is more than one week old, striking a balance between freshness and efficiency.
 
-### b. Cost Management via Caching
+-   **Optimized Data Modeling for Queries:** Key fields from the `onboardingData` object (such as `stream12th` and `goal`) are promoted to top-level properties on the `UserProfile` document. This data denormalization makes it significantly more efficient to query and index users based on critical onboarding answers, which would be slow and costly if the data remained nested inside a large JSON blob.
 
--   **Challenge:** AI-driven features like career recommendations could become expensive if the AI flow is called on every page load.
--   **Solution:** A caching mechanism has been implemented for AI recommendations.
-    1.  The `UserProfile` model now includes `recommendations` and `recommendationsLastUpdated` fields.
-    2.  The `Recommendations` component first checks if valid, non-expired recommendations exist in the user's document.
-    3.  It only calls the `getCareerRecommendations` AI flow if the cached data is more than one week old, significantly reducing redundant API calls.
+## 5. Data Models
 
-### c. Data Model Refinement for Querying
+The core data model for the application is the `UserProfile`.
 
--   **Challenge:** Storing all onboarding answers in a single, unstructured `onboardingData` object makes it difficult and inefficient to query users based on specific criteria (e.g., finding all "Commerce" students).
--   **Solution:** Key, high-value fields from the onboarding process are now "promoted" to top-level properties in the `UserProfile` document.
-    -   `stream12th`
-    -   `goal`
--   This allows for direct, efficient querying and indexing on these fields in Firestore while still preserving the complete raw data in the `onboardingData` object for the AI.
+```typescript
+// src/lib/types.ts
+
+export interface Skill {
+  name: string;
+  proficiency: number; // 0-100
+}
+
+export interface PathwayStep {
+  title: string;
+  description: string;
+  completed: boolean;
+}
+
+export interface Pathway {
+  title: string;
+  steps: PathwayStep[];
+}
+
+export interface UserProfile {
+  name: string;
+  bio: string;
+  skills: Skill[];
+  activePathways?: Pathway[];
+  
+  // Onboarding-specific fields
+  onboardingCompleted?: boolean;
+  onboardingData?: any; // Stores the raw output from the stepper form
+  
+  // Fields promoted for querying
+  stream12th?: string;
+  goal?: string;
+
+  // Cached AI recommendations
+  recommendations?: CareerRecommendationsOutput;
+  recommendationsLastUpdated?: number; // Firestore timestamp
+
+  // Cached AI opportunities
+  opportunities?: Opportunity[];
+  opportunitiesLastUpdated?: number; // Firestore timestamp
+}
+```
