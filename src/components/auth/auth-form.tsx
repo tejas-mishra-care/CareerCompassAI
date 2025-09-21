@@ -49,15 +49,15 @@ export function AuthForm({ className, ...props }: React.HTMLAttributes<HTMLDivEl
       await signInWithPopup(auth, provider);
       router.push('/dashboard');
       toast({
-        title: 'Success!',
-        description: 'You have successfully signed in with Google.',
+        title: 'Successfully connected with Google.',
+        description: 'Welcome to CareerCompassAI!',
       });
     } catch (error: any) {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: error.message || 'There was a problem with your request.',
+        title: 'Connection Failed',
+        description: 'Could not sign in with Google. Please try again.',
       });
     } finally {
       setIsGoogleLoading(false);
@@ -70,23 +70,46 @@ export function AuthForm({ className, ...props }: React.HTMLAttributes<HTMLDivEl
         if (isSignUp) {
             await createUserWithEmailAndPassword(auth, data.email, data.password);
             toast({
-                title: 'Account Created!',
-                description: "You've been successfully signed up.",
+                title: 'Welcome Aboard!',
+                description: "Let's start building your future.",
             });
         } else {
             await signInWithEmailAndPassword(auth, data.email, data.password);
             toast({
-                title: 'Signed In!',
-                description: 'Welcome back.',
+                title: 'Welcome Back!',
+                description: 'Your career journey continues.',
             });
         }
         router.push('/dashboard');
     } catch (error: any) {
-        console.error(error);
+        console.error("Authentication Error Code:", error.code);
+        let title = 'Authentication Failed';
+        let description = 'An unexpected error occurred. Please try again.';
+
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                title = 'Email Already Registered';
+                description = 'An account with this email already exists. Please try signing in.';
+                break;
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+                title = 'Invalid Credentials';
+                description = 'The email or password you entered is incorrect. Please check and try again.';
+                break;
+            case 'auth/weak-password':
+                title = 'Weak Password';
+                description = 'Your password is too weak. Please choose a password that is at least 8 characters long.';
+                break;
+            default:
+                // Keep the generic message for other errors
+                break;
+        }
+
         toast({
             variant: 'destructive',
-            title: 'Authentication Failed',
-            description: error.message || 'Please check your credentials and try again.',
+            title: title,
+            description: description,
         });
     } finally {
         setIsLoading(false);
@@ -195,4 +218,5 @@ export function AuthForm({ className, ...props }: React.HTMLAttributes<HTMLDivEl
       </Button>
     </div>
   );
-}
+
+  
