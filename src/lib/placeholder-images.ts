@@ -8,9 +8,9 @@ export type ImagePlaceholder = {
 export const placeholderImages: ImagePlaceholder[] = [
   {
     "id": "welcome",
-    "description": "A person looking at a crossroads, symbolizing career choices.",
-    "imageUrl": "https://picsum.photos/seed/welcome/300/300",
-    "imageHint": "career choice"
+    "description": "A futuristic, glowing compass interface, symbolizing AI-powered career guidance.",
+    "imageUrl": "https://picsum.photos/seed/future/600/400",
+    "imageHint": "futuristic compass"
   },
   {
     "id": "simulations",
