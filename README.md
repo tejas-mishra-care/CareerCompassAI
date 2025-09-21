@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CareerCompassAI
 
 CareerCompassAI is a sophisticated, AI-powered career navigation platform designed to help users discover their skills, explore potential career paths, and build a concrete plan to achieve their goals. It acts as a personal AI navigator, transforming a user's academic and personal history into a "Living CV" that powers personalized recommendations and opportunities.
@@ -143,3 +144,6 @@ Forward-looking pages designed for future social and mentorship features.
     -   **Counselor Connect**: Grant verified counselors access to the dashboard.
     -   **Parent & Guardian Portal**: Generate a secure, read-only link to share progress with family.
     -   **Privacy-First**: The UI emphasizes that no data is shared without explicit user consent.
+=======
+
+>>>>>>> 245669c (Update README.md)
