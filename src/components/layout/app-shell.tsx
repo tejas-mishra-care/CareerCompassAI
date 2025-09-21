@@ -158,7 +158,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   
   return (
     <SidebarProvider defaultOpen={false}>
-      <Sidebar>
+      <Sidebar collapsible="offcanvas">
         <SidebarHeader className="border-b">
           <div className="flex h-14 items-center gap-2 px-4">
             <BrainCircuit className="h-6 w-6 text-primary" />
