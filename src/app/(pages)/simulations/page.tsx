@@ -1,7 +1,8 @@
 
 import { AppShell } from '@/components/layout/app-shell';
 import { SimulationCard } from '@/components/simulations/simulation-card';
-import { placeholderImages } from '@/lib/placeholder-images';
+import placeholderImagesData from '@/lib/placeholder-images.json';
+import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import type { Simulation } from '@/lib/types';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -44,7 +45,7 @@ const availableSimulations: Simulation[] = [
 
 
 export default function SimulationsPage() {
-    const heroImage = placeholderImages.find(p => p.id === 'simulations');
+    const heroImage = (placeholderImagesData as ImagePlaceholder[]).find(p => p.id === 'simulations');
   return (
     <AppShell>
       <div className="flex-1 space-y-6">

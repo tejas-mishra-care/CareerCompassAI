@@ -5,9 +5,9 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { placeholderImages } from '@/lib/placeholder-images';
+import placeholderImagesData from '@/lib/placeholder-images.json';
+import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { BrainCircuit, ChevronRight } from 'lucide-react';
-import { Card, CardContent } from "@/components/ui/card"
 import {
   Carousel,
   CarouselContent,
@@ -19,7 +19,7 @@ import Autoplay from "embla-carousel-autoplay"
 
 
 export default function LandingPage() {
-  const welcomeImages = placeholderImages.filter(p => p.id.startsWith('welcome'));
+  const welcomeImages = (placeholderImagesData as ImagePlaceholder[]).filter(p => p.id.startsWith('welcome'));
 
   return (
     <div className="flex flex-col min-h-screen">

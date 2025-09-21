@@ -9,12 +9,13 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { placeholderImages } from '@/lib/placeholder-images';
+import placeholderImagesData from '@/lib/placeholder-images.json';
+import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { useRouter } from 'next/navigation';
 
 export function WelcomeCard() {
   const router = useRouter();
-  const welcomeImage = placeholderImages.find(p => p.id === 'welcome');
+  const welcomeImage = (placeholderImagesData as ImagePlaceholder[]).find(p => p.id === 'welcome-1');
 
   return (
       <Card>
