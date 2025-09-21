@@ -13,16 +13,23 @@ import { Progress } from '@/components/ui/progress';
 import { BrainCircuit } from 'lucide-react';
 import type { Skill } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
-import { SkillRadarChart } from './skill-radar-chart';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const SkillItem = ({ skill }: { skill: Skill }) => (
-  <div className="space-y-1">
-    <div className="flex justify-between items-center">
-      <p className="text-sm font-medium">{skill.name}</p>
-      <p className="text-sm text-muted-foreground">{skill.proficiency}%</p>
-    </div>
-    <Progress value={skill.proficiency} aria-label={`${skill.name} proficiency ${skill.proficiency}%`} />
-  </div>
+  <TableRow>
+    <TableCell className="font-medium">{skill.name}</TableCell>
+    <TableCell className="w-[150px]">
+      <Progress value={skill.proficiency} aria-label={`${skill.name} proficiency ${skill.proficiency}%`} />
+    </TableCell>
+    <TableCell className="text-right w-[60px] font-mono">{skill.proficiency}%</TableCell>
+  </TableRow>
 );
 
 const SkillDashboardSkeleton = () => (
@@ -30,24 +37,19 @@ const SkillDashboardSkeleton = () => (
       <CardHeader>
         <CardTitle>
             <BrainCircuit className="h-6 w-6 inline-block mr-2" />
-            Skill Dashboard
+            My Profile Snapshot
         </CardTitle>
         <CardDescription>
-          Your quantified skills and proficiency levels.
+          Loading your quantified skills...
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-2">
-         <div className="flex items-center justify-center">
-            <Skeleton className="h-48 w-48 rounded-full" />
-        </div>
-        <div className="grid gap-4">
-            {[...Array(3)].map((_, i) => (
-                <div key={i} className="space-y-2">
-                    <div className="flex justify-between">
-                        <Skeleton className="h-5 w-1/3" />
-                        <Skeleton className="h-5 w-1/4" />
-                    </div>
-                    <Skeleton className="h-2 w-full" />
+      <CardContent>
+        <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                    <Skeleton className="h-5 w-1/3" />
+                    <Skeleton className="h-4 flex-1" />
+                    <Skeleton className="h-5 w-1/6" />
                 </div>
             ))}
         </div>
@@ -79,15 +81,21 @@ export function SkillDashboard() {
           An overview of your skills and proficiency levels.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-6 md:grid-cols-2 items-center">
-        <div className="h-full flex items-center justify-center">
-            <SkillRadarChart skills={userProfile.skills} />
-        </div>
-        <div className="grid gap-6">
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Skill</TableHead>
+              <TableHead>Proficiency</TableHead>
+              <TableHead className="text-right">Level</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {sortedSkills.slice(0, 5).map((skill) => (
-            <SkillItem key={skill.name} skill={skill} />
+              <SkillItem key={skill.name} skill={skill} />
             ))}
-        </div>
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );
