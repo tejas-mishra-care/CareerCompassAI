@@ -2,38 +2,38 @@
 [
   {
     "id": "welcome-1",
-    "description": "A student looking at a futuristic compass interface, representing career guidance.",
-    "imageUrl": "/images/welcome-1.jpg",
+    "description": "A person looking at a futuristic compass interface, representing career guidance.",
+    "imageUrl": "https://picsum.photos/seed/1/600/400",
     "imageHint": "futuristic compass"
   },
   {
     "id": "welcome-2",
     "description": "A diverse group of students collaborating on a project with technology.",
-    "imageUrl": "/images/welcome-2.jpg",
+    "imageUrl": "https://picsum.photos/seed/2/600/400",
     "imageHint": "students collaborating"
   },
   {
     "id": "welcome-3",
     "description": "A glowing brain neural network, symbolizing AI and learning.",
-    "imageUrl": "/images/welcome-3.jpg",
+    "imageUrl": "https://picsum.photos/seed/3/600/400",
     "imageHint": "neural network"
   },
   {
     "id": "welcome-4",
     "description": "A young person confidently looking towards a bright, abstract future.",
-    "imageUrl": "/images/welcome-4.jpg",
+    "imageUrl": "https://picsum.photos/seed/4/600/400",
     "imageHint": "student future"
   },
   {
     "id": "welcome-5",
     "description": "An abstract visualization of data pathways and connections.",
-    "imageUrl": "/images/welcome-5.jpg",
+    "imageUrl": "https://picsum.photos/seed/5/600/400",
     "imageHint": "data pathways"
   },
   {
     "id": "simulations",
     "description": "A person engaged in a virtual reality simulation, representing experiential learning.",
-    "imageUrl": "/images/simulations-hero.jpg",
+    "imageUrl": "https://picsum.photos/seed/6/800/600",
     "imageHint": "virtual reality"
   }
 ]
