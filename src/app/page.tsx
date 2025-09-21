@@ -7,9 +7,19 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { placeholderImages } from '@/lib/placeholder-images';
 import { BrainCircuit, ChevronRight } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import Autoplay from "embla-carousel-autoplay"
+
 
 export default function LandingPage() {
-  const welcomeImage = placeholderImages.find(p => p.id === 'welcome');
+  const welcomeImages = placeholderImages.filter(p => p.id.startsWith('welcome'));
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -23,16 +33,28 @@ export default function LandingPage() {
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              {welcomeImage && (
-                 <Image
-                    src={welcomeImage.imageUrl}
-                    alt={welcomeImage.description}
-                    width={600}
-                    height={400}
-                    data-ai-hint={welcomeImage.imageHint}
-                    className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
-                />
-              )}
+               <Carousel 
+                className="w-full max-w-full mx-auto lg:order-last"
+                plugins={[Autoplay({ delay: 3000, stopOnInteraction: true })]}
+                opts={{ loop: true }}
+              >
+                <CarouselContent>
+                  {welcomeImages.map((image) => (
+                    <CarouselItem key={image.id}>
+                        <Image
+                            src={image.imageUrl}
+                            alt={image.description}
+                            width={600}
+                            height={400}
+                            data-ai-hint={image.imageHint}
+                            className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
+                        />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden sm:flex" />
+                <CarouselNext className="hidden sm:flex" />
+              </Carousel>
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">

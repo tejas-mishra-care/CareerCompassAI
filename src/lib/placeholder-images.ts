@@ -1,3 +1,4 @@
+
 export type ImagePlaceholder = {
   id: string;
   description: string;
@@ -7,10 +8,40 @@ export type ImagePlaceholder = {
 
 export const placeholderImages: ImagePlaceholder[] = [
   {
-    "id": "welcome",
+    "id": "welcome-1",
+    "description": "A person looking at a crossroads, symbolizing career choices.",
+    "imageUrl": "https://picsum.photos/seed/choices/600/400",
+    "imageHint": "career choice"
+  },
+  {
+    "id": "welcome-2",
     "description": "A futuristic, glowing compass interface, symbolizing AI-powered career guidance.",
     "imageUrl": "https://picsum.photos/seed/future/600/400",
     "imageHint": "futuristic compass"
+  },
+  {
+    "id": "welcome-3",
+    "description": "A student collaborating with an AI robot on a complex project.",
+    "imageUrl": "https://picsum.photos/seed/collaboration/600/400",
+    "imageHint": "AI collaboration"
+  },
+  {
+    "id": "welcome-4",
+    "description": "A glowing brain with circuits, representing skill discovery and neural networks.",
+    "imageUrl": "https://picsum.photos/seed/brain/600/400",
+    "imageHint": "digital brain"
+  },
+  {
+    "id": "welcome-5",
+    "description": "A person climbing a staircase made of books towards a bright goal.",
+    "imageUrl": "https://picsum.photos/seed/growth/600/400",
+    "imageHint": "knowledge growth"
+  },
+  {
+    "id": "welcome-6",
+    "description": "An abstract visualization of data points and connections, representing pathways.",
+    "imageUrl": "https://picsum.photos/seed/pathways/600/400",
+    "imageHint": "data network"
   },
   {
     "id": "simulations",
