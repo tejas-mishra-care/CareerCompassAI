@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '../ui/skeleton';
-import { BrainCircuit, Star, Edit } from 'lucide-react';
+import { BrainCircuit, Star, Edit, GraduationCap, School } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -42,6 +42,75 @@ const getProficiencyTier = (proficiency: number) => {
   return { name: 'Novice', color: 'text-red-500' };
 };
 
+const EducationHistoryCard = () => {
+    const { userProfile } = useUserProfile();
+    const educationData = userProfile?.onboardingData;
+
+    if (!educationData || (!educationData.higherEducation?.length && !educationData.board10th)) {
+        return null; // Don't render the card if there's no education data at all
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline flex items-center gap-2">
+                    <GraduationCap className="h-6 w-6" />
+                    Education & Academics
+                </CardTitle>
+                <CardDescription>
+                    Your academic journey from school to higher education.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {/* Higher Education */}
+                {educationData.higherEducation?.map((edu: any, index: number) => (
+                    <div key={index} className="flex gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground font-bold mt-1">
+                            <School className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="font-bold">{edu.degree}</p>
+                            <p className="font-medium text-muted-foreground">{edu.fieldOfStudy}</p>
+                            <p className="text-sm text-muted-foreground">{edu.university}</p>
+                            <p className="text-xs text-muted-foreground">{edu.year} &middot; Score: {edu.score}</p>
+                        </div>
+                    </div>
+                ))}
+                
+                 {/* 12th Grade */}
+                {educationData.stream12th && (
+                     <div className="flex gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground font-bold mt-1">
+                            12th
+                        </div>
+                        <div>
+                            <p className="font-bold">{educationData.stream12th}</p>
+                            <p className="text-sm text-muted-foreground">{educationData.board12th}</p>
+                            <p className="text-xs text-muted-foreground">{educationData.year12th} &middot; Score: {educationData.score12th}%</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* 10th Grade */}
+                {educationData.board10th && (
+                     <div className="flex gap-4">
+                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground font-bold mt-1">
+                            10th
+                        </div>
+                        <div>
+                            <p className="font-bold">10th Standard</p>
+                            <p className="text-sm text-muted-foreground">{educationData.board10th}</p>
+                            <p className="text-xs text-muted-foreground">{educationData.year10th} &middot; Score: {educationData.score10th}%</p>
+                        </div>
+                    </div>
+                )}
+
+            </CardContent>
+        </Card>
+    );
+}
+
+
 export function UserProfileDisplay() {
   const { userProfile, loading } = useUserProfile();
 
@@ -61,7 +130,7 @@ export function UserProfileDisplay() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-6">
                 <Card>
                     <CardHeader>
                         <Skeleton className="h-8 w-48" />
@@ -75,6 +144,25 @@ export function UserProfileDisplay() {
                         </div>
                         ))}
                     </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-4 w-64 mt-2" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {[...Array(2)].map((_, i) => (
+                                <div key={i} className="flex items-center space-x-4">
+                                    <Skeleton className="h-12 w-12 rounded-full" />
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-4 w-[250px]" />
+                                        <Skeleton className="h-4 w-[200px]" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -112,7 +200,7 @@ export function UserProfileDisplay() {
                 </CardFooter>
             </Card>
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
              <Card>
                 <CardHeader>
                     <CardTitle className="font-headline flex items-center gap-2">
@@ -157,6 +245,7 @@ export function UserProfileDisplay() {
                     </Table>
                 </CardContent>
             </Card>
+            <EducationHistoryCard />
         </div>
     </div>
   );
