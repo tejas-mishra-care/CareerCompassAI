@@ -10,3 +10,4 @@ import '@/ai/flows/personalized-skill-recommendations.ts';
 import '@/ai/flows/onboarding-flow.ts';
 import '@/ai/flows/create-profile-from-onboarding.ts';
 import '@/ai/flows/opportunity-radar.ts';
+import '@/ai/flows/mock-interview-flow.ts';

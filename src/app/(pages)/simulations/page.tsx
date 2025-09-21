@@ -4,8 +4,18 @@ import { SimulationCard } from '@/components/simulations/simulation-card';
 import { placeholderImages } from '@/lib/placeholder-images';
 import type { Simulation } from '@/lib/types';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const availableSimulations: Simulation[] = [
+    {
+        id: 'mock-interview',
+        title: 'AI Mock Interview',
+        description: 'Practice for your next job interview. Get instant AI feedback on your answers to common technical and behavioral questions.',
+        skills: ['Interview Skills', 'Communication', 'STAR Method'],
+        spYield: 150,
+        imageHint: 'job interview',
+        href: '/simulations/mock-interview',
+    },
     {
         id: 'marketing-challenge',
         title: 'Marketing Budget Challenge',

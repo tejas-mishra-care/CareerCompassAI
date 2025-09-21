@@ -24,6 +24,7 @@ export interface Simulation {
     skills: string[];
     spYield: number;
     imageHint: string;
+    href?: string;
 }
 
 export interface UserProfile {

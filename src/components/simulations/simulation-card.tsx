@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { ArrowRight, BrainCircuit, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 
 export function SimulationCard({ simulation }: { simulation: Simulation }) {
-  return (
-    <Card className="flex flex-col shadow-md hover:shadow-lg transition-shadow">
+  const cardContent = (
+    <Card className="flex flex-col shadow-md hover:shadow-lg transition-shadow h-full">
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
             <CardTitle className="font-headline text-xl">{simulation.title}</CardTitle>
@@ -26,10 +27,15 @@ export function SimulationCard({ simulation }: { simulation: Simulation }) {
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="w-full" disabled>
-          Launch Simulation (Coming Soon) <ArrowRight className="ml-2 h-4 w-4" />
+        <Button className="w-full" disabled={!simulation.href}>
+          {simulation.href ? 'Start Simulation' : 'Launch Simulation (Coming Soon)'} <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>
   );
+
+  if (simulation.href) {
+    return <Link href={simulation.href} className="flex h-full">{cardContent}</Link>
+  }
+  return cardContent;
 }
