@@ -152,7 +152,7 @@ export function LearningPathwayGenerator() {
       </div>
 
       {loading && (
-        <Card className="shadow-md">
+        <Card>
             <CardHeader>
                 <Skeleton className="h-8 w-3/4" />
             </CardHeader>
@@ -176,10 +176,10 @@ export function LearningPathwayGenerator() {
       )}
 
       {pathway && (
-        <Card className="shadow-md">
+        <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl flex items-center gap-3">
-              <GraduationCap className="text-primary" /> {pathway.title}
+            <CardTitle>
+              <GraduationCap className="text-primary inline-block mr-3" /> {pathway.title}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
@@ -201,7 +201,8 @@ export function LearningPathwayGenerator() {
           <CardFooter className="border-t pt-6 justify-end">
                 <Button onClick={handleStartPathway} disabled={!userProfile}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Start Pathway
-                </Button>          </CardFooter>
+                </Button>
+          </CardFooter>
         </Card>
       )}
     </div>

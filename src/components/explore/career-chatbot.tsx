@@ -89,14 +89,14 @@ export function CareerChatbot() {
             <p className="text-muted-foreground">Ask me anything about careers, skills, or industries!</p>
         </header>
 
-        <Card className="flex-1 flex flex-col shadow-md">
+        <Card className="flex-1 flex flex-col">
             <CardContent className="flex-1 flex flex-col p-0">
             <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                 <div className="space-y-6">
                 {messages.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
                         <BrainCircuit size={48} className="mb-4 text-primary"/>
-                        <p className="text-lg font-semibold">Welcome to the Career Explorer!</p>
+                        <p className="text-lg font-semibold font-headline">Welcome to the Career Explorer!</p>
                         <p className="text-sm">You can ask questions like:</p>
                         <ul className="text-xs list-disc list-inside mt-2">
                             <li>"What does a product manager do?"</li>

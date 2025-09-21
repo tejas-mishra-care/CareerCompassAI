@@ -41,11 +41,11 @@ const ResultCard = ({ result }: { result: Result }) => {
   const { icon: Icon, color } = typeConfig[result.type] || { icon: BookOpen, color: 'text-gray-500' };
 
   return (
-    <Card className="flex flex-col shadow-md hover:shadow-lg transition-shadow">
+    <Card className="flex flex-col">
       <CardHeader>
         <div className="flex items-start justify-between">
-            <CardTitle className="font-headline text-xl flex items-center gap-2">
-                <Icon className={`h-5 w-5 ${color}`} />
+            <CardTitle>
+                <Icon className={`h-5 w-5 ${color} inline-block mr-2`} />
                 {result.title}
             </CardTitle>
             <Badge variant="secondary" className="capitalize">{result.type}</Badge>
@@ -156,7 +156,7 @@ export function UnifiedSearch() {
           ) : (
             <div className="text-center py-16 text-muted-foreground">
                 <Briefcase size={48} className="mx-auto mb-4"/>
-                <h3 className="text-xl font-semibold">No results found</h3>
+                <h3 className="text-xl font-semibold font-headline">No results found</h3>
                 <p>Try a different search term to find your perfect match.</p>
             </div>
           )}

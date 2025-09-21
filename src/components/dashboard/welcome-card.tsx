@@ -21,7 +21,7 @@ export function WelcomeCard() {
         <div className="grid md:grid-cols-2 items-center">
             <div className="p-6">
                 <CardHeader className="p-0 pb-4">
-                    <CardTitle className="font-headline text-2xl">
+                    <CardTitle>
                     Welcome to CareerCompassAI!
                     </CardTitle>
                     <CardDescription>

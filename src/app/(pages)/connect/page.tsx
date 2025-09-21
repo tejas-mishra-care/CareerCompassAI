@@ -23,10 +23,10 @@ export default function ConnectPage() {
         </p>
 
         <div className="grid gap-6 md:grid-cols-2">
-            <Card className="shadow-md">
+            <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-2xl flex items-center gap-3">
-                        <HeartHandshake className="text-primary h-6 w-6" /> Counselor Connect
+                    <CardTitle>
+                        <HeartHandshake className="text-primary h-6 w-6 inline-block mr-3" /> Counselor Connect
                     </CardTitle>
                     <CardDescription>
                         Grant a verified career counselor access to your Skill Dashboard to receive personalized, data-informed guidance.
@@ -42,10 +42,10 @@ export default function ConnectPage() {
                 </CardFooter>
             </Card>
 
-            <Card className="shadow-md">
+            <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-2xl flex items-center gap-3">
-                        <Users className="text-primary h-6 w-6" /> Parent & Guardian Portal
+                    <CardTitle>
+                        <Users className="text-primary h-6 w-6 inline-block mr-3" /> Parent & Guardian Portal
                     </CardTitle>
                     <CardDescription>
                         Generate a secure, read-only link to share your progress with a parent or guardian. You control what they see and can revoke access at any time.
@@ -68,7 +68,7 @@ export default function ConnectPage() {
             <CardHeader className="flex-row items-center gap-4">
                 <ShieldCheck className="h-8 w-8 text-muted-foreground" />
                 <div>
-                    <h3 className="font-semibold">Your Privacy is Our Priority</h3>
+                    <h3 className="font-semibold font-headline">Your Privacy is Our Priority</h3>
                     <p className="text-sm text-muted-foreground">
                         No data is ever shared without your consent. You have full control over who sees your profile and can revoke access at any moment.
                     </p>

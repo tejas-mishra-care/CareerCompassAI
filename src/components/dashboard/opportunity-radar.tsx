@@ -56,10 +56,10 @@ const OpportunityCard = ({ opportunity }: { opportunity: Opportunity }) => {
 }
 
 const RadarSkeleton = () => (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2 text-2xl">
-          <Target className="h-6 w-6" />
+        <CardTitle>
+          <Target className="h-6 w-6 inline-block mr-2" />
           Opportunity Radar
         </CardTitle>
         <CardDescription>
@@ -157,10 +157,10 @@ export function OpportunityRadar() {
   }
 
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2 text-2xl">
-          <Target className="h-6 w-6" />
+        <CardTitle>
+          <Target className="h-6 w-6 inline-block mr-2" />
           Opportunity Radar
         </CardTitle>
         <CardDescription>

@@ -56,8 +56,8 @@ export function SkillDetailsList() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline flex items-center gap-2">
-            <BrainCircuit className="h-6 w-6" />
+          <CardTitle>
+            <BrainCircuit className="h-6 w-6 inline-block mr-2" />
             My Skills
           </CardTitle>
           <CardDescription>
@@ -80,8 +80,8 @@ export function SkillDetailsList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2">
-          <BrainCircuit className="h-6 w-6" />
+        <CardTitle>
+          <BrainCircuit className="h-6 w-6 inline-block mr-2" />
           Detailed Skill Breakdown
         </CardTitle>
         <CardDescription>

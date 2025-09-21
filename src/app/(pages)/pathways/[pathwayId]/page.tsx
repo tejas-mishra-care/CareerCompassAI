@@ -85,10 +85,10 @@ export default function PathwayDetailPage({ params }: { params: { pathwayId: str
         <h1 className="text-3xl font-bold tracking-tight font-headline">
           My Learning Pathway
         </h1>
-        <Card className="shadow-md">
+        <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-2xl flex items-center gap-3">
-              <GraduationCap className="text-primary h-6 w-6" /> {pathway.title.replace('Learning Pathway for: ', '')}
+            <CardTitle>
+              <GraduationCap className="text-primary h-6 w-6 inline-block mr-3" /> {pathway.title.replace('Learning Pathway for: ', '')}
             </CardTitle>
             <CardDescription>
               Check off the steps as you complete them to track your progress and earn Skill Points (SP)!

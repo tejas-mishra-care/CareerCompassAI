@@ -24,10 +24,10 @@ import {
 } from '../ui/accordion';
 
 const RecommendationsSkeleton = () => (
-  <Card className="shadow-md h-full">
+  <Card className="h-full">
     <CardHeader>
-      <CardTitle className="font-headline flex items-center gap-2 text-2xl">
-        <Lightbulb className="h-6 w-6" />
+      <CardTitle>
+        <Lightbulb className="h-6 w-6 inline-block mr-2" />
         Recommended For You
       </CardTitle>
       <CardDescription>
@@ -107,10 +107,10 @@ export function Recommendations() {
   }
 
   return (
-    <Card className="shadow-md h-full">
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2 text-xl">
-          <Lightbulb className="h-6 w-6" />
+        <CardTitle>
+          <Lightbulb className="h-6 w-6 inline-block mr-2" />
           Recommended For You
         </CardTitle>
         <CardDescription>

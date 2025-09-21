@@ -122,7 +122,7 @@ const HigherEducationFields = () => {
 
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-4 border-b pb-2">Higher Education (if applicable)</h3>
+            <h3 className="text-lg font-semibold mb-4 border-b pb-2 font-headline">Higher Education (if applicable)</h3>
             <div className="space-y-4">
                 {fields.map((item, index) => (
                     <Card key={item.id} className="p-4 relative">
@@ -261,7 +261,7 @@ export function OnboardingStepper() {
           <div className="min-h-[450px] relative">
             <div className={cn("space-y-8 transition-opacity duration-300", step === 1 ? "opacity-100" : "opacity-0 absolute inset-0 -z-10")}>
                  <div>
-                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">10th Standard Details</h3>
+                    <h3 className="text-lg font-semibold mb-4 border-b pb-2 font-headline">10th Standard Details</h3>
                     <div className="grid md:grid-cols-3 gap-6">
                         <FormField control={methods.control} name="board10th" render={({ field }) => (
                             <FormItem><FormLabel>Board</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger></FormControl><SelectContent><SelectItem value="cbse">CBSE</SelectItem><SelectItem value="icse">ICSE</SelectItem><SelectItem value="state">State Board</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>
@@ -275,7 +275,7 @@ export function OnboardingStepper() {
                     </div>
                 </div>
                 <div>
-                    <h3 className="text-lg font-semibold mb-4 border-b pb-2">12th Standard / Diploma (if applicable)</h3>
+                    <h3 className="text-lg font-semibold mb-4 border-b pb-2 font-headline">12th Standard / Diploma (if applicable)</h3>
                      <div className="grid md:grid-cols-4 gap-6">
                          <FormField control={methods.control} name="stream12th" render={({ field }) => (
                             <FormItem><FormLabel>Stream</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Stream" /></SelectTrigger></FormControl><SelectContent><SelectItem value="pcm">Science (PCM)</SelectItem><SelectItem value="pcb">Science (PCB)</SelectItem><SelectItem value="commerce">Commerce</SelectItem><SelectItem value="arts">Arts/Humanities</SelectItem><SelectItem value="diploma">Diploma</SelectItem></SelectContent></Select><FormMessage /></FormItem>
@@ -293,7 +293,7 @@ export function OnboardingStepper() {
                 </div>
                 <HigherEducationFields />
                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Your Early Achievements (The "Spark" Finder)</h3>
+                    <h3 className="text-lg font-semibold mb-2 font-headline">Your Early Achievements (The "Spark" Finder)</h3>
                     <p className="text-sm text-muted-foreground mb-4">Think back to your school days. What were you known for? (e.g., Olympiads, Debate, Coding, Sports, Art, Leadership)</p>
                      <FormField control={methods.control} name="achievements" render={({ field }) => (
                         <FormItem><FormControl><Textarea placeholder="List a few of your passions or achievements..." {...field} /></FormControl><FormMessage /></FormItem>
@@ -303,7 +303,7 @@ export function OnboardingStepper() {
 
             <div className={cn("space-y-6 transition-opacity duration-300", step === 2 ? "opacity-100" : "opacity-0 absolute inset-0 -z-10")}>
                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Subject-Level Deep Dive</h3>
+                    <h3 className="text-lg font-semibold mb-2 font-headline">Subject-Level Deep Dive</h3>
                     <p className="text-sm text-muted-foreground mb-4">For each subject, tell us your score and how you *really* felt about it.</p>
                 </div>
                  {subjects.map((subject) => {
@@ -333,7 +333,7 @@ export function OnboardingStepper() {
 
             <div className={cn("space-y-6 transition-opacity duration-300", step === 3 ? "opacity-100" : "opacity-0 absolute inset-0 -z-10")}>
                 <div>
-                    <h3 className="text-lg font-semibold mb-2">The Profile Scanner</h3>
+                    <h3 className="text-lg font-semibold mb-2 font-headline">The Profile Scanner</h3>
                     <p className="text-sm text-muted-foreground mb-4">Let's calibrate your Compass. This isn't a test; it's a quick challenge to discover your hidden strengths.</p>
                 </div>
                 {QUIZ_QUESTIONS.map((q, index) => (
@@ -354,7 +354,7 @@ export function OnboardingStepper() {
 
             <div className={cn("space-y-6 transition-opacity duration-300", step === 4 ? "opacity-100" : "opacity-0 absolute inset-0 -z-10")}>
                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Defining Your Direction</h3>
+                    <h3 className="text-lg font-semibold mb-2 font-headline">Defining Your Direction</h3>
                     <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
                 </div>
                 <FormField control={methods.control} name="goal" render={({ field }) => (
@@ -364,7 +364,7 @@ export function OnboardingStepper() {
                                 <FormItem key={option.id}>
                                     <FormControl><RadioGroupItem value={option.title} id={option.id} className="sr-only" /></FormControl>
                                     <Label htmlFor={option.id} className={cn("flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover")}>
-                                        <h4 className="font-semibold mb-1">{option.title}</h4>
+                                        <h4 className="font-semibold mb-1 font-headline">{option.title}</h4>
                                         <p className="text-sm text-muted-foreground text-center">{option.description}</p>
                                     </Label>
                                 </FormItem>

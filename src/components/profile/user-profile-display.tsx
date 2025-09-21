@@ -55,8 +55,8 @@ const EducationHistoryCard = () => {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2">
-                    <GraduationCap className="h-6 w-6" />
+                <CardTitle>
+                    <GraduationCap className="h-6 w-6 inline-block mr-2" />
                     Education & Academics
                 </CardTitle>
                 <CardDescription>
@@ -191,7 +191,7 @@ export function UserProfileDisplay() {
                         <AvatarImage src={user?.photoURL ?? undefined} alt={userProfile.name} />
                         <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
                     </Avatar>
-                    <CardTitle className="font-headline text-2xl">{userProfile.name}</CardTitle>
+                    <CardTitle>{userProfile.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <CardDescription className="text-center whitespace-pre-line">
@@ -208,8 +208,8 @@ export function UserProfileDisplay() {
         <div className="lg:col-span-2 space-y-6">
              <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline flex items-center gap-2">
-                    <BrainCircuit className="h-6 w-6" />
+                    <CardTitle>
+                    <BrainCircuit className="h-6 w-6 inline-block mr-2" />
                     Detailed Skill Breakdown
                     </CardTitle>
                     <CardDescription>

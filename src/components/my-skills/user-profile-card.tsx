@@ -58,7 +58,7 @@ export function UserProfileCard() {
             <AvatarImage src={user?.photoURL ?? undefined} alt={userProfile.name} />
             <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
         </Avatar>
-        <CardTitle className="font-headline text-2xl">{userProfile.name}</CardTitle>
+        <CardTitle>{userProfile.name}</CardTitle>
       </CardHeader>
       <CardContent>
         <CardDescription className="text-center whitespace-pre-line">

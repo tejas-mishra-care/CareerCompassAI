@@ -28,8 +28,8 @@ const SkillItem = ({ skill }: { skill: Skill }) => (
 const SkillDashboardSkeleton = () => (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2">
-            <BrainCircuit className="h-6 w-6" />
+        <CardTitle>
+            <BrainCircuit className="h-6 w-6 inline-block mr-2" />
             Skill Dashboard
         </CardTitle>
         <CardDescription>
@@ -69,10 +69,10 @@ export function SkillDashboard() {
   const sortedSkills = [...userProfile.skills].sort((a, b) => b.proficiency - a.proficiency);
 
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2 text-2xl">
-          <BrainCircuit className="h-6 w-6" />
+        <CardTitle>
+          <BrainCircuit className="h-6 w-6 inline-block mr-2" />
           My Profile Snapshot
         </CardTitle>
         <CardDescription>

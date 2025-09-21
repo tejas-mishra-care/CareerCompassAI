@@ -59,8 +59,8 @@ export default function CommunityPage() {
         {/* Peer Groups */}
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-2xl flex items-center gap-3">
-                    <Users className="text-primary" /> Peer Groups
+                <CardTitle>
+                    <Users className="text-primary inline-block mr-3" /> Peer Groups
                 </CardTitle>
                 <CardDescription>
                     Join groups based on your interests, goals, and location to learn and collaborate with like-minded peers.
@@ -92,8 +92,8 @@ export default function CommunityPage() {
         {/* Q&A Forums */}
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-2xl flex items-center gap-3">
-                    <MessageSquare className="text-primary" /> Q&A Forums
+                <CardTitle>
+                    <MessageSquare className="text-primary inline-block mr-3" /> Q&A Forums
                 </CardTitle>
                 <CardDescription>
                     Ask questions, share your knowledge, and get answers from the community.
@@ -121,8 +121,8 @@ export default function CommunityPage() {
         {/* Mentor Connect */}
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-2xl flex items-center gap-3">
-                    <HeartHandshake className="text-primary" /> Mentor Connect
+                <CardTitle>
+                    <HeartHandshake className="text-primary inline-block mr-3" /> Mentor Connect
                 </CardTitle>
                 <CardDescription>
                     Find experienced professionals to guide you on your career journey. (Coming Soon)

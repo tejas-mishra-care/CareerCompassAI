@@ -44,10 +44,10 @@ export function MyActivePathways() {
   }
 
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2 text-2xl">
-          <GraduationCap className="h-6 w-6" />
+        <CardTitle>
+          <GraduationCap className="h-6 w-6 inline-block mr-2" />
           My Active Pathways
         </CardTitle>
         <CardDescription>

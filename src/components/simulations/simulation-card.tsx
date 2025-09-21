@@ -7,10 +7,10 @@ import Link from 'next/link';
 
 export function SimulationCard({ simulation }: { simulation: Simulation }) {
   const cardContent = (
-    <Card className="flex flex-col shadow-md hover:shadow-lg transition-shadow h-full">
+    <Card className="flex flex-col h-full">
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
-            <CardTitle className="font-headline text-xl">{simulation.title}</CardTitle>
+            <CardTitle>{simulation.title}</CardTitle>
             <Badge variant="outline" className="text-primary border-primary shrink-0 flex gap-1 items-center">
                 <Sparkles className="h-3 w-3" /> {simulation.spYield} SP
             </Badge>
