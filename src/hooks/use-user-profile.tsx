@@ -113,14 +113,23 @@ export const UserProfileProvider = ({
     const publicPaths = ['/login', '/'];
     const isPublicPath = publicPaths.includes(pathname);
 
-    if (!user && !isPublicPath) {
-      router.push('/login');
-    } else if (user) {
-      if (isPublicPath) {
-         router.push('/dashboard');
+    if (!user) {
+      // If there's no user, and they are not on a public path, redirect to login.
+      if (!isPublicPath) {
+        router.push('/login');
       }
-      else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
-        router.push('/profile');
+    } else {
+      // If there is a user...
+      if (userProfile?.onboardingCompleted) {
+        // ...and onboarding is complete, send them to the dashboard if they land on a public page.
+        if (isPublicPath) {
+          router.push('/dashboard');
+        }
+      } else {
+        // ...and onboarding is NOT complete, force them to the profile page.
+        if (pathname !== '/profile') {
+          router.push('/profile');
+        }
       }
     }
   }, [user, userProfile, loading, pathname, router]);
@@ -144,3 +153,4 @@ export const useUserProfile = () => {
   }
   return context;
 };
+
