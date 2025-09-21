@@ -72,6 +72,11 @@ const navItems = [
     icon: Search,
   },
   {
+    href: '/community',
+    label: 'Community',
+    icon: Users,
+  },
+  {
     href: '/connect',
     label: 'Connect',
     icon: Users,
