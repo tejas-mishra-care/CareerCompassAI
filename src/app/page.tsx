@@ -71,7 +71,8 @@ export default function LandingPage() {
                               <Image
                                   src={image.imageUrl}
                                   alt={image.description}
-                                  fill
+                                  width={600}
+                                  height={400}
                                   data-ai-hint={image.imageHint}
                                   className="mx-auto overflow-hidden rounded-xl object-cover"
                               />

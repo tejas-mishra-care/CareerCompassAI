@@ -2,38 +2,44 @@
 [
   {
     "id": "welcome-1",
-    "description": "A graduate looking towards a futuristic city, symbolizing future career paths.",
-    "imageUrl": "/images/welcome-1.jpg",
-    "imageHint": "graduate future city"
+    "description": "A person looking at a futuristic compass interface, representing career guidance.",
+    "imageUrl": "/images/1.jpg",
+    "imageHint": "futuristic compass"
   },
   {
     "id": "welcome-2",
-    "description": "A diverse group of students collaborating with technology.",
-    "imageUrl": "/images/welcome-2.jpg",
-    "imageHint": "students collaborating technology"
+    "description": "A graduate looking towards a futuristic city, symbolizing future career paths.",
+    "imageUrl": "/images/2.jpg",
+    "imageHint": "graduate future city"
   },
   {
     "id": "welcome-3",
-    "description": "A glowing brain neural network, symbolizing AI and learning.",
-    "imageUrl": "/images/welcome-3.jpg",
-    "imageHint": "neural network"
+    "description": "A diverse group of students collaborating with technology.",
+    "imageUrl": "/images/3.jpg",
+    "imageHint": "students collaborating technology"
   },
   {
     "id": "welcome-4",
-    "description": "A person looking at a futuristic compass interface, representing career guidance.",
-    "imageUrl": "/images/welcome-4.jpg",
-    "imageHint": "futuristic compass"
+    "description": "A glowing brain neural network, symbolizing AI and learning.",
+    "imageUrl": "/images/4.jpg",
+    "imageHint": "neural network"
   },
   {
     "id": "welcome-5",
     "description": "An abstract visualization of data pathways and connections.",
-    "imageUrl": "/images/welcome-5.jpg",
+    "imageUrl": "/images/5.jpg",
     "imageHint": "data pathways"
+  },
+  {
+    "id": "welcome-6",
+    "description": "A person engaged in a virtual reality simulation, representing experiential learning.",
+    "imageUrl": "/images/6.jpg",
+    "imageHint": "virtual reality"
   },
   {
     "id": "simulations",
     "description": "A person engaged in a virtual reality simulation, representing experiential learning.",
-    "imageUrl": "/images/simulations.jpg",
+    "imageUrl": "https://picsum.photos/seed/sim/600/400",
     "imageHint": "virtual reality"
   }
 ]
