@@ -215,18 +215,26 @@ export function OnboardingStepper() {
   const handleBack = () => step > 1 && setStep(s => s - 1);
 
   const handleFinish = async (data: OnboardingFormData) => {
+    console.log("--- Step 1: handleFinish function triggered ---");
+    console.log("--- Step 2: Aggregated Onboarding Data ---", data);
+
     if (!userProfile) {
         toast({ variant: 'destructive', title: 'Error', description: 'User profile not found. Please try logging in again.' });
         return;
     }
     setLoading(true);
     try {
+        console.log("--- Step 3: Attempting to save to Firestore... ---");
         await setUserProfile({
             ...userProfile,
             onboardingData: data,
             onboardingCompleted: true,
+            // Promote key fields for querying
+            stream12th: data.stream12th,
+            goal: data.goal,
         });
 
+        console.log("--- Step 4: SUCCESS! Data saved to Firestore. ---");
         toast({
             title: "Progress Saved!",
             description: "Redirecting to your dashboard to build your profile.",
@@ -235,7 +243,7 @@ export function OnboardingStepper() {
       router.push('/dashboard');
 
     } catch (error) {
-      console.error("Error saving to Firestore:", error);
+      console.error("--- Step 4: FAILED! Error saving to Firestore: ---", error);
       toast({ variant: 'destructive', title: 'Error Saving Progress', description: 'Could not save your progress. Please check your connection and try again.' });
       setLoading(false);
     }

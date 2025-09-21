@@ -1,3 +1,5 @@
+import type { CareerRecommendationsOutput } from "@/ai/flows/career-recommendations-from-profile";
+
 export interface Skill {
   name: string;
   proficiency: number; // 0-100
@@ -28,6 +30,16 @@ export interface UserProfile {
   bio: string;
   skills: Skill[];
   activePathways?: Pathway[];
+  
+  // Onboarding-specific fields
   onboardingCompleted?: boolean;
-  onboardingData?: any;
+  onboardingData?: any; // Stores the raw output from the stepper form
+  
+  // Fields promoted for querying
+  stream12th?: string;
+  goal?: string;
+
+  // Cached AI recommendations
+  recommendations?: CareerRecommendationsOutput;
+  recommendationsLastUpdated?: number; // Firestore timestamp
 }

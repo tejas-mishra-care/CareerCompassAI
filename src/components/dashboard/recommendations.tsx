@@ -43,39 +43,60 @@ const RecommendationsSkeleton = () => (
 );
 
 export function Recommendations() {
-  const { userProfile } = useUserProfile();
+  const { userProfile, setUserProfile } = useUserProfile();
   const [recommendations, setRecommendations] = useState<CareerRecommendationsOutput | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (userProfile?.name) {
-      const fetchRecommendations = async () => {
-        setLoading(true);
-        try {
-          const profileString = `Name: ${userProfile.name}. Bio: ${
-            userProfile.bio
-          }. Skills: ${userProfile.skills
-            .map((s) => `${s.name} (Proficiency: ${s.proficiency}/100)`)
-            .join(', ')}.`;
-          const result = await getCareerRecommendations({
-            userProfile: profileString,
-          });
-          setRecommendations(result);
-        } catch (error) {
-          console.error('Failed to get career recommendations:', error);
-          toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not fetch career recommendations.',
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchRecommendations();
+    const fetchRecommendations = async () => {
+      if (!userProfile) return;
+      setLoading(true);
+      try {
+        const profileString = `Name: ${userProfile.name}. Bio: ${
+          userProfile.bio
+        }. Skills: ${userProfile.skills
+          .map((s) => `${s.name} (Proficiency: ${s.proficiency}/100)`)
+          .join(', ')}.`;
+        const result = await getCareerRecommendations({
+          userProfile: profileString,
+        });
+        setRecommendations(result);
+        // Cache the results
+        await setUserProfile({ 
+            ...userProfile, 
+            recommendations: result,
+            recommendationsLastUpdated: Date.now(),
+        });
+      } catch (error) {
+        console.error('Failed to get career recommendations:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Could not fetch career recommendations.',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (userProfile?.isProfileComplete) {
+      const now = Date.now();
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      const lastUpdated = userProfile.recommendationsLastUpdated || 0;
+
+      if (userProfile.recommendations && (now - lastUpdated < oneWeek)) {
+        // Use cached recommendations
+        setRecommendations(userProfile.recommendations);
+        setLoading(false);
+      } else {
+        // Fetch new recommendations
+        fetchRecommendations();
+      }
+    } else {
+       setLoading(false);
     }
-  }, [userProfile, toast]);
+  }, [userProfile, setUserProfile, toast]);
 
   if (loading) {
     return <RecommendationsSkeleton />;
