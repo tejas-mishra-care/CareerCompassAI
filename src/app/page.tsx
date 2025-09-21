@@ -36,11 +36,40 @@ export default function LandingPage() {
         </nav>
       </header>
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section className="w-full py-12 md:py-16">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-24">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-4">
+            <div className="flex flex-col items-center space-y-8">
+              {welcomeImages.length > 0 ? (
+                <Carousel
+                  className="w-full max-w-3xl"
+                  plugins={[Autoplay({ delay: 3000, stopOnInteraction: true })]}
+                  opts={{ loop: true }}
+                >
+                  <CarouselContent>
+                    {welcomeImages.map((image) => (
+                      <CarouselItem key={image.id}>
+                          <div className="aspect-video relative">
+                            <Image
+                                src={image.imageUrl}
+                                alt={image.description}
+                                fill
+                                data-ai-hint={image.imageHint}
+                                className="mx-auto overflow-hidden rounded-xl object-contain"
+                            />
+                          </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden sm:flex left-[-2.5rem]" />
+                  <CarouselNext className="hidden sm:flex right-[-2.5rem]" />
+                </Carousel>
+              ) : (
+                <div className="w-full max-w-3xl aspect-video bg-muted rounded-xl flex items-center justify-center">
+                  <p className="text-muted-foreground">Your images will appear here.</p>
+                </div>
+              )}
+              <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                <div className="space-y-2">
                   <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
                     Unlock Your Future Career.
                   </h1>
@@ -48,46 +77,7 @@ export default function LandingPage() {
                     CareerCompassAI is your personal AI navigator. Discover your skills, explore options, and build a concrete path to your goals.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button asChild size="lg">
-                    <Link href="/login">
-                      Find Your Path
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
               </div>
-               <div className="flex justify-center items-center">
-                {welcomeImages.length > 0 ? (
-                  <Carousel
-                    className="w-full max-w-lg"
-                    plugins={[Autoplay({ delay: 3000, stopOnInteraction: true })]}
-                    opts={{ loop: true }}
-                  >
-                    <CarouselContent>
-                      {welcomeImages.map((image) => (
-                        <CarouselItem key={image.id}>
-                            <div className="aspect-video relative">
-                              <Image
-                                  src={image.imageUrl}
-                                  alt={image.description}
-                                  fill
-                                  data-ai-hint={image.imageHint}
-                                  className="mx-auto overflow-hidden rounded-xl object-cover"
-                              />
-                            </div>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="hidden sm:flex left-[-2.5rem]" />
-                    <CarouselNext className="hidden sm:flex right-[-2.5rem]" />
-                  </Carousel>
-                ) : (
-                  <div className="w-full max-w-lg aspect-video bg-muted rounded-xl flex items-center justify-center">
-                    <p className="text-muted-foreground">Your images will appear here.</p>
-                  </div>
-                )}
-               </div>
             </div>
           </div>
         </section>
