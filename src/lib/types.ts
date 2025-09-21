@@ -1,4 +1,5 @@
 import type { CareerRecommendationsOutput } from "@/ai/flows/career-recommendations-from-profile";
+import type { Opportunity } from "@/ai/flows/opportunity-radar";
 
 export interface Skill {
   name: string;
@@ -42,4 +43,8 @@ export interface UserProfile {
   // Cached AI recommendations
   recommendations?: CareerRecommendationsOutput;
   recommendationsLastUpdated?: number; // Firestore timestamp
+
+  // Cached AI opportunities
+  opportunities?: Opportunity[];
+  opportunitiesLastUpdated?: number; // Firestore timestamp
 }

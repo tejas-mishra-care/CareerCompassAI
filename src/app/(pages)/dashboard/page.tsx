@@ -9,6 +9,7 @@ import { Recommendations } from '@/components/dashboard/recommendations';
 import { MyActivePathways } from '@/components/dashboard/active-pathways';
 import { WelcomeCard } from '@/components/dashboard/welcome-card';
 import { ProfileProcessor } from '@/components/dashboard/profile-processor';
+import { OpportunityRadar } from '@/components/dashboard/opportunity-radar';
 
 export default function DashboardPage() {
   const { userProfile, isProfileComplete } = useUserProfile();
@@ -38,8 +39,9 @@ export default function DashboardPage() {
               <SkillDashboard />
               <MyActivePathways />
             </div>
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 grid gap-6">
               <Recommendations />
+              <OpportunityRadar />
             </div>
           </div>
         )}
