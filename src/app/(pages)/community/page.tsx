@@ -1,31 +1,18 @@
 
+'use client';
 import { AppShell } from '@/components/layout/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, HeartHandshake, ArrowRight, Search, Plus } from 'lucide-react';
+import { Users, MessageSquare, HeartHandshake, ArrowRight, Search, Plus, Bot, Laptop, Banknote } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 const suggestedGroups = [
-    { name: 'Aspiring Product Managers', members: 128, category: 'Careers' },
-    { name: 'Nagpur Tech Students', members: 256, category: 'Location' },
-    { name: 'UI/UX Design Enthusiasts', members: 432, category: 'Skills' },
-];
-
-const forumPosts = [
-    {
-        question: "Is a Master's degree worth it for a career in Data Science in India?",
-        author: 'Aarav Sharma',
-        answers: 12,
-        lastActivity: '2 hours ago',
-    },
-    {
-        question: 'Best resources to prepare for the technical rounds at top product companies?',
-        author: 'Priya Singh',
-        answers: 28,
-        lastActivity: '1 day ago',
-    },
+    { name: 'AI & Machine Learning', members: 1204, category: 'Emerging Tech', icon: <Bot /> },
+    { name: 'Sustainable Tech & ESG', members: 458, category: 'Industry', icon: <Laptop /> },
+    { name: 'Fintech & DeFi Innovators', members: 891, category: 'Industry', icon: <Banknote /> },
 ];
 
 const featuredMentors = [
@@ -42,6 +29,16 @@ const featuredMentors = [
 ]
 
 export default function CommunityPage() {
+  const { toast } = useToast();
+
+  const handleJoinGroup = (groupName: string) => {
+    toast({
+      title: 'Joining Group!',
+      description: `You've joined the "${groupName}" group. Welcome to the community!`,
+    });
+    // In a real app, this would involve a backend call to add the user to the group
+  };
+  
   return (
     <AppShell>
       <div className="flex-1 space-y-8 p-4 md:p-8 pt-6">
@@ -59,7 +56,7 @@ export default function CommunityPage() {
         {/* Peer Groups */}
         <Card>
             <CardHeader>
-                <CardTitle>
+                <CardTitle className="font-headline">
                     <Users className="text-primary inline-block mr-3" /> Peer Groups
                 </CardTitle>
                 <CardDescription>
@@ -70,14 +67,21 @@ export default function CommunityPage() {
                 {suggestedGroups.map(group => (
                     <Card key={group.name} className="flex flex-col">
                         <CardHeader>
-                            <CardTitle className="text-lg">{group.name}</CardTitle>
-                            <CardDescription>{group.members} members</CardDescription>
+                             <div className="flex items-center gap-4">
+                                <Avatar className="h-12 w-12 bg-secondary text-secondary-foreground">
+                                    <AvatarFallback>{group.icon}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-lg font-headline">{group.name}</CardTitle>
+                                    <CardDescription>{group.members.toLocaleString()} members</CardDescription>
+                                </div>
+                            </div>
                         </CardHeader>
                         <CardContent className="flex-grow">
                              <Badge variant="secondary">{group.category}</Badge>
                         </CardContent>
                         <CardFooter>
-                            <Button className="w-full">Join Group</Button>
+                            <Button className="w-full" onClick={() => handleJoinGroup(group.name)}>Join Group</Button>
                         </CardFooter>
                     </Card>
                 ))}
@@ -92,28 +96,26 @@ export default function CommunityPage() {
         {/* Q&A Forums */}
         <Card>
             <CardHeader>
-                <CardTitle>
+                <CardTitle className="font-headline">
                     <MessageSquare className="text-primary inline-block mr-3" /> Q&A Forums
                 </CardTitle>
                 <CardDescription>
-                    Ask questions, share your knowledge, and get answers from the community.
+                    Ask questions, share your knowledge, and get answers from the community. (Coming Soon)
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-               {forumPosts.map(post => (
-                    <div key={post.question} className="p-4 border rounded-lg flex justify-between items-center">
-                        <div>
-                            <p className="font-semibold">{post.question}</p>
-                            <p className="text-sm text-muted-foreground">Asked by {post.author} &middot; {post.answers} answers &middot; Last activity {post.lastActivity}</p>
-                        </div>
-                        <Button variant="ghost" size="icon"><ArrowRight /></Button>
+            <CardContent className="space-y-4 filter blur-sm opacity-50">
+                <div className="p-4 border rounded-lg flex justify-between items-center">
+                    <div>
+                        <p className="font-semibold">Is a Master's degree worth it for a career in Data Science in India?</p>
+                        <p className="text-sm text-muted-foreground">Asked by Aarav Sharma &middot; 12 answers &middot; Last activity 2 hours ago</p>
                     </div>
-               ))}
+                    <Button variant="ghost" size="icon"><ArrowRight /></Button>
+                </div>
             </CardContent>
             <CardFooter>
                 <div className="flex w-full space-x-2">
-                    <Input placeholder="Ask a question..." />
-                    <Button><Plus className="mr-2" /> New Post</Button>
+                    <Input placeholder="Ask a question..." disabled />
+                    <Button disabled><Plus className="mr-2" /> New Post</Button>
                 </div>
             </CardFooter>
         </Card>
@@ -121,7 +123,7 @@ export default function CommunityPage() {
         {/* Mentor Connect */}
         <Card>
             <CardHeader>
-                <CardTitle>
+                <CardTitle className="font-headline">
                     <HeartHandshake className="text-primary inline-block mr-3" /> Mentor Connect
                 </CardTitle>
                 <CardDescription>
@@ -130,7 +132,7 @@ export default function CommunityPage() {
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
                 {featuredMentors.map(mentor => (
-                    <div key={mentor.name} className="p-4 border rounded-lg flex items-center gap-4">
+                    <div key={mentor.name} className="p-4 border rounded-lg flex items-center gap-4 filter blur-sm opacity-50">
                         <Avatar className="h-16 w-16">
                             <AvatarImage src={`https://i.pravatar.cc/150?u=${mentor.name}`} />
                             <AvatarFallback>{mentor.name.substring(0,2)}</AvatarFallback>
