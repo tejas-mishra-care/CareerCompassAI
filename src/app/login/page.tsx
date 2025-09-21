@@ -4,7 +4,6 @@
 import { AuthForm } from "@/components/auth/auth-form";
 import { BrainCircuit } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   Carousel,
   CarouselContent,
@@ -26,7 +25,7 @@ export default function LoginPage() {
             plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
             opts={{ loop: true }}
         >
-            <CarouselContent className="h-full" data-embla-container>
+            <CarouselContent className="h-full">
                 {welcomeImages.map((image, index) => (
                     <CarouselItem key={index} className="h-full">
                         <Image
