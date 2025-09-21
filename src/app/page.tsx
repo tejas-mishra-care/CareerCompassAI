@@ -42,14 +42,15 @@ export default function LandingPage() {
                   <CarouselContent>
                     {welcomeImages.map((image) => (
                       <CarouselItem key={image.id}>
-                          <Image
-                              src={image.imageUrl}
-                              alt={image.description}
-                              width={600}
-                              height={400}
-                              data-ai-hint={image.imageHint}
-                              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
-                          />
+                          <div className="aspect-video relative">
+                            <Image
+                                src={image.imageUrl}
+                                alt={image.description}
+                                fill
+                                data-ai-hint={image.imageHint}
+                                className="mx-auto overflow-hidden rounded-xl object-cover object-center"
+                            />
+                          </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
