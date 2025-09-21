@@ -77,13 +77,13 @@ export default function CommunityPage() {
                              <Badge variant="secondary">{group.category}</Badge>
                         </CardContent>
                         <CardFooter>
-                            <Button className="w-full" disabled>Join Group</Button>
+                            <Button className="w-full">Join Group</Button>
                         </CardFooter>
                     </Card>
                 ))}
             </CardContent>
              <CardFooter>
-                <Button variant="outline" disabled>
+                <Button variant="outline">
                     <Search className="mr-2" /> Explore More Groups
                 </Button>
             </CardFooter>
@@ -106,14 +106,14 @@ export default function CommunityPage() {
                             <p className="font-semibold">{post.question}</p>
                             <p className="text-sm text-muted-foreground">Asked by {post.author} &middot; {post.answers} answers &middot; Last activity {post.lastActivity}</p>
                         </div>
-                        <Button variant="ghost" size="icon" disabled><ArrowRight /></Button>
+                        <Button variant="ghost" size="icon"><ArrowRight /></Button>
                     </div>
                ))}
             </CardContent>
             <CardFooter>
                 <div className="flex w-full space-x-2">
-                    <Input placeholder="Ask a question..." disabled />
-                    <Button disabled><Plus className="mr-2" /> New Post</Button>
+                    <Input placeholder="Ask a question..." />
+                    <Button><Plus className="mr-2" /> New Post</Button>
                 </div>
             </CardFooter>
         </Card>
