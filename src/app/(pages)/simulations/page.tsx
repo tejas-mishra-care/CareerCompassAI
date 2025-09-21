@@ -49,7 +49,7 @@ export default function SimulationsPage() {
   return (
     <AppShell>
       <div className="flex-1 space-y-6">
-        {heroImage && (
+        {heroImage ? (
              <div className="relative h-64 md:h-80 w-full">
                 <Image
                     src={heroImage.imageUrl}
@@ -67,6 +67,15 @@ export default function SimulationsPage() {
                         Test-drive your future career. Earn valuable Skill Points by solving real-world problems in these interactive simulations.
                     </p>
                 </div>
+            </div>
+        ) : (
+             <div className="p-4 md:p-8">
+                <h1 className="text-3xl md:text-5xl font-bold tracking-tight font-headline text-foreground">
+                    Experiential Library
+                </h1>
+                <p className="max-w-2xl mt-2 text-base md:text-lg text-muted-foreground">
+                    Test-drive your future career. Earn valuable Skill Points by solving real-world problems in these interactive simulations.
+                </p>
             </div>
         )}
        
