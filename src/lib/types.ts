@@ -48,6 +48,7 @@ export interface UserProfile {
   // Fields promoted for querying
   stream12th?: string;
   goal?: string;
+  timeAvailability?: string;
 
   // Cached AI recommendations
   recommendations?: CareerRecommendationsOutput;

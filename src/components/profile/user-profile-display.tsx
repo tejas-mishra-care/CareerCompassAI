@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '../ui/skeleton';
-import { BrainCircuit, Star, Edit, GraduationCap, School } from 'lucide-react';
+import { BrainCircuit, Star, Edit, GraduationCap, School, Clock } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -193,10 +193,18 @@ export function UserProfileDisplay() {
                     </Avatar>
                     <CardTitle>{userProfile.name}</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     <CardDescription className="text-center whitespace-pre-line">
                         {userProfile.bio || "No bio yet. Complete your onboarding to generate one!"}
                     </CardDescription>
+                     {userProfile.timeAvailability && (
+                        <div className="text-center pt-2">
+                            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                                <Clock className="h-4 w-4" />
+                                <span>{userProfile.timeAvailability} / week</span>
+                            </div>
+                        </div>
+                     )}
                 </CardContent>
                 <CardFooter>
                     <Button variant="outline" className="w-full" onClick={() => setIsEditDialogOpen(true)}>

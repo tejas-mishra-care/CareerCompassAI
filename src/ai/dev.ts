@@ -1,3 +1,4 @@
+
 import { config } from 'dotenv';
 config();
 
@@ -11,3 +12,4 @@ import '@/ai/flows/onboarding-flow.ts';
 import '@/ai/flows/create-profile-from-onboarding.ts';
 import '@/ai/flows/opportunity-radar.ts';
 import '@/ai/flows/mock-interview-flow.ts';
+import '@/ai/flows/generate-timetable-from-pathway.ts';

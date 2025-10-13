@@ -81,6 +81,7 @@ const onboardingSchema = z.object({
     subjects: z.record(subjectSchema),
     quizAnswers: z.record(z.string()),
     goal: z.string({ required_error: "Please select a goal to continue." }).min(1, "Please select a goal to continue."),
+    timeAvailability: z.string({ required_error: "Please select your time availability." }).min(1, "Please select your time availability."),
   });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
@@ -110,6 +111,7 @@ const generateDefaultValues = (stream: string = 'default') => {
         subjects: defaultSubjects,
         quizAnswers: defaultQuizAnswers,
         goal: '',
+        timeAvailability: '',
     };
   };
 
@@ -131,7 +133,7 @@ const HigherEducationFields = () => {
                                 <FormItem><FormLabel>Degree</FormLabel><FormControl><Input placeholder="e.g., Bachelor of Technology" {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
                             <FormField control={control} name={`higherEducation.${index}.fieldOfStudy`} render={({ field }) => (
-                                <FormItem><FormLabel>Field of Study</FormLabel><FormControl><Input placeholder="e.g., Computer Science" {...field} /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabel>Field of Study</FormLabel><FormControl><Input placeholder="e.g., Computer Science" {...field} /></FormControl><FormMessage /></Form-Item>
                             )}/>
                              <FormField control={control} name={`higherEducation.${index}.university`} render={({ field }) => (
                                 <FormItem><FormLabel>University/College</FormLabel><FormControl><Input placeholder="e.g., MIT" {...field} /></FormControl><FormMessage /></FormItem>
@@ -232,6 +234,7 @@ export function OnboardingStepper() {
             // Promote key fields for querying
             stream12th: data.stream12th,
             goal: data.goal,
+            timeAvailability: data.timeAvailability,
         });
 
         console.log("--- Step 4: SUCCESS! Data saved to Firestore. ---");
@@ -251,7 +254,7 @@ export function OnboardingStepper() {
   
   const totalSteps = 4;
   const isFinalStep = step === totalSteps;
-  const isGoalSelected = !!methods.watch('goal');
+  const isGoalSelected = !!methods.watch('goal') && !!methods.watch('timeAvailability');
 
   return (
     <FormProvider {...methods}>
@@ -372,6 +375,25 @@ export function OnboardingStepper() {
                         <div className="text-center"><FormMessage /></div>
                     </FormItem>
                 )}/>
+                <div className="pt-4">
+                    <h3 className="text-lg font-semibold mb-2 font-headline">Weekly Commitment</h3>
+                    <p className="text-sm text-muted-foreground mb-4">How much time can you dedicate to learning each week?</p>
+                    <FormField control={methods.control} name="timeAvailability" render={({ field }) => (
+                        <FormItem><FormControl>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <SelectTrigger className="w-full md:w-1/2 mx-auto">
+                                    <SelectValue placeholder="Select your weekly availability" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="2-4 hours">Casual (2-4 hours / week)</SelectItem>
+                                    <SelectItem value="5-7 hours">Moderate (5-7 hours / week)</SelectItem>
+                                    <SelectItem value="8-10 hours">Serious (8-10 hours / week)</SelectItem>
+                                    <SelectItem value="10+ hours">Intense (10+ hours / week)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </FormControl><div className="text-center pt-2"><FormMessage /></div></FormItem>
+                    )}/>
+                </div>
             </div>
           </div>
 
@@ -384,7 +406,7 @@ export function OnboardingStepper() {
             ) : (
                 <Button type="submit" disabled={loading || !isGoalSelected}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Finish
+                    Finish & Build Profile
                 </Button>
             )}
         </div>

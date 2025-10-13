@@ -120,8 +120,8 @@ export const UserProfileProvider = ({
     }
 
     if (user) {
-      // If user is logged in and on the login page, redirect to dashboard
-      if (pathname === '/login') {
+      // If user is logged in and on a public path (like login), redirect to dashboard
+      if (isPublicPath && pathname !== '/') {
         router.push('/dashboard');
         return;
       }
@@ -153,4 +153,3 @@ export const useUserProfile = () => {
   }
   return context;
 };
-
