@@ -1,0 +1,197 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's complete profile, including personal info, skills, and progress.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short, AI-generated biography for the user."
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/Skill"
+          }
+        },
+        "activePathways": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/Pathway"
+          }
+        },
+        "onboardingCompleted": {
+          "type": "boolean",
+          "description": "Flag indicating if the user has finished the onboarding process."
+        },
+        "onboardingData": {
+          "$ref": "#/entities/OnboardingData"
+        },
+        "stream12th": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "string"
+        },
+        "timeAvailability": {
+          "type": "string"
+        },
+        "recommendations": {
+          "$ref": "#/entities/CareerRecommendationsOutput"
+        },
+        "recommendationsLastUpdated": {
+          "type": "number"
+        },
+        "opportunities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/Opportunity"
+          }
+        },
+        "opportunitiesLastUpdated": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the last profile update."
+        }
+      }
+    },
+    "Skill": {
+      "title": "Skill",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "proficiency": {
+          "type": "number"
+        }
+      }
+    },
+    "Pathway": {
+      "title": "Pathway",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/PathwayStep"
+          }
+        }
+      }
+    },
+    "PathwayStep": {
+      "title": "Pathway Step",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "completed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "OnboardingData": {
+      "title": "Onboarding Data",
+      "type": "object",
+      "properties": {
+        "board10th": { "type": "string" },
+        "year10th": { "type": "string" },
+        "score10th": { "type": "string" },
+        "stream12th": { "type": "string" },
+        "board12th": { "type": "string" },
+        "year12th": { "type": "string" },
+        "score12th": { "type": "string" },
+        "higherEducation": {
+          "type": "array",
+          "items": { "$ref": "#/entities/EducationRecord" }
+        },
+        "achievements": { "type": "string" },
+        "subjects": {
+            "type": "object",
+            "additionalProperties": { "$ref": "#/entities/SubjectRecord" }
+        },
+        "quizAnswers": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+        },
+        "goal": { "type": "string" },
+        "timeAvailability": { "type": "string" }
+      }
+    },
+    "EducationRecord": {
+        "title": "Education Record",
+        "type": "object",
+        "properties": {
+            "degree": { "type": "string" },
+            "fieldOfStudy": { "type": "string" },
+            "university": { "type": "string" },
+            "year": { "type": "string" },
+            "score": { "type": "string" }
+        }
+    },
+    "SubjectRecord": {
+        "title": "Subject Record",
+        "type": "object",
+        "properties": {
+            "score": { "type": "string" },
+            "feeling": { "type": "string" }
+        }
+    },
+    "CareerRecommendationsOutput": {
+      "title": "Career Recommendations Output",
+      "type": "object",
+      "properties": {
+        "careerRecommendations": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "reasoning": { "type": "string" }
+      }
+    },
+    "Opportunity": {
+      "title": "Opportunity",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "company": { "type": "string" },
+        "location": { "type": "string" },
+        "matchScore": { "type": "number" },
+        "requiredSkills": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "link": { "type": "string" }
+      }
+    }
+  },
+  "auth": {
+    "providers": [
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores user profile data."
+    }
+  }
+}

@@ -36,6 +36,7 @@ export interface ImagePlaceholder {
 }
 
 export interface UserProfile {
+  uid: string;
   name: string;
   bio: string;
   skills: Skill[];
@@ -58,4 +59,3 @@ export interface UserProfile {
   opportunities?: Opportunity[];
   opportunitiesLastUpdated?: number; // Firestore timestamp
 }
-// Updated

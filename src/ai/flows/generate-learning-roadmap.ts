@@ -66,10 +66,10 @@ Please generate a 7-day personalized learning roadmap based on the following det
 Instructions:
 1.  **Create a Title and Intro**: Craft a motivating title and a personalized introduction for {name}.
 2.  **Define the Strategy**: Write a "reasoning" section explaining the overall strategy. Mention how you're prioritizing weak areas, balancing subjects, and incorporating the student's learning style.
-3.  **Build a 7-Day Schedule**: Create a `weeklySchedule` for a full 7 days.
-4.  **Structure Daily Sessions**: For each day, create an array of `sessions`. Each session must have a `time` slot, `subject`, `topic`, `activity` (be specific!), and a `justification` for that activity.
-5.  **Be Realistic**: Use the `timeAvailability` to create a realistic schedule. Include short breaks or lighter activities. If the availability for a day is none, reflect that with fewer or no sessions.
-6.  **Prioritize Weaknesses**: Make sure to schedule more time or focused activities for the specified `weakAreas` early in the week.
+3.  **Build a 7-Day Schedule**: Create a \`weeklySchedule\` for a full 7 days.
+4.  **Structure Daily Sessions**: For each day, create an array of \`sessions\`. Each session must have a \`time\` slot, \`subject\`, \`topic\`, \`activity\` (be specific!), and a \`justification\` for that activity.
+5.  **Be Realistic**: Use the \`timeAvailability\` to create a realistic schedule. Include short breaks or lighter activities. If the availability for a day is none, reflect that with fewer or no sessions.
+6.  **Prioritize Weaknesses**: Make sure to schedule more time or focused activities for the specified \`weakAreas\` early in the week.
 
 The output must be a perfectly structured JSON object.
 `,
@@ -89,3 +89,4 @@ const generateLearningRoadmapFlow = ai.defineFlow(
     return output;
   }
 );
+
