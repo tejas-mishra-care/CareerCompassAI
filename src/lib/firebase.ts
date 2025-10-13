@@ -20,12 +20,11 @@ const db = getFirestore(app);
 // Enable offline persistence
 try {
     enableIndexedDbPersistence(db)
-    .then(() => console.log("Firestore persistence enabled"))
     .catch((err) => {
         if (err.code === 'failed-precondition') {
-            console.warn('Firestore persistence failed: Multiple tabs open, persistence can only be enabled in one tab at a a time.');
+            // Multiple tabs open, persistence can only be enabled in one tab at a a time.
         } else if (err.code === 'unimplemented') {
-            console.warn('Firestore persistence failed: The current browser does not support all of the features required to enable persistence.');
+            // The current browser does not support all of the features required to enable persistence.
         }
     });
 } catch (err) {
