@@ -164,7 +164,7 @@ export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, o
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
                   <ClipboardCheck className="h-6 w-6 text-primary" />
-                  Overall Progress
+                  Progress & Insights
                 </CardTitle>
               </CardHeader>
               <CardContent>
