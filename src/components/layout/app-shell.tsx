@@ -44,6 +44,11 @@ import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 
 const navItems = [
   {
+    href: '/roadmap',
+    label: 'AI Roadmap',
+    icon: Route,
+  },
+  {
     href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
@@ -58,13 +63,6 @@ const navItems = [
     label: 'Learning Pathways',
     icon: GraduationCap,
   },
-  /*
-    {
-    href: '/roadmap',
-    label: 'AI Roadmap',
-    icon: Route,
-  },
-  */
   {
     href: '/simulations',
     label: 'Simulations',
@@ -194,6 +192,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
-// Updated
-
-
