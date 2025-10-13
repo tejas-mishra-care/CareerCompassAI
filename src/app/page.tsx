@@ -46,7 +46,7 @@ export default function LandingPage() {
                   opts={{ loop: true }}
                 >
                   <CarouselContent>
-                    {welcomeImages.map((image) => (
+                    {welcomeImages.map((image, index) => (
                       <CarouselItem key={image.id}>
                           <div className="aspect-video relative">
                             <Image
@@ -55,6 +55,7 @@ export default function LandingPage() {
                                 fill
                                 data-ai-hint={image.imageHint}
                                 className="mx-auto overflow-hidden rounded-xl object-contain"
+                                priority={index === 0}
                             />
                           </div>
                       </CarouselItem>
@@ -85,4 +86,3 @@ export default function LandingPage() {
     </div>
   );
 }
-// Updated
