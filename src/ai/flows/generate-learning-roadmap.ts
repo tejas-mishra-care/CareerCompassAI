@@ -4,7 +4,7 @@
  */
 import { z } from 'zod';
 
-export const GenerateLearningRoadmapInputSchema = z.object({
+const GenerateLearningRoadmapInputSchema = z.object({
   name: z.string().describe('The name of the student.'),
   subjects: z.string().describe('A comma-separated list of subjects the student needs to study.'),
   goal: z.string().describe('The student\'s primary goal (e.g., "Ace the final exams in 3 weeks", "Learn React for a new job").'),
@@ -29,7 +29,7 @@ const DailyPlanSchema = z.object({
   sessions: z.array(StudySessionSchema).describe("An array of study sessions for the day."),
 });
 
-export const GenerateLearningRoadmapOutputSchema = z.object({
+const GenerateLearningRoadmapOutputSchema = z.object({
   roadmapTitle: z.string().describe("A compelling title for the learning roadmap (e.g., 'Your Personalized 3-Week Exam Success Plan')."),
   introduction: z.string().describe("A brief, personalized introduction paragraph addressing the student by name and acknowledging their goal."),
   reasoning: z.string().describe("An explanation of the methodology behind the schedule, mentioning how it incorporates their learning style, weak areas, and the importance of breaks."),
