@@ -4,7 +4,6 @@
  */
 import { z } from 'zod';
 
-// Define the schema for the inputs from the user form
 const GenerateLearningRoadmapInputSchema = z.object({
   name: z.string().describe('The name of the student.'),
   subjects: z.string().describe('A comma-separated list of subjects the student needs to study.'),
@@ -15,12 +14,12 @@ const GenerateLearningRoadmapInputSchema = z.object({
 });
 export type GenerateLearningRoadmapInput = z.infer<typeof GenerateLearningRoadmapInputSchema>;
 
-// Define the schema for the output we expect from the AI
 const StudySessionSchema = z.object({
   time: z.string().describe("The time for the study session (e.g., '6:00 PM - 7:30 PM')."),
   subject: z.string().describe("The main subject for the session."),
   topic: z.string().describe("The specific topic to be covered."),
   activity: z.string().describe("The learning activity (e.g., 'Watch video tutorials on topic X', 'Complete 20 practice problems')."),
+  resources: z.array(z.string()).optional().describe("A list of 1-2 specific, actionable resource suggestions (e.g., 'Khan Academy', 'freeCodeCamp YouTube channel')."),
   justification: z.string().describe("A brief reason for why this activity is scheduled at this time (e.g., 'Tackle harder subjects when you're fresh')."),
 });
 
@@ -37,15 +36,15 @@ const GenerateLearningRoadmapOutputSchema = z.object({
 });
 export type GenerateLearningRoadmapOutput = z.infer<typeof GenerateLearningRoadmapOutputSchema>;
 
-// Mock function to return hardcoded data
+
 export async function generateLearningRoadmap(input: GenerateLearningRoadmapInput): Promise<GenerateLearningRoadmapOutput> {
   // In a real scenario, this is where you would call the Genkit AI flow.
-  // For the hackathon, we'll return a structured, hardcoded response.
+  // For the hackathon, we'll return a structured, hardcoded response that is more detailed.
   
   return {
     roadmapTitle: `Your Personalized Roadmap to Master: ${input.subjects}`,
     introduction: `Hello, ${input.name}! Here is your personalized learning plan designed to help you achieve your goal: "${input.goal}". This roadmap is tailored to your unique needs and learning style.`,
-    reasoning: `This schedule is designed to maximize your focus by tackling challenging subjects earlier in your sessions. We've incorporated breaks to prevent burnout and allocated specific time to review your weak areas, like ${input.weakAreas}. The activities align with your preference for ${input.learningStyle}.`,
+    reasoning: `This schedule is designed to maximize your focus by tackling challenging subjects earlier in your sessions. We've incorporated breaks to prevent burnout and allocated specific time to review your weak areas, like ${input.weakAreas}. The activities align with your preference for ${input.learningStyle}, with suggested resources to get you started.`,
     weeklySchedule: [
       {
         day: 'Monday',
@@ -54,14 +53,16 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
             time: '6:00 PM - 7:30 PM',
             subject: input.subjects.split(',')[0] || 'First Subject',
             topic: 'Core Concepts Review',
-            activity: 'Review class notes and watch introductory videos.',
+            activity: 'Review class notes and watch introductory videos on the fundamental principles.',
+            resources: ['Khan Academy', 'Your Textbook Chapter 1-2'],
             justification: 'Start the week by reinforcing fundamentals to build confidence.',
           },
           {
             time: '7:45 PM - 9:00 PM',
             subject: input.weakAreas?.split(',')[0] || 'Weak Area 1',
             topic: 'Focused Practice',
-            activity: 'Complete 10 easy practice problems on this topic.',
+            activity: 'Complete 10 easy practice problems on this topic from a workbook or online quiz platform.',
+            resources: ['GeeksforGeeks Practice', 'Coursera quizzes'],
             justification: 'Address weak areas with low-pressure exercises early in the week.',
           },
         ],
@@ -73,14 +74,16 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
             time: '6:00 PM - 7:30 PM',
             subject: input.subjects.split(',')[1] || 'Second Subject',
             topic: 'Advanced Topic Introduction',
-            activity: 'Read the next chapter and try to summarize it in your own words.',
+            activity: 'Read the next chapter and try to summarize it in your own words. Use a mind-mapping tool.',
+            resources: ['MindMeister (online tool)', 'Your Textbook Chapter 3'],
             justification: 'Introduce new material after a day of review.',
           },
           {
             time: '7:45 PM - 9:00 PM',
             subject: input.subjects.split(',')[0] || 'First Subject',
-            topic: 'Practical Application',
-            activity: 'Find a real-world example or project related to what you learned Monday.',
+            topic: 'Practical Application Project',
+            activity: 'Find a small, real-world project to apply what you learned on Monday. E.g., a simple calculator if learning programming.',
+            resources: ['GitHub for project ideas', 'Build-your-own-X repository'],
             justification: 'Connect theory to practice to improve retention.',
           },
         ],
@@ -92,14 +95,16 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
                 time: '6:00 PM - 7:30 PM',
                 subject: 'Review Day',
                 topic: 'Consolidation of Week\'s Learning',
-                activity: 'Create flashcards or a mind map of all topics covered so far.',
+                activity: 'Create flashcards for all new vocabulary and concepts covered so far this week.',
+                resources: ['Anki (flashcard app)', 'Quizlet'],
                 justification: 'Mid-week review is crucial for long-term memory.',
             },
             {
                 time: '7:30 PM - 9:00 PM',
                 subject: 'Break & Relax',
                 topic: 'Mental Recharge',
-                activity: 'Engage in a hobby, watch a show, or do something you enjoy.',
+                activity: 'Engage in a hobby, watch a show, or do something you enjoy. No screens related to studying.',
+                resources: [],
                 justification: 'Scheduled downtime is essential to prevent burnout and maintain motivation.',
             }
         ],
@@ -110,16 +115,18 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
             {
                 time: '6:00 PM - 7:30 PM',
                 subject: input.weakAreas?.split(',')[0] || 'Weak Area 1',
-                topic: 'Deep Dive',
-                activity: 'Watch an in-depth tutorial and attempt 5 challenging problems.',
-                justification: 'Revisit a weak area with more confidence after a few days.',
+                topic: 'Deep Dive Tutorial',
+                activity: 'Watch an in-depth video tutorial on the topic and attempt 5 challenging problems.',
+                resources: ['freeCodeCamp (YouTube)', 'The Net Ninja (YouTube)'],
+                justification: 'Revisit a weak area with more confidence and a deeper understanding.',
             },
             {
                 time: '7:45 PM - 9:00 PM',
                 subject: input.subjects.split(',')[1] || 'Second Subject',
-                topic: 'Practice Problems',
-                activity: 'Complete a full exercise set from your textbook or online course.',
-                justification: 'Solidify understanding through repetition.',
+                topic: 'Hands-on Practice',
+                activity: 'Complete a full exercise set from your textbook or an online interactive course.',
+                resources: ['Codewars (for coding)', 'Your course material'],
+                justification: 'Solidify understanding through focused repetition.',
             }
         ],
       },
@@ -130,8 +137,9 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
                 time: '6:00 PM - 7:30 PM',
                 subject: 'Mock Test',
                 topic: 'Weekly Self-Assessment',
-                activity: 'Take a practice quiz covering all topics from this week.',
-                justification: 'Simulate exam conditions to identify remaining gaps.',
+                activity: 'Take a practice quiz covering all topics from this week. Time yourself to simulate exam conditions.',
+                resources: ['Past exam papers', 'Online mock test websites'],
+                justification: 'Simulate exam conditions to identify remaining gaps and manage time.',
             },
         ],
       },

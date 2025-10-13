@@ -7,12 +7,12 @@ import { generateLearningRoadmap, type GenerateLearningRoadmapInput, type Genera
 
 export default function RoadmapPage() {
   const [formData, setFormData] = useState<GenerateLearningRoadmapInput>({
-    name: '',
-    subjects: '',
-    goal: '',
-    timeAvailability: '',
-    learningStyle: '',
-    weakAreas: '',
+    name: 'Alex',
+    subjects: 'React, TypeScript, Tailwind CSS',
+    goal: 'Build a portfolio project in 4 weeks',
+    timeAvailability: 'Weekdays 7-9 PM, Weekends 11 AM - 3 PM',
+    learningStyle: 'Hands-on learner, prefers building projects over watching videos',
+    weakAreas: 'State management in React',
   });
 
   const [roadmap, setRoadmap] = useState<GenerateLearningRoadmapOutput | null>(null);
@@ -57,7 +57,6 @@ export default function RoadmapPage() {
           <div className="lg:col-span-1">
              <RoadmapInputForm
               formData={formData}
-              setFormData={setFormData}
               handleInputChange={handleInputChange}
               generateRoadmap={generateRoadmapAction}
               isLoading={isLoading}

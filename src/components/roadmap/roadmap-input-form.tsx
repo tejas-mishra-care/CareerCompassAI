@@ -1,16 +1,15 @@
 'use client';
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Book, Clock, Target, BarChart2, Lightbulb, Loader2 } from 'lucide-react';
+import { User, Book, Clock, Target, BarChart2, Lightbulb, Loader2, Wand2 } from 'lucide-react';
 import type { GenerateLearningRoadmapInput } from '@/ai/flows/generate-learning-roadmap';
 
 interface RoadmapInputFormProps {
   formData: GenerateLearningRoadmapInput;
-  setFormData: React.Dispatch<React.SetStateAction<GenerateLearningRoadmapInput>>;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   generateRoadmap: (e: React.FormEvent) => Promise<void>;
   isLoading: boolean;
@@ -30,7 +29,7 @@ export const RoadmapInputForm: React.FC<RoadmapInputFormProps> = ({ formData, ha
   return (
     <Card className="sticky top-8">
         <CardHeader>
-            <CardTitle>Create Your Plan</CardTitle>
+            <CardTitle className="font-headline text-2xl">Create Your Plan</CardTitle>
         </CardHeader>
         <CardContent>
             <form onSubmit={generateRoadmap} className="space-y-4">
@@ -64,22 +63,27 @@ export const RoadmapInputForm: React.FC<RoadmapInputFormProps> = ({ formData, ha
                     )}
                 </div>
                 ))}
-                <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full"
-                >
-                {isLoading ? (
-                    <>
-                    <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                    Generating...
-                    </>
-                ) : (
-                    'Generate My Roadmap'
-                )}
-                </Button>
             </form>
       </CardContent>
+      <CardFooter>
+          <Button
+            onClick={generateRoadmap}
+            disabled={isLoading}
+            className="w-full"
+            size="lg"
+            >
+            {isLoading ? (
+                <>
+                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                Generating...
+                </>
+            ) : (
+                <>
+                <Wand2 className="mr-2" /> Generate My Roadmap
+                </>
+            )}
+            </Button>
+      </CardFooter>
     </Card>
   );
 };
