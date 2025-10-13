@@ -31,6 +31,17 @@ const getDayIndex = (day: string) => {
     return days.indexOf(day.toLowerCase());
 }
 
+// New component for the stylized "road" segment
+const RoadSegment = () => (
+  <div
+    aria-hidden="true"
+    className="absolute left-[29px] top-14 h-[calc(100%_-_56px)] w-px -translate-x-px"
+  >
+    <div className="h-full w-full bg-gradient-to-b from-transparent via-border to-transparent" />
+  </div>
+);
+
+
 const RoadmapInsightsCard = ({ roadmap, checkedState, onRegenerate, isRegenerating }: Omit<RoadmapDisplayProps, 'name' | 'onCheckedChange'>) => {
     const { totalTasks, completedTasks, chartData } = useMemo(() => {
         const week = roadmap.monthlyPlan.weeklyPlans[0];
@@ -154,7 +165,6 @@ export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, o
                     <CardContent>
                         <Accordion type="single" collapsible defaultValue={defaultOpen} className="w-full">
                             <div className="relative pl-6">
-                                <div className="absolute left-[29px] top-5 bottom-5 w-0.5 bg-border -z-10" />
                                 {weekPlan.dailySchedule.map((dayPlan, dIndex) => {
                                     if(dayPlan.sessions.length === 0) return null;
                                     
@@ -169,6 +179,7 @@ export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, o
 
                                     return (
                                         <div key={dIndex} className="relative">
+                                            {dIndex < weekPlan.dailySchedule.filter(d => d.sessions.length > 0).length - 1 && <RoadSegment />}
                                              <div className="absolute top-0 -left-[28px] h-14 w-14 rounded-full bg-background border-4 border-background flex items-center justify-center font-bold text-primary text-xs z-10">
                                                 <div className={cn("h-10 w-10 rounded-full flex items-center justify-center font-bold text-xs", 
                                                     dayIndex === todayIndex ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
