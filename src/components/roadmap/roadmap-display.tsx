@@ -2,7 +2,7 @@
 'use client';
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Bot, Loader2, AlertTriangle, Lightbulb, ExternalLink, RefreshCw, ClipboardCheck, CalendarDays, CalendarX } from 'lucide-react';
+import { Bot, Loader2, AlertTriangle, Lightbulb, ExternalLink, RefreshCw, ClipboardCheck, CalendarDays, CalendarX, ChevronDown } from 'lucide-react';
 import type { GenerateLearningRoadmapOutput } from '@/ai/flows/generate-learning-roadmap';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
@@ -13,6 +13,7 @@ import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 interface RoadmapDisplayProps {
@@ -52,7 +53,7 @@ const RoadmapInsightsCard = ({ roadmap, checkedState, onRegenerate, isRegenerati
             }
         });
         
-        return { totalTasks: total, completedTasks: completed, chartData: dailyData };
+        return { totalTasks: total, completedTasks: completed, chartData: dailyData.filter(d => d.tasks > 0) };
     }, [roadmap, checkedState]);
 
     const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -117,7 +118,7 @@ export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, o
     <div className="animate-in fade-in duration-500 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-3xl">{roadmap.roadmapTitle}</CardTitle>
+          <CardTitle className="text-3xl font-headline">{roadmap.roadmapTitle}</CardTitle>
           <CardDescription className="text-base pt-2">
             {roadmap.introduction.replace('{name}', name)}
           </CardDescription>
@@ -137,90 +138,105 @@ export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, o
       
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
         <div className="xl:col-span-3 space-y-4">
-             {roadmap.monthlyPlan.weeklyPlans.map(weekPlan => (
+            {roadmap.monthlyPlan.weeklyPlans.map(weekPlan => {
+                const activeDay = weekPlan.dailySchedule.findIndex(day => getDayIndex(day.day) === todayIndex);
+                const defaultOpen = activeDay !== -1 ? `day-${activeDay}` : undefined;
+
+                return (
                 <Card key={weekPlan.week}>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
+                        <CardTitle className="flex items-center gap-3 font-headline">
                             <CalendarDays className="text-primary"/>
                             Week {weekPlan.week} Plan
                         </CardTitle>
                         <CardDescription>{weekPlan.summary}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                         <div className="relative pl-6">
-                            <div className="absolute left-[35px] top-4 bottom-4 w-0.5 bg-border -z-10" />
-                            {weekPlan.dailySchedule.map((dayPlan, dIndex) => {
-                                if(dayPlan.sessions.length === 0) return null;
-                                const dayIndex = getDayIndex(dayPlan.day);
-                                const isPast = dayIndex < todayIndex && dayIndex !== -1;
-                                const tasksForDay = dayPlan.sessions.length;
-                                const completedForDay = dayPlan.sessions.reduce((acc, session, sIndex) => {
-                                    const taskId = `${dayPlan.day.toLowerCase()}-${weekPlan.week}-${sIndex}`;
-                                    return acc + (checkedState[taskId] ? 1 : 0);
-                                }, 0);
-                                const isIncomplete = isPast && completedForDay < tasksForDay;
+                        <Accordion type="single" collapsible defaultValue={defaultOpen} className="w-full">
+                            <div className="relative pl-6">
+                                <div className="absolute left-[29px] top-5 bottom-5 w-0.5 bg-border -z-10" />
+                                {weekPlan.dailySchedule.map((dayPlan, dIndex) => {
+                                    if(dayPlan.sessions.length === 0) return null;
+                                    
+                                    const dayIndex = getDayIndex(dayPlan.day);
+                                    const isPast = dayIndex < todayIndex && dayIndex !== 0;
+                                    const tasksForDay = dayPlan.sessions.length;
+                                    const completedForDay = dayPlan.sessions.reduce((acc, session, sIndex) => {
+                                        const taskId = `${dayPlan.day.toLowerCase()}-${weekPlan.week}-${sIndex}`;
+                                        return acc + (checkedState[taskId] ? 1 : 0);
+                                    }, 0);
+                                    const isIncomplete = isPast && completedForDay < tasksForDay;
 
-                                return (
-                                    <div key={dIndex} className="relative pb-8">
-                                        <div className="absolute top-5 -left-[35px] h-8 w-8 rounded-full bg-background border-2 border-primary flex items-center justify-center font-bold text-primary text-xs">
-                                            {dayPlan.day.substring(0,3)}
-                                        </div>
-                                        <Card className={cn("overflow-hidden ml-8", isIncomplete && "border-amber-500/50 bg-amber-950/20")}>
-                                            <CardHeader className="bg-muted/30 border-b flex flex-row items-center justify-between p-4">
-                                                <h3 className="font-semibold text-lg">
-                                                    {dayPlan.day}
-                                                </h3>
-                                                {dayIndex === todayIndex && <Badge variant="default">Today</Badge>}
-                                                {isIncomplete && (
-                                                    <Badge variant="destructive" className="bg-amber-600">
-                                                        <CalendarX className="h-3 w-3 mr-1.5" />
-                                                        Incomplete
-                                                    </Badge>
-                                                )}
-                                            </CardHeader>
-                                            <CardContent className="p-0">
-                                                <div className="divide-y">
-                                                    {dayPlan.sessions.map((session, sIndex) => {
-                                                        const taskId = `${dayPlan.day.toLowerCase()}-${weekPlan.week}-${sIndex}`;
-                                                        return (
-                                                        <div key={sIndex} className={cn("p-4 items-start transition-colors", checkedState[taskId] ? "bg-green-950/50" : "hover:bg-muted/50")}>
-                                                            <div className="flex items-start gap-4">
-                                                                <Checkbox
-                                                                    id={taskId}
-                                                                    checked={checkedState[taskId]}
-                                                                    onCheckedChange={(checked) => handleCheckedChange(taskId, !!checked)}
-                                                                    className="h-5 w-5 mt-1 shrink-0"
-                                                                />
-                                                                <div className="flex-1 grid gap-1">
-                                                                    <Label htmlFor={taskId} className="text-base font-semibold cursor-pointer">
-                                                                        {session.subject}: <span className="font-normal">{session.topic}</span>
-                                                                    </Label>
-                                                                    <p className="text-sm text-muted-foreground">{session.activity}</p>
-                                                                    {session.resources && session.resources.length > 0 && (
-                                                                        <div className="flex flex-wrap gap-2 pt-2">
-                                                                            {session.resources.map(res => (
-                                                                                <Badge variant="secondary" key={res}>
-                                                                                <ExternalLink className="h-3 w-3 mr-1.5" /> {res}
-                                                                                </Badge>
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <p className="font-semibold text-primary text-xs whitespace-nowrap">{session.time}</p>
+                                    return (
+                                        <div key={dIndex} className="relative">
+                                             <div className="absolute top-0 -left-[28px] h-14 w-14 rounded-full bg-background border-4 border-background flex items-center justify-center font-bold text-primary text-xs z-10">
+                                                <div className={cn("h-10 w-10 rounded-full flex items-center justify-center font-bold text-xs", 
+                                                    dayIndex === todayIndex ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                                                    completedForDay === tasksForDay && tasksForDay > 0 && "bg-green-500 text-white"
+                                                    )}>
+                                                    {dayPlan.day.substring(0,3)}
+                                                </div>
+                                            </div>
+                                            <AccordionItem value={`day-${dIndex}`} className="border-b-0 pl-12 pb-8">
+                                                <AccordionTrigger className="p-4 rounded-lg bg-muted/50 hover:bg-muted/80 data-[state=open]:rounded-b-none data-[state=open]:bg-muted">
+                                                    <div className='flex justify-between items-center w-full pr-4'>
+                                                        <h3 className="font-semibold text-lg">{dayPlan.day}</h3>
+                                                        <div className="flex items-center gap-4">
+                                                            {isIncomplete && (
+                                                                <Badge variant="destructive" className="bg-amber-600">
+                                                                    <CalendarX className="h-3 w-3 mr-1.5" />
+                                                                    Incomplete
+                                                                </Badge>
+                                                            )}
+                                                            <div className="text-sm font-mono text-muted-foreground">{completedForDay}/{tasksForDay} Done</div>
+                                                        </div>
+                                                    </div>
+                                                </AccordionTrigger>
+                                                <AccordionContent className="p-0 border border-t-0 rounded-b-lg">
+                                                    <div className="divide-y">
+                                                        {dayPlan.sessions.map((session, sIndex) => {
+                                                            const taskId = `${dayPlan.day.toLowerCase()}-${weekPlan.week}-${sIndex}`;
+                                                            return (
+                                                            <div key={sIndex} className={cn("p-4 items-start transition-colors", checkedState[taskId] ? "bg-green-950/50" : "hover:bg-muted/50")}>
+                                                                <div className="flex items-start gap-4">
+                                                                    <Checkbox
+                                                                        id={taskId}
+                                                                        checked={checkedState[taskId]}
+                                                                        onCheckedChange={(checked) => handleCheckedChange(taskId, !!checked)}
+                                                                        className="h-5 w-5 mt-1 shrink-0"
+                                                                    />
+                                                                    <div className="flex-1 grid gap-1">
+                                                                        <Label htmlFor={taskId} className="text-base font-semibold cursor-pointer">
+                                                                            {session.subject}: <span className="font-normal">{session.topic}</span>
+                                                                        </Label>
+                                                                        <p className="text-sm text-muted-foreground">{session.activity}</p>
+                                                                        {session.resources && session.resources.length > 0 && (
+                                                                            <div className="flex flex-wrap gap-2 pt-2">
+                                                                                {session.resources.map(res => (
+                                                                                    <Badge variant="secondary" key={res}>
+                                                                                    <ExternalLink className="h-3 w-3 mr-1.5" /> {res}
+                                                                                    </Badge>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <p className="font-semibold text-primary text-xs whitespace-nowrap">{session.time}</p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    )})}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                            )})}
-                        </div>
+                                                        )})}
+                                                    </div>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                         </Accordion>
                     </CardContent>
                 </Card>
-             ))}
+            )})}
         </div>
         <div className="xl:col-span-1 sticky top-24 space-y-4">
            <RoadmapInsightsCard 
@@ -270,3 +286,5 @@ export const ErrorMessage = ({ message }: { message: string }) => (
         </CardContent>
     </Card>
 );
+
+    
