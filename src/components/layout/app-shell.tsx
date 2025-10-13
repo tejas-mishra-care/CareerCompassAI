@@ -40,7 +40,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '../ui/scroll-area';
-import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 
 const navItems = [
   {
@@ -142,20 +141,7 @@ const MobileNav = () => (
   </Sheet>
 );
 
-const AppShellSkeleton = () => (
-    <div className="flex h-screen w-full items-center justify-center">
-      <Loader2 className="h-12 w-12 animate-spin text-primary" />
-    </div>
-);
-
-
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useUserProfile();
-  
-  if (loading || !user) {
-    return <AppShellSkeleton />;
-  }
-  
   return (
     <SidebarProvider defaultOpen={false}>
       <Sidebar collapsible="offcanvas">

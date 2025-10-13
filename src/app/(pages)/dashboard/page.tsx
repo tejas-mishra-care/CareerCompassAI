@@ -10,9 +10,18 @@ import { MyActivePathways } from '@/components/dashboard/active-pathways';
 import { WelcomeCard } from '@/components/dashboard/welcome-card';
 import { ProfileProcessor } from '@/components/dashboard/profile-processor';
 import { OpportunityRadar } from '@/components/dashboard/opportunity-radar';
+import { Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { userProfile, isProfileComplete } = useUserProfile();
+  const { userProfile, isProfileComplete, loading } = useUserProfile();
+
+  if (loading) {
+    return (
+        <div className="flex h-[calc(100vh-theme(spacing.14))] w-full items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+    )
+  }
 
   // Scenarios:
   // 1. User is new, has not completed onboarding.
