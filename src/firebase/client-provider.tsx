@@ -1,28 +1,23 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { FirebaseProvider } from './provider';
+import { initializeFirebase } from '.';
 import type { FirebaseServices } from '.';
 
-export function useFirebase() {
-  const [services, setServices] = useState<FirebaseServices | null>(null);
 
-  useMemo(() => {
-    if (typeof window !== 'undefined' && !services) {
-      const { initializeFirebase } = require('.') as {
-        initializeFirebase: () => FirebaseServices;
-      };
-      setServices(initializeFirebase());
+export function FirebaseClientProvider({ children }: { children: ReactNode }) {
+  const services = useMemo(() => {
+    // This check ensures Firebase is initialized only on the client-side.
+    if (typeof window !== 'undefined') {
+      return initializeFirebase();
     }
-  }, [services]);
+    return null;
+  }, []);
 
-  return services;
-}
-
-export function FirebaseClientProvider({ children, ...props }: { children: ReactNode } & FirebaseServices) {
-  const services = useFirebase();
-
+  // Render children only after Firebase has been initialized on the client
   if (!services) {
+    // You can render a loader here if needed
     return null;
   }
 

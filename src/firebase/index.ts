@@ -12,11 +12,15 @@ export type FirebaseServices = {
   storage: FirebaseStorage;
 };
 
-let firebaseServices: FirebaseServices;
+let firebaseServices: FirebaseServices | null = null;
 
 export function initializeFirebase(): FirebaseServices {
   if (firebaseServices) {
     return firebaseServices;
+  }
+  
+  if (typeof window === 'undefined') {
+    throw new Error("Firebase should only be initialized on the client side.");
   }
 
   const app = !getApps().length ? firebaseApp : getApp();
@@ -30,7 +34,6 @@ export function initializeFirebase(): FirebaseServices {
 
 export {
   FirebaseClientProvider,
-  useFirebase,
 } from './client-provider';
 
 export {

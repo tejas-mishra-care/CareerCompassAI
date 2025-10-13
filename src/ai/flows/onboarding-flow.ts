@@ -7,7 +7,6 @@
  * - OnboardingQuestionOutput - The return type for the getOnboardingQuestion function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const OnboardingQuestionInputSchema = z.object({
@@ -29,9 +28,15 @@ export type OnboardingQuestionOutput = z.infer<typeof OnboardingQuestionOutputSc
 export async function getOnboardingQuestion(
   input: OnboardingQuestionInput
 ): Promise<OnboardingQuestionOutput> {
-  return onboardingFlow(input);
+  // return onboardingFlow(input);
+  return {
+    question: "This is a mock question. The AI service is currently disabled.",
+    options: ["Option A", "Option B", "Option C"],
+    topic: 'Skills'
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'onboardingPrompt',
   input: {schema: OnboardingQuestionInputSchema},
@@ -77,4 +82,5 @@ const onboardingFlow = ai.defineFlow(
     return output!;
   }
 );
+*/
 // Updated

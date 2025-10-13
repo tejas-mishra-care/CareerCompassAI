@@ -8,7 +8,6 @@
  * - GenerateTimetableOutput - The return type for the generateTimetable function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const GenerateTimetableInputSchema = z.object({
@@ -38,9 +37,49 @@ export type GenerateTimetableOutput = z.infer<typeof GenerateTimetableOutputSche
 export async function generateTimetable(
   input: GenerateTimetableInput
 ): Promise<GenerateTimetableOutput> {
-  return generateTimetableFlow(input);
+  // return generateTimetableFlow(input);
+  return {
+    weeklyTimetable: [
+      {
+        day: 'Monday',
+        tasks: [
+          { task: 'Review fundamental concepts', duration: '60 minutes' },
+          { task: 'Practical exercises for Step 1', duration: '90 minutes' },
+        ],
+      },
+      {
+        day: 'Tuesday',
+        tasks: [
+          { task: 'Start Step 2: Core Skills', duration: '75 minutes' },
+          { task: 'Short Break', duration: '15 minutes', isBreak: true },
+          { task: 'Read documentation', duration: '45 minutes' },
+        ],
+      },
+      {
+        day: 'Wednesday',
+        tasks: [{ task: 'Work on hands-on project', duration: '120 minutes' }],
+      },
+      {
+        day: 'Thursday',
+        tasks: [
+          { task: 'Study advanced topics from Step 3', duration: '90 minutes' },
+          { task: 'Review and consolidate learning', duration: '60 minutes' },
+        ],
+      },
+      {
+        day: 'Friday',
+        tasks: [
+          { task: 'Focus on weak areas', duration: '60 minutes' },
+          { task: 'Weekly review and planning', duration: '45 minutes' },
+        ],
+      },
+    ],
+    reasoning:
+      'This schedule is designed to balance theoretical learning with practical application, including dedicated time for reviewing difficult topics and planning for the week ahead.',
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'generateTimetablePrompt',
   input: {schema: GenerateTimetableInputSchema},
@@ -84,4 +123,5 @@ const generateTimetableFlow = ai.defineFlow(
     return output;
   }
 );
+*/
 // Updated

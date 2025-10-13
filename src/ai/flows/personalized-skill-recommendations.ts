@@ -8,7 +8,6 @@
  * - PersonalizedSkillRecommendationsOutput - The return type for the getPersonalizedSkillRecommendations function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const PersonalizedSkillRecommendationsInputSchema = z.object({
@@ -42,9 +41,15 @@ export type PersonalizedSkillRecommendationsOutput = z.infer<
 export async function getPersonalizedSkillRecommendations(
   input: PersonalizedSkillRecommendationsInput
 ): Promise<PersonalizedSkillRecommendationsOutput> {
-  return personalizedSkillRecommendationsFlow(input);
+  // return personalizedSkillRecommendationsFlow(input);
+  return {
+    skillRecommendations: ['Advanced React', 'State Management', 'Testing'],
+    reasoning:
+      'To advance your frontend skills, focusing on these areas will help you build more complex and robust applications.',
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'personalizedSkillRecommendationsPrompt',
   input: {schema: PersonalizedSkillRecommendationsInputSchema},
@@ -63,4 +68,5 @@ const personalizedSkillRecommendationsFlow = ai.defineFlow(
     return output!;
   }
 );
+*/
 // Updated

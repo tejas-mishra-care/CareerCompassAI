@@ -6,7 +6,6 @@
  * - getInterviewFeedback: Provides feedback on a user's answer to a question.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 // Schema for generating questions
@@ -38,14 +37,27 @@ export type InterviewFeedbackOutput = z.infer<typeof InterviewFeedbackOutputSche
 
 // Exported functions
 export async function generateInterviewQuestions(input: InterviewQuestionsInput): Promise<InterviewQuestionsOutput> {
-  return generateInterviewQuestionsFlow(input);
+  // return generateInterviewQuestionsFlow(input);
+  return {
+    questions: [
+        { type: 'behavioral', question: `Tell me about a time you faced a challenging bug. How did you solve it? (Mock)` },
+        { type: 'technical', question: 'What is the difference between `let`, `const`, and `var` in JavaScript? (Mock)' },
+        { type: 'behavioral', question: 'Describe a project you are proud of. What was your role? (Mock)' },
+        { type: 'technical', question: 'Explain the concept of virtual DOM in React. (Mock)' },
+        { type: 'behavioral', question: 'How do you handle disagreements with a team member? (Mock)' },
+    ]
+  }
 }
 
 export async function getInterviewFeedback(input: InterviewFeedbackInput): Promise<InterviewFeedbackOutput> {
-  return getInterviewFeedbackFlow(input);
+  // return getInterviewFeedbackFlow(input);
+  return {
+    feedback: `That's a good start. To make your answer stronger, try to incorporate the STAR method (Situation, Task, Action, Result). For example, you could clarify the result of your actions more explicitly. Did you improve a metric by a certain percentage? (This is mock feedback)`
+  }
 }
 
 
+/*
 // Prompt for generating questions
 const generateQuestionsPrompt = ai.definePrompt({
   name: 'generateInterviewQuestionsPrompt',
@@ -108,4 +120,5 @@ const getInterviewFeedbackFlow = ai.defineFlow(
         return output!;
     }
 );
+*/
 // Updated

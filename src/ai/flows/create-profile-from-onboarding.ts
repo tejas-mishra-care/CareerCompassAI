@@ -8,7 +8,6 @@
  * - CreateProfileFromOnboardingOutput - The return type for the createProfileFromOnboarding function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const CreateProfileFromOnboardingInputSchema = z.object({
@@ -34,9 +33,22 @@ export type CreateProfileFromOnboardingOutput = z.infer<typeof CreateProfileFrom
 export async function createProfileFromOnboarding(
   input: CreateProfileFromOnboardingInput
 ): Promise<CreateProfileFromOnboardingOutput> {
-  return createProfileFromOnboardingFlow(input);
+  // return createProfileFromOnboardingFlow(input);
+  return {
+    name: input.userName || 'New Explorer',
+    bio:
+      "A proactive and curious individual with a strong foundation in academics, eager to explore new career paths and apply my skills to real-world challenges.",
+    skills: [
+      { name: 'Problem Solving', proficiency: 55 },
+      { name: 'Critical Thinking', proficiency: 50 },
+      { name: 'Communication', proficiency: 45 },
+      { name: 'Mathematics', proficiency: 40 },
+      { name: 'English', proficiency: 35 },
+    ],
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'createProfileFromOnboardingPrompt',
   input: {schema: CreateProfileFromOnboardingInputSchema},
@@ -79,4 +91,5 @@ const createProfileFromOnboardingFlow = ai.defineFlow(
     return output;
   }
 );
+*/
 // Updated

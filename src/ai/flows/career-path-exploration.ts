@@ -8,7 +8,6 @@
  * - ExploreCareerPathsOutput - The return type for the exploreCareerPaths function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const ExploreCareerPathsInputSchema = z.object({
@@ -24,9 +23,13 @@ export type ExploreCareerPathsOutput = z.infer<typeof ExploreCareerPathsOutputSc
 export async function exploreCareerPaths(
   input: ExploreCareerPathsInput
 ): Promise<ExploreCareerPathsOutput> {
-  return exploreCareerPathsFlow(input);
+  // return exploreCareerPathsFlow(input);
+  return {
+    careerPathAnswer: `Exploring the career path for "${input.careerPathQuestion}" is a great step! This field typically requires skills in X, Y, and Z, and can lead to job roles such as A, B, and C.`
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'exploreCareerPathsPrompt',
   input: {schema: ExploreCareerPathsInputSchema},
@@ -47,4 +50,5 @@ const exploreCareerPathsFlow = ai.defineFlow(
     return output!;
   }
 );
+*/
 // Updated

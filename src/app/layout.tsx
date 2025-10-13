@@ -19,11 +19,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const firebase = initializeFirebase();
   return (
     <html lang="en" className="dark" style={{ colorScheme: 'dark' }}>
       <body className={cn('font-body antialiased', inter.variable)}>
-        <FirebaseClientProvider {...firebase}>
+        <FirebaseClientProvider>
           <UserProfileProvider>
             {children}
             <Toaster />

@@ -7,7 +7,6 @@
  * - CareerRecommendationsOutput - The return type for the getCareerRecommendations function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const CareerRecommendationsInputSchema = z.object({
@@ -38,9 +37,19 @@ export type CareerRecommendationsOutput = z.infer<
 export async function getCareerRecommendations(
   input: CareerRecommendationsInput
 ): Promise<CareerRecommendationsOutput> {
-  return careerRecommendationsFlow(input);
+  // return careerRecommendationsFlow(input);
+  return {
+    careerRecommendations: [
+      'Data Analyst',
+      'UX/UI Designer',
+      'Product Manager',
+    ],
+    reasoning:
+      "Based on your profile, your analytical skills make you a great fit for data-driven roles, while your creative inclinations are perfect for design and product-focused careers.",
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'careerRecommendationsPrompt',
   input: {schema: CareerRecommendationsInputSchema},
@@ -72,4 +81,5 @@ const careerRecommendationsFlow = ai.defineFlow(
     return output!;
   }
 );
+*/
 // Updated

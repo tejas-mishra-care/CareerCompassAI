@@ -9,7 +9,6 @@
  * - ExploreCareersWithChatbotOutput - The return type for the exploreCareersWithChatbot function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const ExploreCareersWithChatbotInputSchema = z.object({
@@ -29,9 +28,27 @@ export type ExploreCareersWithChatbotOutput = z.infer<typeof ExploreCareersWithC
 export async function exploreCareersWithChatbot(
   input: ExploreCareersWithChatbotInput
 ): Promise<ExploreCareersWithChatbotOutput> {
-  return exploreCareersWithChatbotFlow(input);
+  // return exploreCareersWithChatbotFlow(input);
+  if (input.question.toLowerCase().includes('pathway')) {
+    return {
+      answer: `
+# Learning Pathway for: ${input.question.replace('Generate a structured, step-by-step learning plan for ', '')}
+
+1. **Fundamental Concepts:** Start with the basic principles and theories.
+2. **Core Skills Development:** Focus on acquiring the essential tools and techniques.
+3. **Hands-on Projects:** Apply your knowledge to real-world scenarios.
+4. **Specialization:** Dive deeper into a niche area that interests you.
+5. **Portfolio Building:** Showcase your work to potential employers.
+      `
+    }
+  }
+
+  return {
+    answer: `Thank you for asking about "${input.question}". In a real application, I would provide a detailed, AI-generated answer. For now, this is a placeholder response.`
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'exploreCareersWithChatbotPrompt',
   input: {schema: ExploreCareersWithChatbotInputSchema},
@@ -56,4 +73,5 @@ const exploreCareersWithChatbotFlow = ai.defineFlow(
     return output!;
   }
 );
+*/
 // Updated

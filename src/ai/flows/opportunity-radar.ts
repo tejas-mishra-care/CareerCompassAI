@@ -8,7 +8,6 @@
  * - Opportunity - The output type for a single opportunity.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const OpportunityRadarInputSchema = z.object({
@@ -38,9 +37,38 @@ export type OpportunityRadarOutput = z.infer<typeof OpportunityRadarOutputSchema
 export async function getOpportunityRadar(
   input: OpportunityRadarInput
 ): Promise<OpportunityRadarOutput> {
-  return opportunityRadarFlow(input);
+  // return opportunityRadarFlow(input);
+  return {
+    opportunities: [
+      {
+        title: 'Frontend Developer Intern',
+        company: 'Zomato',
+        location: 'Gurgaon, IN',
+        matchScore: 85,
+        requiredSkills: ['React', 'TypeScript', 'CSS'],
+        link: '#',
+      },
+      {
+        title: 'Jr. Data Analyst',
+        company: 'Zerodha',
+        location: 'Bengaluru, IN',
+        matchScore: 78,
+        requiredSkills: ['SQL', 'Python', 'Excel'],
+        link: '#',
+      },
+      {
+        title: 'Product Design Intern',
+        company: 'CRED',
+        location: 'Remote',
+        matchScore: 72,
+        requiredSkills: ['Figma', 'UI/UX Principles', 'Prototyping'],
+        link: '#',
+      },
+    ],
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'opportunityRadarPrompt',
   input: {schema: OpportunityRadarInputSchema},
@@ -76,4 +104,5 @@ const opportunityRadarFlow = ai.defineFlow(
     return output;
   }
 );
+*/
 // Updated

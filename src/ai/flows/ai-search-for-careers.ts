@@ -7,7 +7,6 @@
  * - AiSearchForCareersOutput - The return type for the aiSearchForCareers function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const AiSearchForCareersInputSchema = z.object({
@@ -36,9 +35,26 @@ const AiSearchForCareersOutputSchema = z.object({
 export type AiSearchForCareersOutput = z.infer<typeof AiSearchForCareersOutputSchema>;
 
 export async function aiSearchForCareers(input: AiSearchForCareersInput): Promise<AiSearchForCareersOutput> {
-  return aiSearchForCareersFlow(input);
+  // return aiSearchForCareersFlow(input);
+  return {
+    careers: [
+      {
+        title: 'Frontend Developer',
+        description: 'Build user interfaces for websites and web applications.',
+        requiredSkills: ['HTML', 'CSS', 'JavaScript', 'React'],
+        link: '#',
+      },
+      {
+        title: 'Backend Developer',
+        description: 'Work on server-side logic, databases, and APIs.',
+        requiredSkills: ['Node.js', 'Python', 'SQL', 'REST APIs'],
+        link: '#',
+      },
+    ],
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'aiSearchForCareersPrompt',
   input: {schema: AiSearchForCareersInputSchema},
@@ -72,4 +88,5 @@ const aiSearchForCareersFlow = ai.defineFlow(
     return output!;
   }
 );
+*/
 // Updated

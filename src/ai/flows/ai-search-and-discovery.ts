@@ -7,7 +7,6 @@
  * - AiSearchAndDiscoveryOutput - The return type for the aiSearchAndDiscovery function.
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const AiSearchAndDiscoveryInputSchema = z.object({
@@ -33,9 +32,32 @@ const AiSearchAndDiscoveryOutputSchema = z.object({
 export type AiSearchAndDiscoveryOutput = z.infer<typeof AiSearchAndDiscoveryOutputSchema>;
 
 export async function aiSearchAndDiscovery(input: AiSearchAndDiscoveryInput): Promise<AiSearchAndDiscoveryOutput> {
-  return aiSearchAndDiscoveryFlow(input);
+  // return aiSearchAndDiscoveryFlow(input);
+  return {
+    results: [
+      {
+        title: 'Software Engineer',
+        description: 'Design, develop, and maintain software systems.',
+        type: 'career',
+        relevanceScore: 90,
+      },
+      {
+        title: 'React Fundamentals',
+        description: 'Learn the basics of the React JavaScript library.',
+        type: 'course',
+        relevanceScore: 85,
+      },
+      {
+        title: 'Project Management',
+        description: 'The practice of initiating, planning, executing, controlling, and closing the work of a team to achieve specific goals.',
+        type: 'skill',
+        relevanceScore: 75,
+      },
+    ],
+  };
 }
 
+/*
 const prompt = ai.definePrompt({
   name: 'aiSearchAndDiscoveryPrompt',
   input: {schema: AiSearchAndDiscoveryInputSchema},
@@ -50,7 +72,7 @@ User Profile: {{{userProfile}}}
 Return a diverse list of results as a JSON array. Each result must include:
 - A title.
 - A brief description.
-- A type: must be one of 'career', 'skill', or 'course'.
+- A type: must be one of 'career', 'skill', 'course'.
 - A link to more information, if a relevant one exists.
 - A relevanceScore (0-100) indicating how well the result matches the user's profile and query. A score of 100 is a perfect match. If no user profile is provided, base the score on the query alone.
 `,
@@ -67,4 +89,5 @@ const aiSearchAndDiscoveryFlow = ai.defineFlow(
     return output!;
   }
 );
+*/
 // Updated
