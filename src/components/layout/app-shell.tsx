@@ -43,24 +43,24 @@ import { ScrollArea } from '../ui/scroll-area';
 
 const navItems = [
   {
-    href: '/roadmap',
-    label: 'AI Roadmap',
-    icon: Route,
-  },
-  {
     href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
   },
   {
-    href: '/my-skills',
-    label: 'My Skills',
-    icon: ClipboardList,
+    href: '/roadmap',
+    label: 'AI Roadmap',
+    icon: Route,
   },
   {
     href: '/pathways',
     label: 'Learning Pathways',
     icon: GraduationCap,
+  },
+  {
+    href: '/my-skills',
+    label: 'My Skills',
+    icon: ClipboardList,
   },
   {
     href: '/simulations',
