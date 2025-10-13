@@ -31,17 +31,32 @@ export function ProfileProcessor() {
     setIsProcessing(true);
     setError(null);
     try {
-      const data = userProfile.onboardingData;
+      // --- HACKATHON MVP FIX: Bypass AI call and generate dummy data ---
+      // This is a temporary solution to ensure the app is usable for the hackathon.
+      // The original AI call is commented out below.
+      const generatedProfile = {
+        name: user.displayName || userProfile.name || "New Explorer",
+        bio: "A proactive and curious individual with a strong foundation in academics, eager to explore new career paths and apply my skills to real-world challenges.",
+        skills: [
+            { name: "Problem Solving", proficiency: 55 },
+            { name: "Critical Thinking", proficiency: 50 },
+            { name: "Communication", proficiency: 45 },
+            { name: "Mathematics", proficiency: 40 },
+            { name: "English", proficiency: 35 },
+        ]
+      };
       
+      /*
+      const data = userProfile.onboardingData;
       const answers = Object.keys(data).map(key => ({
           question: key,
           answer: JSON.stringify(data[key]),
       }));
-
       const generatedProfile = await createProfileFromOnboarding({ 
           answers,
           userName: user.displayName || userProfile.name 
       });
+      */
 
       const finalProfile: UserProfile = {
         ...userProfile,
@@ -126,4 +141,3 @@ export function ProfileProcessor() {
 
   return null;
 }
-// Updated
