@@ -6,7 +6,7 @@ This document outlines the architecture and core concepts behind the CareerCompa
 
 The application is built on three foundational pillars that work together to create a deeply personalized user experience.
 
--   **The Dynamic User Profile (The "Soul"):** This is more than just a user record; it's a "living CV" stored in a Firestore document. It contains the user's skills, proficiency levels, goals, active learning pathways, and a history of their achievements. This profile is updated in real-time, serving as the central source of truth for the entire application. The `useUserProfile` hook provides seamless, real-time access to this data across all components.
+-   **The Dynamic User Profile (The "Soul"):** This is more than just a user record; it's a "living CV" stored in a Firestore document. It contains the user's ..skills, proficiency levels, goals, active learning pathways, and a history of their achievements. This profile is updated in real-time, serving as the central source of truth for the entire application. The `useUserProfile` hook provides seamless, real-time access to this data across all components.
 
 -   **The Personalization Engine (The "Brain"):** This is a collection of server-side Genkit AI flows. These flows act as the application's intelligence, processing the user's Dynamic Profile to generate tailored content, recommendations, and insights. This engine is responsible for everything from creating the initial user profile to suggesting career paths and matching users with opportunities.
 
@@ -91,4 +91,4 @@ export interface UserProfile {
   opportunities?: Opportunity[];
   opportunitiesLastUpdated?: number; // Firestore timestamp
 }
-```
+```////
