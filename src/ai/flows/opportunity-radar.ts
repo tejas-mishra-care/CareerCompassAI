@@ -38,8 +38,9 @@ export async function getOpportunityRadar(
   input: OpportunityRadarInput
 ): Promise<OpportunityRadarOutput> {
   // return opportunityRadarFlow(input);
-  return {
-    opportunities: [
+
+  // Mock data that feels more personalized
+  const baseOpportunities = [
       {
         title: 'Frontend Developer Intern',
         company: 'Zomato',
@@ -64,7 +65,21 @@ export async function getOpportunityRadar(
         requiredSkills: ['Figma', 'UI/UX Principles', 'Prototyping'],
         link: '#',
       },
-    ],
+  ];
+
+  if (input.userProfile.toLowerCase().includes('python')) {
+    baseOpportunities.unshift({
+        title: 'Python Developer (Backend)',
+        company: 'Swiggy',
+        location: 'Bengaluru, IN',
+        matchScore: 92,
+        requiredSkills: ['Python', 'Django', 'APIs'],
+        link: '#',
+      });
+  }
+
+  return {
+    opportunities: baseOpportunities.slice(0, 3)
   };
 }
 
@@ -105,4 +120,3 @@ const opportunityRadarFlow = ai.defineFlow(
   }
 );
 */
-// Updated

@@ -38,14 +38,21 @@ export async function getCareerRecommendations(
   input: CareerRecommendationsInput
 ): Promise<CareerRecommendationsOutput> {
   // return careerRecommendationsFlow(input);
+  
+  // Mock logic to make recommendations feel more personalized
+  const recommendations = ['Data Analyst', 'UX/UI Designer', 'Product Manager'];
+  if (input.userProfile.toLowerCase().includes('computer science')) {
+    recommendations.unshift('Software Engineer');
+  }
+  if (input.userProfile.toLowerCase().includes('art') || input.userProfile.toLowerCase().includes('design')) {
+    recommendations.unshift('Graphic Designer');
+  }
+
+
   return {
-    careerRecommendations: [
-      'Data Analyst',
-      'UX/UI Designer',
-      'Product Manager',
-    ],
+    careerRecommendations: recommendations.slice(0, 3),
     reasoning:
-      "Based on your profile, your analytical skills make you a great fit for data-driven roles, while your creative inclinations are perfect for design and product-focused careers.",
+      "Based on your unique profile, your analytical and problem-solving skills make you a great candidate for data-driven roles. We've also noticed your creative inclinations, which align perfectly with design and product-focused careers. This blend of talents opens up exciting and diverse opportunities for you.",
   };
 }
 
@@ -82,4 +89,3 @@ const careerRecommendationsFlow = ai.defineFlow(
   }
 );
 */
-// Updated
