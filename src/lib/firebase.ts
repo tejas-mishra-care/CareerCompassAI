@@ -9,7 +9,8 @@ const firebaseConfig = {
   apiKey: "AIzaSyCpoD_CMCccniOaBrirPyPcMGsfrqgn65Y",
   authDomain: "studio-9295250327-e0fca.firebaseapp.com",
   measurementId: "",
-  messagingSenderId: "858476699204"
+  messagingSenderId: "858476699204",
+  storageBucket: "studio-9295250327-e0fca.appspot.com"
 };
 
 // Initialize Firebase
