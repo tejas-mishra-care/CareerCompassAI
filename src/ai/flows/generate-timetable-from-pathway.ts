@@ -63,7 +63,7 @@ Instructions:
 2.  **Create a 5-Day Schedule**: Distribute the learning tasks across 5 days (Monday to Friday). Do not schedule for weekends.
 3.  **Allocate Time**: Break down the pathway steps into smaller, manageable tasks and assign a realistic duration to each (e.g., "60 minutes," "90 minutes"). The total time for the week should align with the user's availability.
 4.  **Prioritize**: If the user profile is available, use it to prioritize steps that might be more challenging for the user. Mention this in your reasoning.
-5.  **Schedule Breaks**: Intelligently insert short breaks (e.g., "15-minute break") between longer study sessions. Mark these tasks with "isBreak: true".
+5.  **Schedule Breaks**: Intelligently insert short breaks (e.g., "15-minute break") between longer study sessions. Mark these tasks with 'isBreak: true'.
 6.  **Provide Reasoning**: Write a short (1-2 sentence) explanation for the structure of the timetable. For example, mention how you've balanced difficult topics or included breaks for productivity.
 
 Return the result as a perfectly structured JSON object.
