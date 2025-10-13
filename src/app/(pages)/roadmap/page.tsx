@@ -1,12 +1,15 @@
 
 'use client';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
 import { RoadmapInputForm } from '@/components/roadmap/roadmap-input-form';
 import { RoadmapDisplay, LoadingSpinner, WelcomeMessage, ErrorMessage } from '@/components/roadmap/roadmap-display';
 import { generateLearningRoadmap, type GenerateLearningRoadmapInput, type GenerateLearningRoadmapOutput } from '@/ai/flows/generate-learning-roadmap';
+import { useToast } from '@/hooks/use-toast';
+import dynamic from 'next/dynamic';
+import { AppShellSkeleton } from '@/components/layout/app-shell-skeleton';
 
-export default function RoadmapPage() {
+const RoadmapPageContent = () => {
   const [formData, setFormData] = useState<GenerateLearningRoadmapInput>({
     name: '',
     subjects: '',
@@ -37,12 +40,15 @@ export default function RoadmapPage() {
     try {
         let completedTasksSummary = '';
         if (isRegeneration && roadmap) {
-            completedTasksSummary = roadmap.weeklySchedule.flatMap(day => day.sessions)
-                .filter((session, index) => checkedState[`${session.subject.toLowerCase()}-${index}`])
-                .map(session => `${session.subject}: ${session.topic}`)
-                .join(', ');
+            completedTasksSummary = roadmap.monthlyPlan.weeklyPlans.flatMap(week =>
+                week.dailySchedule.flatMap(day =>
+                    day.sessions
+                        .filter((session, sIndex) => checkedState[`${day.day.toLowerCase()}-${week.week}-${sIndex}`])
+                        .map(session => `${session.subject}: ${session.topic}`)
+                )
+            ).join(', ');
         }
-
+        
       const result = await generateLearningRoadmap({
           ...formData,
           completedTasks: completedTasksSummary || undefined
@@ -100,4 +106,13 @@ export default function RoadmapPage() {
       </div>
     </AppShell>
   );
+}
+
+const DynamicRoadmapPage = dynamic(() => Promise.resolve(RoadmapPageContent), {
+    ssr: false,
+    loading: () => <AppShellSkeleton />,
+});
+
+export default function RoadmapPage() {
+    return <DynamicRoadmapPage />;
 }
