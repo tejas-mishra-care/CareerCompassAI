@@ -29,6 +29,7 @@ import {
   User as UserIcon,
   Loader2,
   HeartHandshake,
+  Route,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { cn } from '@/lib/utils';
@@ -56,6 +57,11 @@ const navItems = [
     href: '/pathways',
     label: 'Learning Pathways',
     icon: GraduationCap,
+  },
+    {
+    href: '/roadmap',
+    label: 'AI Roadmap',
+    icon: Route,
   },
   {
     href: '/simulations',
@@ -187,3 +193,4 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 // Updated
+
