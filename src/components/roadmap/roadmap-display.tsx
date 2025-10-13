@@ -31,33 +31,32 @@ const getDayIndex = (day: string) => {
     return days.indexOf(day.toLowerCase());
 }
 
-const RoadmapInsightsCard = ({ roadmap, checkedState, onRegenerate, isRegenerating }: Omit<RoadmapDisplayProps, 'name'>) => {
-    const totalTasks = useMemo(() => {
-        return roadmap.monthlyPlan.weeklyPlans.reduce((total, week) => 
-            total + week.dailySchedule.reduce((acc, day) => acc + day.sessions.length, 0), 0);
-    }, [roadmap]);
+const RoadmapInsightsCard = ({ roadmap, checkedState, onRegenerate, isRegenerating }: Omit<RoadmapDisplayProps, 'name' | 'onCheckedChange'>) => {
+    const { totalTasks, completedTasks, chartData } = useMemo(() => {
+        const week = roadmap.monthlyPlan.weeklyPlans[0];
+        if (!week) return { totalTasks: 0, completedTasks: 0, chartData: [] };
 
-    const completedTasks = useMemo(() => {
-        return Object.values(checkedState).filter(Boolean).length;
-    }, [checkedState]);
+        const total = week.dailySchedule.reduce((acc, day) => acc + day.sessions.length, 0);
+        const completed = Object.values(checkedState).filter(Boolean).length;
+        
+        const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const dailyData = daysOfWeek.map(dayAbbr => ({ name: dayAbbr, tasks: 0, completed: 0 }));
+
+        week.dailySchedule.forEach(dayPlan => {
+            const dayIndex = getDayIndex(dayPlan.day);
+            if (dayIndex >= 1 && dayIndex <= 7) { // Monday to Sunday
+                const dayKey = dayPlan.day.toLowerCase();
+                dailyData[dayIndex - 1].tasks = dayPlan.sessions.length;
+                dailyData[dayIndex - 1].completed = dayPlan.sessions.reduce((acc, session, sIndex) => {
+                    return acc + (checkedState[`${dayKey}-${week.week}-${sIndex}`] ? 1 : 0);
+                }, 0);
+            }
+        });
+        
+        return { totalTasks: total, completedTasks: completed, chartData: dailyData };
+    }, [roadmap, checkedState]);
 
     const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
-    const chartData = useMemo(() => {
-      const week = roadmap.monthlyPlan.weeklyPlans[0];
-      if (!week) return [];
-      
-      const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-      const data = daysOfWeek.map(dayAbbr => ({ name: dayAbbr, tasks: 0 }));
-
-      week.dailySchedule.forEach(dayPlan => {
-        const dayIndex = getDayIndex(dayPlan.day);
-        if (dayIndex >= 1 && dayIndex <= 7) { // Monday to Sunday
-          data[dayIndex - 1].tasks = dayPlan.sessions.length;
-        }
-      });
-      return data.filter(d => d.tasks > 0);
-    }, [roadmap]);
 
     return (
         <Card>
@@ -80,14 +79,14 @@ const RoadmapInsightsCard = ({ roadmap, checkedState, onRegenerate, isRegenerati
                 </div>
                  <Separator />
                 <div>
-                    <h4 className="text-sm font-medium mb-2 text-center">Tasks per Day</h4>
+                    <h4 className="text-sm font-medium mb-2 text-center">Weekly Task Distribution</h4>
                      <ChartContainer config={{}} className="h-40 w-full">
                         <BarChart accessibilityLayer data={chartData} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
                           <CartesianGrid vertical={false} strokeDasharray="3 3" />
                           <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
                           <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={25} />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="tasks" fill="hsl(var(--primary))" radius={4} />
+                          <ChartTooltip cursor={false} content={<ChartTooltipContent formatter={(value, name) => <>{`${name.charAt(0).toUpperCase() + name.slice(1)}: ${value}`}</>} />} />
+                          <Bar dataKey="tasks" fill="hsl(var(--primary))" radius={4} name="Scheduled" />
                         </BarChart>
                     </ChartContainer>
                 </div>
@@ -158,69 +157,77 @@ export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, o
                                 </AccordionTrigger>
                                 <AccordionContent className="pt-4 space-y-4">
                                     <p className="text-muted-foreground italic px-4">{weekPlan.summary}</p>
-                                    {weekPlan.dailySchedule.map((dayPlan, dIndex) => {
-                                        if(dayPlan.sessions.length === 0) return null;
-                                        const dayIndex = getDayIndex(dayPlan.day);
-                                        const isPast = dayIndex < todayIndex && dayIndex !== -1;
-                                        const tasksForDay = dayPlan.sessions.length;
-                                        const completedForDay = dayPlan.sessions.reduce((acc, session, sIndex) => {
-                                            const taskId = `${dayPlan.day.toLowerCase()}-${weekPlan.week}-${sIndex}`;
-                                            return acc + (checkedState[taskId] ? 1 : 0);
-                                        }, 0);
-                                        const isIncomplete = isPast && completedForDay < tasksForDay;
+                                    <div className="relative pl-6">
+                                        <div className="absolute left-[35px] top-4 bottom-4 w-0.5 bg-border -z-10" />
+                                        {weekPlan.dailySchedule.map((dayPlan, dIndex) => {
+                                            if(dayPlan.sessions.length === 0) return null;
+                                            const dayIndex = getDayIndex(dayPlan.day);
+                                            const isPast = dayIndex < todayIndex && dayIndex !== -1;
+                                            const tasksForDay = dayPlan.sessions.length;
+                                            const completedForDay = dayPlan.sessions.reduce((acc, session, sIndex) => {
+                                                const taskId = `${dayPlan.day.toLowerCase()}-${weekPlan.week}-${sIndex}`;
+                                                return acc + (checkedState[taskId] ? 1 : 0);
+                                            }, 0);
+                                            const isIncomplete = isPast && completedForDay < tasksForDay;
 
-                                        return (
-                                        <Card key={dIndex} className={cn("overflow-hidden", isIncomplete && "border-amber-500/50 bg-amber-950/20")}>
-                                            <CardHeader className="bg-muted/30 border-b flex flex-row items-center justify-between p-4">
-                                                <h3 className="font-semibold">
-                                                    {dayPlan.day}
-                                                </h3>
-                                                {dayIndex === todayIndex && <Badge variant="default">Today</Badge>}
-                                                {isIncomplete && (
-                                                    <Badge variant="destructive" className="bg-amber-600">
-                                                        <CalendarX className="h-3 w-3 mr-1.5" />
-                                                        Incomplete
-                                                    </Badge>
-                                                )}
-                                            </CardHeader>
-                                            <CardContent className="p-0">
-                                                <div className="divide-y">
-                                                    {dayPlan.sessions.map((session, sIndex) => {
-                                                        const taskId = `${dayPlan.day.toLowerCase()}-${weekPlan.week}-${sIndex}`;
-                                                        return (
-                                                        <div key={sIndex} className={cn("p-4 items-start transition-colors", checkedState[taskId] ? "bg-green-950/50" : "hover:bg-muted/50")}>
-                                                            <div className="flex items-start gap-4">
-                                                                <Checkbox
-                                                                    id={taskId}
-                                                                    checked={checkedState[taskId]}
-                                                                    onCheckedChange={(checked) => handleCheckedChange(taskId, !!checked)}
-                                                                    className="h-5 w-5 mt-1 shrink-0"
-                                                                />
-                                                                <div className="flex-1 grid gap-1">
-                                                                    <Label htmlFor={taskId} className="text-base font-semibold cursor-pointer">
-                                                                        {session.subject}: <span className="font-normal">{session.topic}</span>
-                                                                    </Label>
-                                                                    <p className="text-sm text-muted-foreground">{session.activity}</p>
-                                                                    {session.resources && session.resources.length > 0 && (
-                                                                        <div className="flex flex-wrap gap-2 pt-2">
-                                                                            {session.resources.map(res => (
-                                                                                <Badge variant="secondary" key={res}>
-                                                                                <ExternalLink className="h-3 w-3 mr-1.5" /> {res}
-                                                                                </Badge>
-                                                                            ))}
+                                            return (
+                                                <div key={dIndex} className="relative py-4">
+                                                    <div className="absolute top-1/2 -translate-y-1/2 -left-[35px] h-8 w-8 rounded-full bg-background border-2 border-primary flex items-center justify-center font-bold text-primary text-xs">
+                                                        {dayPlan.day.substring(0,3)}
+                                                    </div>
+                                                    <Card className={cn("overflow-hidden ml-8", isIncomplete && "border-amber-500/50 bg-amber-950/20")}>
+                                                        <CardHeader className="bg-muted/30 border-b flex flex-row items-center justify-between p-4">
+                                                            <h3 className="font-semibold text-lg">
+                                                                {dayPlan.day}
+                                                            </h3>
+                                                            {dayIndex === todayIndex && <Badge variant="default">Today</Badge>}
+                                                            {isIncomplete && (
+                                                                <Badge variant="destructive" className="bg-amber-600">
+                                                                    <CalendarX className="h-3 w-3 mr-1.5" />
+                                                                    Incomplete
+                                                                </Badge>
+                                                            )}
+                                                        </CardHeader>
+                                                        <CardContent className="p-0">
+                                                            <div className="divide-y">
+                                                                {dayPlan.sessions.map((session, sIndex) => {
+                                                                    const taskId = `${dayPlan.day.toLowerCase()}-${weekPlan.week}-${sIndex}`;
+                                                                    return (
+                                                                    <div key={sIndex} className={cn("p-4 items-start transition-colors", checkedState[taskId] ? "bg-green-950/50" : "hover:bg-muted/50")}>
+                                                                        <div className="flex items-start gap-4">
+                                                                            <Checkbox
+                                                                                id={taskId}
+                                                                                checked={checkedState[taskId]}
+                                                                                onCheckedChange={(checked) => handleCheckedChange(taskId, !!checked)}
+                                                                                className="h-5 w-5 mt-1 shrink-0"
+                                                                            />
+                                                                            <div className="flex-1 grid gap-1">
+                                                                                <Label htmlFor={taskId} className="text-base font-semibold cursor-pointer">
+                                                                                    {session.subject}: <span className="font-normal">{session.topic}</span>
+                                                                                </Label>
+                                                                                <p className="text-sm text-muted-foreground">{session.activity}</p>
+                                                                                {session.resources && session.resources.length > 0 && (
+                                                                                    <div className="flex flex-wrap gap-2 pt-2">
+                                                                                        {session.resources.map(res => (
+                                                                                            <Badge variant="secondary" key={res}>
+                                                                                            <ExternalLink className="h-3 w-3 mr-1.5" /> {res}
+                                                                                            </Badge>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="text-right">
+                                                                                <p className="font-semibold text-primary text-xs whitespace-nowrap">{session.time}</p>
+                                                                            </div>
                                                                         </div>
-                                                                    )}
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <p className="font-semibold text-primary text-xs whitespace-nowrap">{session.time}</p>
-                                                                </div>
+                                                                    </div>
+                                                                )})}
                                                             </div>
-                                                        </div>
-                                                    )})}
+                                                        </CardContent>
+                                                    </Card>
                                                 </div>
-                                            </CardContent>
-                                        </Card>
-                                    )})}
+                                        )})}
+                                    </div>
                                 </AccordionContent>
                             </AccordionItem>
                         ))}
@@ -232,7 +239,6 @@ export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, o
            <RoadmapInsightsCard 
                 roadmap={roadmap}
                 checkedState={checkedState}
-                onCheckedChange={onCheckedChange}
                 onRegenerate={onRegenerate}
                 isRegenerating={isRegenerating}
             />

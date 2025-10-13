@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { Skeleton } from '@/components/ui/skeleton';
 import { exploreCareersWithChatbot } from '@/ai/flows/explore-careers-with-chatbot';
 import { useToast } from '@/hooks/use-toast';
-import { GraduationCap, Wand2, PlusCircle, Check, Lightbulb, Puzzle, BookOpen } from 'lucide-react';
+import { GraduationCap, Wand2, PlusCircle, Lightbulb, Puzzle } from 'lucide-react';
 import type { Pathway } from '@/lib/types';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { Badge } from '../ui/badge';
@@ -35,28 +35,59 @@ const parsePathway = (text: string): ParsedPathway | null => {
 
         const steps: ParsedStep[] = [];
         let currentStep: Partial<ParsedStep> = {};
+        
+        let stepContentAccumulator = '';
 
         lines.forEach(line => {
             const trimmedLine = line.trim();
             if (/^\d+\.\s/.test(trimmedLine)) {
+                // When a new step starts, save the previous one if it exists
                 if (currentStep.title) {
+                    if (!currentStep.description) {
+                      currentStep.description = stepContentAccumulator.trim();
+                    }
                     steps.push(currentStep as ParsedStep);
+                    stepContentAccumulator = '';
                 }
                 currentStep = { title: trimmedLine.replace(/^\d+\.\s/, '').replace(/\*\*/g, '').trim() };
             } else if (currentStep.title) {
+                // This logic handles multi-line descriptions
                 if (trimmedLine.toLowerCase().startsWith('description:')) {
                     currentStep.description = trimmedLine.substring(12).trim();
                 } else if (trimmedLine.toLowerCase().startsWith('skills:')) {
                     currentStep.skills = trimmedLine.substring(7).trim().split(',').map(s => s.trim()).filter(Boolean);
                 } else if (trimmedLine.toLowerCase().startsWith('project:')) {
                     currentStep.project = trimmedLine.substring(8).trim();
+                } else {
+                    // If it's not a keyed property, assume it's part of the description
+                    if (!currentStep.description) {
+                         stepContentAccumulator += (stepContentAccumulator ? ' ' : '') + trimmedLine;
+                    }
                 }
             }
         });
         
+        // Add the last step
         if (currentStep.title) {
+             if (!currentStep.description) {
+                currentStep.description = stepContentAccumulator.trim();
+            }
             steps.push(currentStep as ParsedStep);
         }
+
+        // Fallback for simple numbered lists without keywords
+        if (steps.every(s => !s.description && !s.skills && !s.project)) {
+            const simpleSteps = lines
+                .filter(line => /^\d+\.\s/.test(line.trim()))
+                .map(line => ({
+                    title: line.trim().replace(/^\d+\.\s/, '').replace(/\*\*/g, '').trim(),
+                    description: "The AI will provide more details in a full implementation."
+                }));
+            if (simpleSteps.length > 0) {
+                 return { title: `Learning Pathway for: ${title}`, steps: simpleSteps };
+            }
+        }
+
 
         if (steps.length === 0) return null;
 
@@ -83,16 +114,7 @@ export function LearningPathwayGenerator() {
     try {
       const prompt = `Generate a structured, 5-step learning plan for "${topic}".
       The overall title must start with "# Learning Pathway for: ${topic}".
-      For each step, provide a clear title and then on separate lines:
-      - Description: A concise one-sentence goal for the step.
-      - Skills: A comma-separated list of 2-3 key skills to be learned.
-      - Project: A simple, one-sentence mini-project to apply the skills.
-      
-      Example for one step:
-      1. **Master the Fundamentals**
-      Description: Build a rock-solid foundation by understanding the core concepts.
-      Skills: HTML, CSS, JavaScript Basics
-      Project: Create a single-page static personal portfolio website.`;
+      For each step, provide a clear title starting with a number and a period (e.g., "1. Master the Fundamentals"). After the title, on a new line, provide a one-sentence description for the step.`;
 
       const response = await exploreCareersWithChatbot({ question: prompt });
       const parsed = parsePathway(response.answer);
@@ -184,44 +206,28 @@ export function LearningPathwayGenerator() {
         <Card className="animate-in fade-in duration-500">
           <CardHeader>
             <CardTitle>
-              <GraduationCap className="text-primary inline-block mr-3" /> {pathway.title.replace('# Learning Pathway for: ', '')}
+              <GraduationCap className="text-primary inline-block mr-3" /> {pathway.title.replace('Learning Pathway for: ', '')}
             </CardTitle>
             <CardDescription>
                 Your AI-generated roadmap to success. Add this to your active pathways to start tracking your progress.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-             <div className="space-y-8">
+             <div className="relative space-y-8">
               {pathway.steps.map((step, index) => (
                 <div key={index} className="flex gap-4">
                     <div className="flex flex-col items-center">
                         <div className={cn(
-                            "flex h-10 w-10 items-center justify-center rounded-full border-2 font-bold",
-                            "border-primary bg-primary/10 text-primary"
+                            "flex h-10 w-10 items-center justify-center rounded-full border-2 font-bold z-10 bg-background",
+                            "border-primary text-primary"
                         )}>
                             {index + 1}
                         </div>
-                        {index < pathway.steps.length - 1 && <div className="w-0.5 h-full bg-border mt-2" />}
+                        {index < pathway.steps.length - 1 && <div className="w-0.5 flex-1 bg-border" />}
                     </div>
-                    <div className="flex-1 space-y-4 pb-4">
+                    <div className="flex-1 space-y-2 pb-8">
                         <h3 className="font-bold text-lg -mt-1">{step.title}</h3>
                         <p className="text-muted-foreground">{step.description}</p>
-                        
-                        {step.skills && (
-                             <div className="space-y-2">
-                                <h4 className="text-sm font-semibold flex items-center gap-2"><Lightbulb className="h-4 w-4 text-amber-400"/> Key Skills</h4>
-                                <div className="flex flex-wrap gap-2">
-                                {step.skills.map(skill => <Badge variant="secondary" key={skill}>{skill}</Badge>)}
-                                </div>
-                            </div>
-                        )}
-
-                        {step.project && (
-                            <div className="space-y-2">
-                                 <h4 className="text-sm font-semibold flex items-center gap-2"><Puzzle className="h-4 w-4 text-green-400"/> Mini Project</h4>
-                                <p className="text-sm text-muted-foreground p-3 bg-secondary/50 rounded-md border">{step.project}</p>
-                            </div>
-                        )}
                     </div>
                 </div>
               ))}
