@@ -8,43 +8,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
 
 const ProfilePageSkeleton = () => (
-    <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-    </div>
+    <AppShell>
+        <div className="flex h-[calc(100vh-theme(spacing.14))] w-full items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+    </AppShell>
 );
 
-
-export default function ProfilePage() {
+const ProfilePageContent = () => {
   const { user, userProfile, loading } = useUserProfile();
 
   if (loading || !user) {
     return <ProfilePageSkeleton />;
   }
   
-  const PageContent = () => {
-    // If onboarding is NOT completed, show the stepper
-    if (!userProfile?.onboardingCompleted) {
-        return (
-            <div className="flex justify-center items-start p-4 md:p-8">
-                <Card className="w-full max-w-4xl">
-                <CardHeader>
-                    <CardTitle>Profile Calibration Journey</CardTitle>
-                    <CardDescription>
-                    Welcome! Let's build your personalized Compass. This will take about 5-7 minutes and will help us understand your unique journey so far.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <OnboardingStepper />
-                </CardContent>
-                </Card>
-            </div>
-        );
-    }
+  // If onboarding is NOT completed, show the stepper
+  if (!userProfile?.onboardingCompleted) {
+      return (
+        <AppShell>
+          <div className="flex justify-center items-start p-4 md:p-8">
+              <Card className="w-full max-w-4xl">
+              <CardHeader>
+                  <CardTitle>Profile Calibration Journey</CardTitle>
+                  <CardDescription>
+                  Welcome! Let's build your personalized Compass. This will take about 5-7 minutes and will help us understand your unique journey so far.
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <OnboardingStepper />
+              </CardContent>
+              </Card>
+          </div>
+        </AppShell>
+      );
+  }
 
-    // If onboarding IS completed, show the user's profile
-    return (
+  // If onboarding IS completed, show the user's profile
+  return (
+     <AppShell>
        <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
           <h1 className="text-3xl font-bold tracking-tight font-headline">
@@ -53,12 +58,15 @@ export default function ProfilePage() {
         </div>
         <UserProfileDisplay />
       </div>
-    );
-  }
-
-  return (
-    <AppShell>
-       <PageContent />
-    </AppShell>
+     </AppShell>
   );
+}
+
+const DynamicProfilePage = dynamic(() => Promise.resolve(ProfilePageContent), {
+    ssr: false,
+    loading: () => <ProfilePageSkeleton />,
+});
+
+export default function ProfilePage() {
+    return <DynamicProfilePage />;
 }

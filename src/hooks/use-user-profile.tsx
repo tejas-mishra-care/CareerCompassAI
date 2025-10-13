@@ -49,6 +49,7 @@ export const UserProfileProvider = ({
     };
     
     const unsubscribeFromAuth = onAuthStateChanged(auth, (firebaseUser) => {
+        setLoading(true); // Set loading to true whenever auth state changes
         if (firebaseUser) {
             setUser(firebaseUser);
         } else {
@@ -69,7 +70,6 @@ export const UserProfileProvider = ({
         return;
     };
 
-    setLoading(true);
     const userDocRef = doc(db, 'users', user.uid);
     
     const unsubscribeFromProfile = onSnapshot(userDocRef, 
@@ -86,6 +86,7 @@ export const UserProfileProvider = ({
             activePathways: [],
             onboardingCompleted: false,
           };
+          // We don't set it here, let the logic below handle it
           setUserProfileState(newProfile);
         }
         setLoading(false);
@@ -119,7 +120,6 @@ export const UserProfileProvider = ({
             activePathways: profileData.activePathways || [],
         };
 
-        // Remove uid from the data to be set to avoid storing it in the document
         const { uid, ...restOfData } = dataToSet;
 
         setDoc(userDocRef, restOfData, { merge: true })
@@ -146,30 +146,23 @@ export const UserProfileProvider = ({
     if (loading) return;
 
     const publicPaths = ['/login', '/'];
-    const isPublicPath = publicPaths.some(p => pathname.startsWith(p));
-    
-    // If there's no user and we're not on a public path, redirect to login.
-    if (!user && !isPublicPath) {
-      router.push('/login');
-      return;
-    }
-    
-    // If there is a user...
+    const isPublicPath = publicPaths.includes(pathname);
+
     if (user) {
-      // and they are on a public path, send them to the dashboard.
+      // User is logged in
       if (isPublicPath) {
         router.push('/dashboard');
-        return;
-      }
-
-      // and they have NOT completed onboarding and are NOT on the profile page,
-      // force them to the profile page.
-      if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
+      } else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
+        // User has not completed onboarding and is not on the profile page
         router.push('/profile');
-        return;
+      }
+    } else {
+      // No user is logged in
+      if (!isPublicPath) {
+        router.push('/login');
       }
     }
-  }, [user, userProfile?.onboardingCompleted, loading, pathname, router]);
+  }, [user, userProfile, loading, pathname, router]);
 
   const value = { user, userProfile, setUserProfile, isProfileComplete, loading };
 
