@@ -11,51 +11,62 @@ import { WelcomeCard } from '@/components/dashboard/welcome-card';
 import { ProfileProcessor } from '@/components/dashboard/profile-processor';
 import { OpportunityRadar } from '@/components/dashboard/opportunity-radar';
 import { Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const LoadingSkeleton = () => (
+    <div className="flex h-[calc(100vh-theme(spacing.14))] w-full items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    </div>
+);
+
+const DashboardContent = () => {
+    const { userProfile, isProfileComplete, loading } = useUserProfile();
+
+    if (loading) {
+        return <LoadingSkeleton />;
+    }
+
+    // Scenarios:
+    // 1. User is new, has not completed onboarding.
+    const needsOnboarding = !userProfile?.onboardingCompleted;
+    
+    // 2. User has finished onboarding, but the AI has not generated the profile yet.
+    const needsProcessing = userProfile?.onboardingCompleted && !isProfileComplete;
+
+    return (
+        <AppShell>
+            <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+                <div className="flex items-center justify-between space-y-2">
+                    <h1 className="text-3xl font-bold tracking-tight font-headline">
+                        Dashboard
+                    </h1>
+                </div>
+                {needsOnboarding ? (
+                    <WelcomeCard />
+                ) : needsProcessing ? (
+                    <ProfileProcessor />
+                ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="lg:col-span-2 grid gap-6">
+                            <SkillDashboard />
+                            <MyActivePathways />
+                        </div>
+                        <div className="lg:col-span-1 grid gap-6">
+                            <Recommendations />
+                            <OpportunityRadar />
+                        </div>
+                    </div>
+                )}
+            </div>
+        </AppShell>
+    );
+};
+
+const ClientOnlyDashboardPage = dynamic(() => Promise.resolve(DashboardContent), {
+  ssr: false,
+  loading: () => <LoadingSkeleton />,
+});
 
 export default function DashboardPage() {
-  const { userProfile, isProfileComplete, loading } = useUserProfile();
-
-  if (loading) {
-    return (
-        <div className="flex h-[calc(100vh-theme(spacing.14))] w-full items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
-    )
-  }
-
-  // Scenarios:
-  // 1. User is new, has not completed onboarding.
-  const needsOnboarding = !userProfile?.onboardingCompleted;
-  
-  // 2. User has finished onboarding, but the AI has not generated the profile yet.
-  const needsProcessing = userProfile?.onboardingCompleted && !isProfileComplete;
-
-  return (
-    <AppShell>
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex items-center justify-between space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight font-headline">
-            Dashboard
-          </h1>
-        </div>
-        {needsOnboarding ? (
-          <WelcomeCard />
-        ) : needsProcessing ? (
-          <ProfileProcessor />
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="lg:col-span-2 grid gap-6">
-              <SkillDashboard />
-              <MyActivePathways />
-            </div>
-            <div className="lg:col-span-1 grid gap-6">
-              <Recommendations />
-              <OpportunityRadar />
-            </div>
-          </div>
-        )}
-      </div>
-    </AppShell>
-  );
+    return <ClientOnlyDashboardPage />;
 }
-// Updated

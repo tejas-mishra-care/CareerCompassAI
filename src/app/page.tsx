@@ -54,7 +54,7 @@ export default function LandingPage() {
                                 alt={image.description}
                                 fill
                                 data-ai-hint={image.imageHint}
-                                className="mx-auto overflow-hidden rounded-xl object-contain"
+                                className="mx-auto overflow-hidden rounded-xl object-cover"
                                 priority={index === 0}
                             />
                           </div>
