@@ -6,24 +6,15 @@ import { OnboardingStepper } from '@/components/onboarding/onboarding-stepper';
 import { UserProfileDisplay } from '@/components/profile/user-profile-display';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
+import { AppShellSkeleton } from '@/components/layout/app-shell-skeleton';
 import dynamic from 'next/dynamic';
 
-
-const ProfilePageSkeleton = () => (
-    <AppShell>
-        <div className="flex h-[calc(100vh-theme(spacing.14))] w-full items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
-    </AppShell>
-);
 
 const ProfilePageContent = () => {
   const { user, userProfile, loading } = useUserProfile();
 
   if (loading || !user) {
-    return <ProfilePageSkeleton />;
+    return <AppShellSkeleton />;
   }
   
   // If onboarding is NOT completed, show the stepper
@@ -64,7 +55,7 @@ const ProfilePageContent = () => {
 
 const DynamicProfilePage = dynamic(() => Promise.resolve(ProfilePageContent), {
     ssr: false,
-    loading: () => <ProfilePageSkeleton />,
+    loading: () => <AppShellSkeleton />,
 });
 
 export default function ProfilePage() {

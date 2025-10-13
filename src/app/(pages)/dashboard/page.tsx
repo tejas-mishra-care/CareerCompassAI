@@ -12,18 +12,14 @@ import { ProfileProcessor } from '@/components/dashboard/profile-processor';
 import { OpportunityRadar } from '@/components/dashboard/opportunity-radar';
 import { Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { AppShellSkeleton } from '@/components/layout/app-shell-skeleton';
 
-const LoadingSkeleton = () => (
-    <div className="flex h-[calc(100vh-theme(spacing.14))] w-full items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-    </div>
-);
 
 const DashboardContent = () => {
     const { userProfile, isProfileComplete, loading } = useUserProfile();
 
     if (loading) {
-        return <LoadingSkeleton />;
+        return <AppShellSkeleton />;
     }
 
     // Scenarios:
@@ -64,7 +60,7 @@ const DashboardContent = () => {
 
 const ClientOnlyDashboardPage = dynamic(() => Promise.resolve(DashboardContent), {
   ssr: false,
-  loading: () => <LoadingSkeleton />,
+  loading: () => <AppShellSkeleton />,
 });
 
 export default function DashboardPage() {
