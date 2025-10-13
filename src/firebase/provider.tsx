@@ -1,7 +1,9 @@
+
 'use client';
 import type { ReactNode } from 'react';
 import { createContext, useContext } from 'react';
 import type { FirebaseServices } from '.';
+import { FirebaseErrorListener } from '@/components/layout/FirebaseErrorListener';
 
 const FirebaseContext = createContext<FirebaseServices | undefined>(undefined);
 
@@ -9,6 +11,7 @@ export function FirebaseProvider({ children, ...props }: { children: ReactNode }
   return (
     <FirebaseContext.Provider value={props}>
       {children}
+      <FirebaseErrorListener />
     </FirebaseContext.Provider>
   );
 }

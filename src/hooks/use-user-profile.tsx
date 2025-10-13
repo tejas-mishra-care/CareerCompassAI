@@ -15,7 +15,6 @@ import type { UserProfile } from '@/lib/types';
 import { useRouter, usePathname } from 'next/navigation';
 import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
-import { FirebaseErrorListener } from '@/components/layout/FirebaseErrorListener';
 import { useAuth, useFirestore } from '@/firebase';
 
 interface UserProfileContextType {
@@ -75,6 +74,7 @@ export const UserProfileProvider = ({
         if (docSnap.exists()) {
           setUserProfileState({uid: docSnap.id, ...docSnap.data()} as UserProfile);
         } else {
+          // Profile doesn't exist, create a shell. Onboarding will fill it.
           const newProfile: UserProfile = {
             uid: user.uid,
             name: user.displayName || 'New User',
@@ -150,6 +150,7 @@ export const UserProfileProvider = ({
       if (pathname === '/login') {
         router.push('/dashboard');
       } else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
+        // Allow access to /profile for onboarding
         router.push('/profile');
       }
     }
@@ -159,7 +160,6 @@ export const UserProfileProvider = ({
 
   return (
     <UserProfileContext.Provider value={value}>
-      <FirebaseErrorListener />
       {children}
     </UserProfileContext.Provider>
   );
