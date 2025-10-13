@@ -121,18 +121,15 @@ const LabeledInput = ({ name, label, placeholder }: { name: any, label: string, 
         <FormField
             control={control}
             name={name}
-            render={({ field }) => {
-                const { formItemId } = useFormField();
-                return (
-                    <FormItem>
-                        <FormLabel htmlFor={formItemId}>{label}</FormLabel>
-                        <FormControl>
-                            <Input id={formItemId} placeholder={placeholder} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                );
-            }}
+            render={({ field }) => (
+                <FormItem>
+                    <FormLabel>{label}</FormLabel>
+                    <FormControl>
+                        <Input placeholder={placeholder} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}
         />
     );
 };
@@ -229,27 +226,21 @@ export function OnboardingStepper() {
   const handleBack = () => step > 1 && setStep(s => s - 1);
 
   const handleFinish = async (data: OnboardingFormData) => {
-    console.log("--- Step 1: handleFinish function triggered ---");
-    console.log("--- Step 2: Aggregated Onboarding Data ---", data);
-
     if (!userProfile) {
         toast({ variant: 'destructive', title: 'Error', description: 'User profile not found. Please try logging in again.' });
         return;
     }
     setLoading(true);
     try {
-        console.log("--- Step 3: Attempting to save to Firestore... ---");
         await setUserProfile({
             ...userProfile,
             onboardingData: data,
             onboardingCompleted: true,
-            // Promote key fields for querying
             stream12th: data.stream12th,
             goal: data.goal,
             timeAvailability: data.timeAvailability,
         });
 
-        console.log("--- Step 4: SUCCESS! Data saved to Firestore. ---");
         toast({
             title: "Progress Saved!",
             description: "Redirecting to your dashboard to build your profile.",
@@ -258,7 +249,7 @@ export function OnboardingStepper() {
       router.push('/dashboard');
 
     } catch (error) {
-      console.error("--- Step 4: FAILED! Error saving to Firestore: ---", error);
+      console.error("Error saving progress:", error);
       toast({ variant: 'destructive', title: 'Error Saving Progress', description: 'Could not save your progress. Please check your connection and try again.' });
       setLoading(false);
     }
@@ -303,7 +294,7 @@ export function OnboardingStepper() {
                     <h3 className="text-lg font-semibold mb-2 font-headline">Your Early Achievements (The "Spark" Finder)</h3>
                     <p className="text-sm text-muted-foreground mb-4">Think back to your school days. What were you known for? (e.g., Olympiads, Debate, Coding, Sports, Art, Leadership)</p>
                      <FormField control={methods.control} name="achievements" render={({ field }) => (
-                        <FormItem><FormControl><Textarea placeholder="List a few of your passions or achievements..." {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel htmlFor="achievements">Achievements</FormLabel><FormControl><Textarea id="achievements" placeholder="List a few of your passions or achievements..." {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
             </div>
@@ -320,18 +311,15 @@ export function OnboardingStepper() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                                 <Label className="text-base font-semibold md:col-span-1">{subject}</Label>
                                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                                     <FormField control={methods.control} name={`subjects.${subject}.score`} render={({ field }) => {
-                                        const { formItemId } = useFormField();
-                                        return (
+                                     <FormField control={methods.control} name={`subjects.${subject}.score`} render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel htmlFor={formItemId}>Your Score (%)</FormLabel>
+                                                <FormLabel>Your Score (%)</FormLabel>
                                                 <FormControl>
-                                                    <Input id={formItemId} placeholder="e.g., 95" {...field} value={field.value ?? ''} />
+                                                    <Input placeholder="e.g., 95" {...field} value={field.value ?? ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )
-                                     }}/>
+                                     )}/>
                                     <FormField control={methods.control} name={`subjects.${subject}.feeling`} render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Your Feeling</FormLabel>

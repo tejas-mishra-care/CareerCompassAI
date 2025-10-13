@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import placeholderImagesData from '@/lib/placeholder-images.json';
 import type { ImagePlaceholder } from '@/lib/types';
-import { BrainCircuit, ChevronRight } from 'lucide-react';
+import { BrainCircuit } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,

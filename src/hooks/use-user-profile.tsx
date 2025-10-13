@@ -49,8 +49,10 @@ export const UserProfileProvider = ({
     };
     
     const unsubscribeFromAuth = onAuthStateChanged(auth, (firebaseUser) => {
-        setUser(firebaseUser);
-        if (!firebaseUser) {
+        if (firebaseUser) {
+            setUser(firebaseUser);
+        } else {
+            setUser(null);
             setUserProfileState(null);
             setLoading(false);
         }
@@ -71,6 +73,7 @@ export const UserProfileProvider = ({
     
     const unsubscribeFromProfile = onSnapshot(userDocRef, 
       (docSnap) => {
+        setLoading(true); // Set loading to true when we start fetching profile
         if (docSnap.exists()) {
           setUserProfileState({uid: docSnap.id, ...docSnap.data()} as UserProfile);
         } else {

@@ -40,8 +40,10 @@ export function WelcomeCard() {
                         alt={welcomeImage.description}
                         width={300}
                         height={300}
+                        style={{ height: 'auto' }}
                         data-ai-hint={welcomeImage.imageHint}
                         className="rounded-lg object-cover"
+                        priority
                     />
                 </div>
             )}
@@ -49,4 +51,3 @@ export function WelcomeCard() {
       </Card>
   );
 }
-// Updated
