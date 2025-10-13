@@ -24,12 +24,13 @@ export function LoginCarousel() {
             >
                 <CarouselContent className="h-full">
                     {welcomeImages.map((image, index) => (
-                        <CarouselItem key={index} className="h-full">
+                        <CarouselItem key={index} className="h-full relative">
                             <Image
                                 src={image.imageUrl}
                                 alt={image.description}
                                 data-ai-hint={image.imageHint}
                                 fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
                                 className="object-cover"
                                 priority={index === 0} // Prioritize loading the first image
                             />
@@ -55,4 +56,3 @@ export function LoginCarousel() {
         </div>
     );
 }
-// Updated

@@ -146,9 +146,12 @@ export const UserProfileProvider = ({
     if (!user && !isPublicPath) {
       router.push('/login');
     } else if (user) {
-      if (isPublicPath && pathname !== '/') {
+      // User is logged in
+      if (pathname === '/login') {
+        // If user is on login page, redirect them away.
         router.push('/dashboard');
-      } else if (!userProfile?.onboardingCompleted && !isPublicPath && pathname !== '/profile') {
+      } else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
+        // If onboarding isn't done and they aren't on the profile page, send them there.
         router.push('/profile');
       }
     }
