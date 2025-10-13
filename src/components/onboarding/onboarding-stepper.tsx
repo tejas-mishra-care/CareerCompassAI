@@ -133,7 +133,7 @@ const HigherEducationFields = () => {
                                 <FormItem><FormLabel>Degree</FormLabel><FormControl><Input placeholder="e.g., Bachelor of Technology" {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
                             <FormField control={control} name={`higherEducation.${index}.fieldOfStudy`} render={({ field }) => (
-                                <FormItem><FormLabel>Field of Study</FormLabel><FormControl><Input placeholder="e.g., Computer Science" {...field} /></FormControl><FormMessage /></Form-Item>
+                                <FormItem><FormLabel>Field of Study</FormLabel><FormControl><Input placeholder="e.g., Computer Science" {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
                              <FormField control={control} name={`higherEducation.${index}.university`} render={({ field }) => (
                                 <FormItem><FormLabel>University/College</FormLabel><FormControl><Input placeholder="e.g., MIT" {...field} /></FormControl><FormMessage /></FormItem>
@@ -162,7 +162,7 @@ const HigherEducationFields = () => {
                 Add Another Degree
             </Button>
         </div>
-    )
+    );
 }
 
 export function OnboardingStepper() {
@@ -414,3 +414,5 @@ export function OnboardingStepper() {
     </FormProvider>
   );
 }
+
+    
