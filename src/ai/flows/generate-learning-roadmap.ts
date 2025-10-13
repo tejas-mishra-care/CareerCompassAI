@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Implements the AI-powered personalized learning roadmap generator.
@@ -98,14 +99,6 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
                     resources: ['MindMeister (online tool)', 'Your Textbook Chapter 3'],
                     justification: 'Introduce new material after a day of review.',
                 },
-                {
-                    time: '7:45 PM - 9:00 PM',
-                    subject: input.subjects.split(',')[0] || 'First Subject',
-                    topic: 'Practical Application Project',
-                    activity: 'Find a small, real-world project to apply what you learned on Monday. E.g., a simple calculator if learning programming.',
-                    resources: ['GitHub for project ideas', 'Build-your-own-X repository'],
-                    justification: 'Connect theory to practice to improve retention.',
-                },
                 ],
             },
             {
@@ -140,14 +133,6 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
                         resources: ['freeCodeCamp (YouTube)', 'The Net Ninja (YouTube)'],
                         justification: 'Revisit a weak area with more confidence and a deeper understanding.',
                     },
-                    {
-                        time: '7:45 PM - 9:00 PM',
-                        subject: input.subjects.split(',')[1] || 'Second Subject',
-                        topic: 'Hands-on Practice',
-                        activity: 'Complete a full exercise set from your textbook or an online interactive course.',
-                        resources: ['Codewars (for coding)', 'Your course material'],
-                        justification: 'Solidify understanding through focused repetition.',
-                    }
                 ],
             },
             {
@@ -170,3 +155,5 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
     },
   };
 }
+
+    

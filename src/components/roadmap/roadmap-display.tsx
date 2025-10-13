@@ -1,7 +1,8 @@
+
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Bot, Loader2, AlertTriangle, Lightbulb, ExternalLink, Activity, RefreshCw, CalendarCheck, CalendarX, CalendarDays, ClipboardCheck } from 'lucide-react';
+import { Bot, Loader2, AlertTriangle, Lightbulb, ExternalLink, RefreshCw, ClipboardCheck, CalendarDays, CalendarX } from 'lucide-react';
 import type { GenerateLearningRoadmapOutput } from '@/ai/flows/generate-learning-roadmap';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
@@ -11,6 +12,9 @@ import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+
 
 interface RoadmapDisplayProps {
     roadmap: GenerateLearningRoadmapOutput;
@@ -27,23 +31,88 @@ const getDayIndex = (day: string) => {
     return days.indexOf(day.toLowerCase());
 }
 
+const RoadmapInsightsCard = ({ roadmap, checkedState, onRegenerate, isRegenerating }: Omit<RoadmapDisplayProps, 'name'>) => {
+    const totalTasks = useMemo(() => {
+        return roadmap.monthlyPlan.weeklyPlans.reduce((total, week) => 
+            total + week.dailySchedule.reduce((acc, day) => acc + day.sessions.length, 0), 0);
+    }, [roadmap]);
+
+    const completedTasks = useMemo(() => {
+        return Object.values(checkedState).filter(Boolean).length;
+    }, [checkedState]);
+
+    const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+    const chartData = useMemo(() => {
+      const week = roadmap.monthlyPlan.weeklyPlans[0];
+      if (!week) return [];
+      
+      const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const data = daysOfWeek.map(dayAbbr => ({ name: dayAbbr, tasks: 0 }));
+
+      week.dailySchedule.forEach(dayPlan => {
+        const dayIndex = getDayIndex(dayPlan.day);
+        if (dayIndex >= 1 && dayIndex <= 7) { // Monday to Sunday
+          data[dayIndex - 1].tasks = dayPlan.sessions.length;
+        }
+      });
+      return data.filter(d => d.tasks > 0);
+    }, [roadmap]);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                    <ClipboardCheck className="h-6 w-6 text-primary" />
+                    Progress & Insights
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div>
+                    <div className="flex items-center justify-between gap-4 mb-1">
+                        <span className="text-sm font-medium">Overall Progress</span>
+                        <span className="font-bold text-lg whitespace-nowrap">{Math.round(progressPercentage)}%</span>
+                    </div>
+                    <Progress value={progressPercentage} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                        {completedTasks} of {totalTasks} tasks completed. Keep it up!
+                    </p>
+                </div>
+                 <Separator />
+                <div>
+                    <h4 className="text-sm font-medium mb-2 text-center">Tasks per Day</h4>
+                     <ChartContainer config={{}} className="h-40 w-full">
+                        <BarChart accessibilityLayer data={chartData} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                          <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                          <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={25} />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="tasks" fill="hsl(var(--primary))" radius={4} />
+                        </BarChart>
+                    </ChartContainer>
+                </div>
+            </CardContent>
+            <CardFooter className="flex-col gap-2">
+                 <Separator />
+                 <div className="text-center w-full pt-4">
+                    <p className="text-sm font-semibold">Fallen Behind?</p>
+                    <p className="text-xs text-muted-foreground mb-2">Let the AI generate a new catch-up plan.</p>
+                    <Button onClick={onRegenerate} disabled={isRegenerating} className="w-full" size="sm">
+                        {isRegenerating ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                        Regenerate My Roadmap
+                    </Button>
+                 </div>
+            </CardFooter>
+        </Card>
+    );
+};
+
 export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, onRegenerate, isRegenerating }: RoadmapDisplayProps) => {
 
   const handleCheckedChange = (taskId: string, checked: boolean) => {
     onCheckedChange(prev => ({ ...prev, [taskId]: checked }));
   };
 
-  const totalTasks = useMemo(() => {
-    return roadmap.monthlyPlan.weeklyPlans.reduce((total, week) => 
-        total + week.dailySchedule.reduce((acc, day) => acc + day.sessions.length, 0), 0);
-  }, [roadmap]);
-
-  const completedTasks = useMemo(() => {
-    return Object.values(checkedState).filter(Boolean).length;
-  }, [checkedState]);
-
-  const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  
   const todayIndex = new Date().getDay();
 
   return (
@@ -159,57 +228,14 @@ export const RoadmapDisplay = ({ roadmap, name, checkedState, onCheckedChange, o
                 </CardContent>
             </Card>
         </div>
-        <div className="xl:col-span-1 sticky top-8 space-y-4">
-           <Card>
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <ClipboardCheck className="h-6 w-6 text-primary" />
-                  Progress & Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  <Progress value={progressPercentage} className="h-3" />
-                  <span className="font-bold text-lg whitespace-nowrap">{Math.round(progressPercentage)}%</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2 text-center">
-                  {completedTasks} of {totalTasks} tasks completed. Keep it up!
-                </p>
-                 <Separator className="my-4" />
-                 <div className="space-y-2">
-                  {roadmap.monthlyPlan.weeklyPlans.flatMap(w => w.dailySchedule).map(dayPlan => {
-                    const tasksForDay = dayPlan.sessions.length;
-                    if (tasksForDay === 0) return null;
-                    
-                    const completedForDay = dayPlan.sessions.reduce((acc, session, sIndex) => {
-                      const week = roadmap.monthlyPlan.weeklyPlans.find(w => w.dailySchedule.includes(dayPlan))?.week || 0;
-                      const taskId = `${dayPlan.day.toLowerCase()}-${week}-${sIndex}`;
-                      return acc + (checkedState[taskId] ? 1 : 0);
-                    }, 0);
-
-                    return (
-                      <div key={dayPlan.day} className="flex items-center justify-between text-xs">
-                        <span className="font-semibold">{dayPlan.day}</span>
-                        <span className="text-muted-foreground font-mono">{completedForDay} / {tasksForDay}</span>
-                      </div>
-                    )
-                  })}
-                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Fallen Behind?</CardTitle>
-                    <CardDescription>Let the AI generate a new catch-up plan based on your completed tasks.</CardDescription>
-                </CardHeader>
-                <CardFooter>
-                    <Button onClick={onRegenerate} disabled={isRegenerating} className="w-full">
-                        {isRegenerating ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                        Regenerate My Roadmap
-                    </Button>
-                </CardFooter>
-            </Card>
+        <div className="xl:col-span-1 sticky top-24 space-y-4">
+           <RoadmapInsightsCard 
+                roadmap={roadmap}
+                checkedState={checkedState}
+                onCheckedChange={onCheckedChange}
+                onRegenerate={onRegenerate}
+                isRegenerating={isRegenerating}
+            />
         </div>
       </div>
     </div>
@@ -251,3 +277,5 @@ export const ErrorMessage = ({ message }: { message: string }) => (
         </CardContent>
     </Card>
 );
+
+    

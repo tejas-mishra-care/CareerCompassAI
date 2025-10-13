@@ -1,11 +1,10 @@
 
 'use client';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
 import { RoadmapInputForm } from '@/components/roadmap/roadmap-input-form';
 import { RoadmapDisplay, LoadingSpinner, WelcomeMessage, ErrorMessage } from '@/components/roadmap/roadmap-display';
 import { generateLearningRoadmap, type GenerateLearningRoadmapInput, type GenerateLearningRoadmapOutput } from '@/ai/flows/generate-learning-roadmap';
-import { useToast } from '@/hooks/use-toast';
 import dynamic from 'next/dynamic';
 import { AppShellSkeleton } from '@/components/layout/app-shell-skeleton';
 
@@ -17,6 +16,7 @@ const RoadmapPageContent = () => {
     timeAvailability: '',
     learningStyle: '',
     weakAreas: '',
+    completedTasks: '',
   });
 
   const [roadmap, setRoadmap] = useState<GenerateLearningRoadmapOutput | null>(null);
@@ -62,6 +62,12 @@ const RoadmapPageContent = () => {
     }
   }, [formData, roadmap, checkedState]);
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await generateRoadmapAction(false);
+  };
+
+
   return (
     <AppShell>
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -80,12 +86,12 @@ const RoadmapPageContent = () => {
              <RoadmapInputForm
               formData={formData}
               handleInputChange={handleInputChange}
-              generateRoadmap={() => generateRoadmapAction(false)}
+              generateRoadmap={handleFormSubmit}
               isLoading={isLoading}
             />
           </div>
           <div className="lg:col-span-2">
-            {isLoading ? (
+            {isLoading && !roadmap ? ( // Show main loading spinner only on initial generation
                 <LoadingSpinner />
             ) : error ? (
                 <ErrorMessage message={error} />
@@ -96,7 +102,7 @@ const RoadmapPageContent = () => {
                     checkedState={checkedState}
                     onCheckedChange={setCheckedState}
                     onRegenerate={() => generateRoadmapAction(true)}
-                    isRegenerating={isLoading}
+                    isRegenerating={isLoading && !!roadmap} // Pass regenerating state
                 />
             ) : (
                 <WelcomeMessage />
@@ -116,3 +122,5 @@ const DynamicRoadmapPage = dynamic(() => Promise.resolve(RoadmapPageContent), {
 export default function RoadmapPage() {
     return <DynamicRoadmapPage />;
 }
+
+    
