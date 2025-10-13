@@ -152,12 +152,7 @@ const AppShellSkeleton = () => (
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUserProfile();
   
-  if (loading) {
-    return <AppShellSkeleton />;
-  }
-
-  // The navigation logic is centralized in UserProfileProvider
-  if (!user) {
+  if (loading || !user) {
     return <AppShellSkeleton />;
   }
   
