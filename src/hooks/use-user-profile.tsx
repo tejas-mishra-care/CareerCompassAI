@@ -69,11 +69,11 @@ export const UserProfileProvider = ({
         return;
     };
 
+    setLoading(true);
     const userDocRef = doc(db, 'users', user.uid);
     
     const unsubscribeFromProfile = onSnapshot(userDocRef, 
       (docSnap) => {
-        setLoading(true); // Set loading to true when we start fetching profile
         if (docSnap.exists()) {
           setUserProfileState({uid: docSnap.id, ...docSnap.data()} as UserProfile);
         } else {
@@ -87,7 +87,6 @@ export const UserProfileProvider = ({
             onboardingCompleted: false,
           };
           setUserProfileState(newProfile);
-          // Do not save to DB here, let the onboarding process do it.
         }
         setLoading(false);
       }, 
@@ -149,16 +148,28 @@ export const UserProfileProvider = ({
     const publicPaths = ['/login', '/'];
     const isPublicPath = publicPaths.some(p => pathname.startsWith(p));
     
+    // If there's no user and we're not on a public path, redirect to login.
     if (!user && !isPublicPath) {
       router.push('/login');
-    } else if (user) {
+      return;
+    }
+    
+    // If there is a user...
+    if (user) {
+      // and they are on a public path, send them to the dashboard.
       if (isPublicPath) {
         router.push('/dashboard');
-      } else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
+        return;
+      }
+
+      // and they have NOT completed onboarding and are NOT on the profile page,
+      // force them to the profile page.
+      if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
         router.push('/profile');
+        return;
       }
     }
-  }, [user, userProfile, loading, pathname, router]);
+  }, [user, userProfile?.onboardingCompleted, loading, pathname, router]);
 
   const value = { user, userProfile, setUserProfile, isProfileComplete, loading };
 
