@@ -4,13 +4,14 @@
  */
 import { z } from 'zod';
 
-const GenerateLearningRoadmapInputSchema = z.object({
+export const GenerateLearningRoadmapInputSchema = z.object({
   name: z.string().describe('The name of the student.'),
   subjects: z.string().describe('A comma-separated list of subjects the student needs to study.'),
   goal: z.string().describe('The student\'s primary goal (e.g., "Ace the final exams in 3 weeks", "Learn React for a new job").'),
   timeAvailability: z.string().describe('A description of when the student is available to study (e.g., "Weekdays from 6 PM to 9 PM, all day on weekends").'),
   learningStyle: z.string().describe('The student\'s preferred learning style (e.g., "visual learner, enjoys video tutorials", "prefers hands-on projects").'),
   weakAreas: z.string().optional().describe('A comma-separated list of topics or subjects the student finds difficult.'),
+  completedTasks: z.string().optional().describe("A summary of tasks the user has already completed from a previous version of the plan. Use this to create a catch-up plan."),
 });
 export type GenerateLearningRoadmapInput = z.infer<typeof GenerateLearningRoadmapInputSchema>;
 
@@ -28,7 +29,7 @@ const DailyPlanSchema = z.object({
   sessions: z.array(StudySessionSchema).describe("An array of study sessions for the day."),
 });
 
-const GenerateLearningRoadmapOutputSchema = z.object({
+export const GenerateLearningRoadmapOutputSchema = z.object({
   roadmapTitle: z.string().describe("A compelling title for the learning roadmap (e.g., 'Your Personalized 3-Week Exam Success Plan')."),
   introduction: z.string().describe("A brief, personalized introduction paragraph addressing the student by name and acknowledging their goal."),
   reasoning: z.string().describe("An explanation of the methodology behind the schedule, mentioning how it incorporates their learning style, weak areas, and the importance of breaks."),
@@ -41,10 +42,12 @@ export async function generateLearningRoadmap(input: GenerateLearningRoadmapInpu
   // In a real scenario, this is where you would call the Genkit AI flow.
   // For the hackathon, we'll return a structured, hardcoded response that is more detailed.
   
+  const isRegeneration = !!input.completedTasks;
+
   return {
-    roadmapTitle: `Your Personalized Roadmap to Master: ${input.subjects}`,
-    introduction: `Hello, ${input.name}! Here is your personalized learning plan designed to help you achieve your goal: "${input.goal}". This roadmap is tailored to your unique needs and learning style.`,
-    reasoning: `This schedule is designed to maximize your focus by tackling challenging subjects earlier in your sessions. We've incorporated breaks to prevent burnout and allocated specific time to review your weak areas, like ${input.weakAreas}. The activities align with your preference for ${input.learningStyle}, with suggested resources to get you started.`,
+    roadmapTitle: isRegeneration ? `Your Refined Roadmap to Master: ${input.subjects}` : `Your Personalized Roadmap to Master: ${input.subjects}`,
+    introduction: `Hello, ${input.name}! ${isRegeneration ? "Here is your updated, adaptive learning plan. I've adjusted the schedule to account for your progress and ensure you still meet your goal." : `Here is your personalized learning plan designed to help you achieve your goal: "${input.goal}". This roadmap is tailored to your unique needs and learning style.`}`,
+    reasoning: `This schedule is designed to maximize your focus by tackling challenging subjects earlier in your sessions. We've incorporated breaks to prevent burnout and allocated specific time to review your weak areas, like ${input.weakAreas}. The activities align with your preference for ${input.learningStyle}, with suggested resources to get you started. ${isRegeneration ? "I've compressed the remaining topics to help you catch up." : ""}`,
     weeklySchedule: [
       {
         day: 'Monday',

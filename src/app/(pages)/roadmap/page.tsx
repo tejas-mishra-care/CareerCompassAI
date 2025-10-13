@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { AppShell } from '@/components/layout/app-shell';
 import { RoadmapInputForm } from '@/components/roadmap/roadmap-input-form';
 import { RoadmapDisplay, LoadingSpinner, WelcomeMessage, ErrorMessage } from '@/components/roadmap/roadmap-display';
@@ -18,19 +18,34 @@ export default function RoadmapPage() {
   const [roadmap, setRoadmap] = useState<GenerateLearningRoadmapOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkedState, setCheckedState] = useState<Record<string, boolean>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const generateRoadmapAction = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const generateRoadmapAction = useCallback(async (isRegeneration = false) => {
     setIsLoading(true);
     setError(null);
-    setRoadmap(null);
+    if (!isRegeneration) {
+        setRoadmap(null);
+        setCheckedState({});
+    }
+
     try {
-      const result = await generateLearningRoadmap(formData);
+        let completedTasksSummary = '';
+        if (isRegeneration && roadmap) {
+            completedTasksSummary = roadmap.weeklySchedule.flatMap(day => day.sessions)
+                .filter((session, index) => checkedState[`${session.subject.toLowerCase()}-${index}`])
+                .map(session => `${session.subject}: ${session.topic}`)
+                .join(', ');
+        }
+
+      const result = await generateLearningRoadmap({
+          ...formData,
+          completedTasks: completedTasksSummary || undefined
+      });
       setRoadmap(result);
     } catch (err: any) {
       console.error(err);
@@ -38,7 +53,7 @@ export default function RoadmapPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [formData, roadmap, checkedState]);
 
   return (
     <AppShell>
@@ -58,7 +73,7 @@ export default function RoadmapPage() {
              <RoadmapInputForm
               formData={formData}
               handleInputChange={handleInputChange}
-              generateRoadmap={generateRoadmapAction}
+              generateRoadmap={() => generateRoadmapAction(false)}
               isLoading={isLoading}
             />
           </div>
@@ -68,7 +83,14 @@ export default function RoadmapPage() {
             ) : error ? (
                 <ErrorMessage message={error} />
             ) : roadmap ? (
-                <RoadmapDisplay roadmap={roadmap} name={formData.name} />
+                <RoadmapDisplay 
+                    roadmap={roadmap} 
+                    name={formData.name}
+                    checkedState={checkedState}
+                    onCheckedChange={setCheckedState}
+                    onRegenerate={() => generateRoadmapAction(true)}
+                    isRegenerating={isLoading}
+                />
             ) : (
                 <WelcomeMessage />
             )}
