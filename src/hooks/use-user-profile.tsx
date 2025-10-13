@@ -14,7 +14,6 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { app, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface UserProfileContextType {
   user: User | null;
@@ -35,55 +34,54 @@ export const UserProfileProvider = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfileState] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const auth = getAuth(app);
   const router = useRouter();
   const pathname = usePathname();
-  
+
   useEffect(() => {
     const unsubscribeFromAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
+      setAuthLoading(false);
       if (!firebaseUser) {
-        setLoading(false);
         setUserProfileState(null);
+        setProfileLoading(false); // No user, so no profile to load
       }
     });
+
     return () => unsubscribeFromAuth();
   }, [auth]);
 
   useEffect(() => {
     if (user) {
+      setProfileLoading(true);
       const userDocRef = doc(db, 'users', user.uid);
       const unsubscribeFromProfile = onSnapshot(userDocRef, 
         (docSnap) => {
           if (docSnap.exists()) {
             setUserProfileState(docSnap.data() as UserProfile);
           } else {
-            // This might happen on first-time social sign-in.
             const newProfile: UserProfile = {
-                name: user.displayName || 'New User',
-                bio: '',
-                skills: [],
-                activePathways: [],
-                onboardingCompleted: false,
+              name: user.displayName || 'New User',
+              bio: '',
+              skills: [],
+              activePathways: [],
+              onboardingCompleted: false,
             };
             setDoc(userDocRef, newProfile).then(() => setUserProfileState(newProfile));
           }
-          setLoading(false);
+          setProfileLoading(false);
         }, 
         (error) => {
           console.error("Failed to get user profile from Firestore.", error);
           setUserProfileState(null);
-          setLoading(false);
+          setProfileLoading(false);
         }
       );
       return () => unsubscribeFromProfile();
-    } else {
-      // No user, not loading.
-      setLoading(false);
     }
   }, [user]);
-
 
   const setUserProfile = useCallback(
     async (profile: UserProfile | null) => {
@@ -101,39 +99,29 @@ export const UserProfileProvider = ({
     [user]
   );
   
+  const loading = authLoading || profileLoading;
+
   const isProfileComplete = useMemo(() => {
       if (!userProfile) return false;
       return !!userProfile.bio && userProfile.skills && userProfile.skills.length > 0;
   }, [userProfile]);
 
-  // Navigation logic
-   useEffect(() => {
+  useEffect(() => {
     if (loading) return;
 
     const publicPaths = ['/login', '/'];
     const isPublicPath = publicPaths.includes(pathname);
 
-    // If user is not logged in and not on a public path, redirect to login
     if (!user && !isPublicPath) {
       router.push('/login');
-      return;
-    }
-
-    if (user) {
-      // If user is logged in and on a public path (like login), redirect to dashboard
+    } else if (user) {
       if (isPublicPath && pathname !== '/') {
         router.push('/dashboard');
-        return;
-      }
-      
-      // If user has not completed onboarding and is not on a public path or the profile page, redirect to profile
-      if (!userProfile?.onboardingCompleted && !isPublicPath && pathname !== '/profile') {
+      } else if (!userProfile?.onboardingCompleted && !isPublicPath && pathname !== '/profile') {
         router.push('/profile');
-        return;
       }
     }
   }, [user, userProfile, loading, pathname, router]);
-
 
   const value = { user, userProfile, setUserProfile, isProfileComplete, loading };
 
@@ -153,4 +141,3 @@ export const useUserProfile = () => {
   }
   return context;
 };
-// Updated
