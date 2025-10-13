@@ -10,7 +10,7 @@ import { Loader2, Smile, Meh, Frown, ChevronLeft, PlusCircle, Trash2 } from 'luc
 import { useForm, FormProvider, useFieldArray, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useFormField } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '../ui/textarea';
@@ -114,6 +114,28 @@ const generateDefaultValues = (stream: string = 'default') => {
         timeAvailability: '',
     };
   };
+  
+const LabeledInput = ({ name, label, placeholder }: { name: any, label: string, placeholder: string }) => {
+    const { control } = useFormContext<OnboardingFormData>();
+    return (
+        <FormField
+            control={control}
+            name={name}
+            render={({ field }) => {
+                const { formItemId } = useFormField();
+                return (
+                    <FormItem>
+                        <FormLabel htmlFor={formItemId}>{label}</FormLabel>
+                        <FormControl>
+                            <Input id={formItemId} placeholder={placeholder} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                );
+            }}
+        />
+    );
+};
 
 const HigherEducationFields = () => {
     const { control } = useFormContext<OnboardingFormData>();
@@ -129,21 +151,11 @@ const HigherEducationFields = () => {
                 {fields.map((item, index) => (
                     <Card key={item.id} className="p-4 relative">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                             <FormField control={control} name={`higherEducation.${index}.degree`} render={({ field }) => (
-                                <FormItem><FormLabel>Degree</FormLabel><FormControl><Input placeholder="e.g., Bachelor of Technology" {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                            <FormField control={control} name={`higherEducation.${index}.fieldOfStudy`} render={({ field }) => (
-                                <FormItem><FormLabel>Field of Study</FormLabel><FormControl><Input placeholder="e.g., Computer Science" {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                             <FormField control={control} name={`higherEducation.${index}.university`} render={({ field }) => (
-                                <FormItem><FormLabel>University/College</FormLabel><FormControl><Input placeholder="e.g., MIT" {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                             <FormField control={control} name={`higherEducation.${index}.year`} render={({ field }) => (
-                                <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2026" {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                            <FormField control={control} name={`higherEducation.${index}.score`} render={({ field }) => (
-                                <FormItem><FormLabel>Overall Score (CGPA/%)</FormLabel><FormControl><Input placeholder="e.g., 8.5 or 85%" {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
+                            <LabeledInput name={`higherEducation.${index}.degree`} label="Degree" placeholder="e.g., Bachelor of Technology" />
+                            <LabeledInput name={`higherEducation.${index}.fieldOfStudy`} label="Field of Study" placeholder="e.g., Computer Science" />
+                            <LabeledInput name={`higherEducation.${index}.university`} label="University/College" placeholder="e.g., MIT" />
+                            <LabeledInput name={`higherEducation.${index}.year`} label="Year of Passing" placeholder="e.g., 2026" />
+                            <LabeledInput name={`higherEducation.${index}.score`} label="Overall Score (CGPA/%)" placeholder="e.g., 8.5 or 85%" />
                         </div>
                         <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -269,12 +281,8 @@ export function OnboardingStepper() {
                         <FormField control={methods.control} name="board10th" render={({ field }) => (
                             <FormItem><FormLabel>Board</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger></FormControl><SelectContent><SelectItem value="cbse">CBSE</SelectItem><SelectItem value="icse">ICSE</SelectItem><SelectItem value="state">State Board</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                         )}/>
-                         <FormField control={methods.control} name="year10th" render={({ field }) => (
-                            <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2020" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                         <FormField control={methods.control} name="score10th" render={({ field }) => (
-                            <FormItem><FormLabel>Overall Score (%)</FormLabel><FormControl><Input placeholder="e.g., 85" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
+                         <LabeledInput name="year10th" label="Year of Passing" placeholder="e.g., 2020" />
+                         <LabeledInput name="score10th" label="Overall Score (%)" placeholder="e.g., 85" />
                     </div>
                 </div>
                 <div>
@@ -286,12 +294,8 @@ export function OnboardingStepper() {
                          <FormField control={methods.control} name="board12th" render={({ field }) => (
                             <FormItem><FormLabel>Board</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Board" /></SelectTrigger></FormControl><SelectContent><SelectItem value="cbse">CBSE</SelectItem><SelectItem value="icse">ICSE</SelectItem><SelectItem value="state">State Board</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                         )}/>
-                         <FormField control={methods.control} name="year12th" render={({ field }) => (
-                            <FormItem><FormLabel>Year of Passing</FormLabel><FormControl><Input placeholder="e.g., 2022" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                         <FormField control={methods.control} name="score12th" render={({ field }) => (
-                            <FormItem><FormLabel>Overall Score (%)</FormLabel><FormControl><Input placeholder="e.g., 90" {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
+                         <LabeledInput name="year12th" label="Year of Passing" placeholder="e.g., 2022" />
+                         <LabeledInput name="score12th" label="Overall Score (%)" placeholder="e.g., 90" />
                     </div>
                 </div>
                 <HigherEducationFields />
@@ -314,18 +318,31 @@ export function OnboardingStepper() {
                         return (
                         <Card key={subject} className="p-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                                <FormLabel className="text-base font-semibold md:col-span-1">{subject}</FormLabel>
+                                <Label className="text-base font-semibold md:col-span-1">{subject}</Label>
                                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                                    <FormField control={methods.control} name={`subjects.${subject}.score`} render={({ field }) => (
-                                        <FormItem><FormLabel>Your Score (%)</FormLabel><FormControl><Input placeholder="e.g., 95" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                                    )}/>
+                                     <FormField control={methods.control} name={`subjects.${subject}.score`} render={({ field }) => {
+                                        const { formItemId } = useFormField();
+                                        return (
+                                            <FormItem>
+                                                <FormLabel htmlFor={formItemId}>Your Score (%)</FormLabel>
+                                                <FormControl>
+                                                    <Input id={formItemId} placeholder="e.g., 95" {...field} value={field.value ?? ''} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )
+                                     }}/>
                                     <FormField control={methods.control} name={`subjects.${subject}.feeling`} render={({ field }) => (
-                                        <FormItem><FormLabel>Your Feeling</FormLabel><FormControl>
-                                            <div className="flex items-center space-x-2 pt-2">
-                                                <Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
-                                                <Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
-                                                <Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
-                                            </div></FormControl><FormMessage />
+                                        <FormItem>
+                                            <FormLabel>Your Feeling</FormLabel>
+                                            <FormControl>
+                                                <div className="flex items-center space-x-2 pt-2">
+                                                    <Button type="button" variant={feeling === 'loved' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('loved')}><Smile className="h-5 w-5" /></Button>
+                                                    <Button type="button" variant={feeling === 'okay' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('okay')}><Meh className="h-5 w-5" /></Button>
+                                                    <Button type="button" variant={feeling === 'disliked' ? 'default' : 'outline'} size="icon" onClick={() => field.onChange('disliked')}><Frown className="h-5 w-5" /></Button>
+                                                </div>
+                                            </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}/>
                                 </div>
@@ -341,15 +358,21 @@ export function OnboardingStepper() {
                 </div>
                 {QUIZ_QUESTIONS.map((q, index) => (
                     <FormField key={q.id} control={methods.control} name={`quizAnswers.${q.id}`} render={({ field }) => (
-                        <FormItem className="space-y-3">
-                            <FormLabel className="text-base">{index+1}. {q.question}</FormLabel>
-                            <FormControl><RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-                                {q.options.map((option, oIndex) => (
-                                <FormItem key={oIndex} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
-                                    <FormControl><RadioGroupItem value={option} id={`${q.id}-${oIndex}`} /></FormControl>
-                                    <Label htmlFor={`${q.id}-${oIndex}`} className="font-normal flex-1 cursor-pointer">{option}</Label>
-                                </FormItem>
-                                ))}</RadioGroup></FormControl><FormMessage />
+                        <FormItem as="fieldset" className="space-y-3">
+                            <FormLabel as="legend" className="text-base">{index+1}. {q.question}</FormLabel>
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                                    {q.options.map((option, oIndex) => (
+                                        <FormItem key={oIndex} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-accent">
+                                            <FormControl>
+                                                <RadioGroupItem value={option} id={`${q.id}-${oIndex}`} />
+                                            </FormControl>
+                                            <Label htmlFor={`${q.id}-${oIndex}`} className="font-normal flex-1 cursor-pointer">{option}</Label>
+                                        </FormItem>
+                                    ))}
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}/>
                 ))}
@@ -361,17 +384,23 @@ export function OnboardingStepper() {
                     <p className="text-sm text-muted-foreground mb-4">Now that we understand your past and present, let's look to the future. What is your main goal right now?</p>
                 </div>
                 <FormField control={methods.control} name="goal" render={({ field }) => (
-                    <FormItem className="space-y-4">
-                        <FormControl><RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {GOAL_OPTIONS.map((option) => (
-                                <FormItem key={option.id}>
-                                    <FormControl><RadioGroupItem value={option.title} id={option.id} className="sr-only" /></FormControl>
-                                    <Label htmlFor={option.id} className={cn("flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover")}>
-                                        <h4 className="font-semibold mb-1 font-headline">{option.title}</h4>
-                                        <p className="text-sm text-muted-foreground text-center">{option.description}</p>
-                                    </Label>
-                                </FormItem>
-                            ))}</RadioGroup></FormControl>
+                    <FormItem as="fieldset" className="space-y-4">
+                        <FormLabel as="legend" className="sr-only">Select your main goal</FormLabel>
+                        <FormControl>
+                            <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {GOAL_OPTIONS.map((option) => (
+                                    <FormItem key={option.id}>
+                                        <FormControl>
+                                            <RadioGroupItem value={option.title} id={option.id} className="sr-only" />
+                                        </FormControl>
+                                        <Label htmlFor={option.id} className={cn("flex flex-col h-full items-center justify-center rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", field.value === option.title ? "border-primary bg-accent" : "border-muted bg-popover")}>
+                                            <h4 className="font-semibold mb-1 font-headline">{option.title}</h4>
+                                            <p className="text-sm text-muted-foreground text-center">{option.description}</p>
+                                        </Label>
+                                    </FormItem>
+                                ))}
+                            </RadioGroup>
+                        </FormControl>
                         <div className="text-center"><FormMessage /></div>
                     </FormItem>
                 )}/>
@@ -379,19 +408,23 @@ export function OnboardingStepper() {
                     <h3 className="text-lg font-semibold mb-2 font-headline">Weekly Commitment</h3>
                     <p className="text-sm text-muted-foreground mb-4">How much time can you dedicate to learning each week?</p>
                     <FormField control={methods.control} name="timeAvailability" render={({ field }) => (
-                        <FormItem><FormControl>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <SelectTrigger className="w-full md:w-1/2 mx-auto">
-                                    <SelectValue placeholder="Select your weekly availability" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="2-4 hours">Casual (2-4 hours / week)</SelectItem>
-                                    <SelectItem value="5-7 hours">Moderate (5-7 hours / week)</SelectItem>
-                                    <SelectItem value="8-10 hours">Serious (8-10 hours / week)</SelectItem>
-                                    <SelectItem value="10+ hours">Intense (10+ hours / week)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </FormControl><div className="text-center pt-2"><FormMessage /></div></FormItem>
+                        <FormItem>
+                            <FormLabel className="sr-only">Weekly Commitment</FormLabel>
+                            <FormControl>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger className="w-full md:w-1/2 mx-auto">
+                                        <SelectValue placeholder="Select your weekly availability" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="2-4 hours">Casual (2-4 hours / week)</SelectItem>
+                                        <SelectItem value="5-7 hours">Moderate (5-7 hours / week)</SelectItem>
+                                        <SelectItem value="8-10 hours">Serious (8-10 hours / week)</SelectItem>
+                                        <SelectItem value="10+ hours">Intense (10+ hours / week)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormControl>
+                            <div className="text-center pt-2"><FormMessage /></div>
+                        </FormItem>
                     )}/>
                 </div>
             </div>
@@ -414,4 +447,3 @@ export function OnboardingStepper() {
     </FormProvider>
   );
 }
-// Updated
