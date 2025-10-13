@@ -210,3 +210,4 @@ export default function PathwayDetailPage({ params }: { params: { pathwayId: str
     </AppShell>
   );
 }
+// Updated

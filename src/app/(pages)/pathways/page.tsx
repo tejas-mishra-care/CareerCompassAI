@@ -18,3 +18,4 @@ export default function PathwaysPage() {
     </AppShell>
   );
 }
+// Updated

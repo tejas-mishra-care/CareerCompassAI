@@ -100,3 +100,4 @@ export function SkillDashboard() {
     </Card>
   );
 }
+// Updated

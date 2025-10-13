@@ -124,3 +124,4 @@ export function SkillDetailsList() {
     </Card>
   );
 }
+// Updated

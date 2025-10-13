@@ -35,3 +35,4 @@ if (typeof window !== 'undefined') {
 
 
 export { app, db };
+// Updated

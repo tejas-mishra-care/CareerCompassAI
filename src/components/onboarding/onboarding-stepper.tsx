@@ -414,5 +414,4 @@ export function OnboardingStepper() {
     </FormProvider>
   );
 }
-
-    
+// Updated

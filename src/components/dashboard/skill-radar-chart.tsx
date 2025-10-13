@@ -58,3 +58,4 @@ export function SkillRadarChart({ skills }: SkillRadarChartProps) {
     </ChartContainer>
   );
 }
+// Updated

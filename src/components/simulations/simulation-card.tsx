@@ -39,3 +39,4 @@ export function SimulationCard({ simulation }: { simulation: Simulation }) {
   }
   return cardContent;
 }
+// Updated

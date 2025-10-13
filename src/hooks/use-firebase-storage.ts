@@ -35,3 +35,4 @@ export function useFirebaseStorage() {
 
   return { uploadFile, isUploading, uploadProgress, error };
 }
+// Updated

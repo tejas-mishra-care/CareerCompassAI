@@ -99,10 +99,12 @@ export function EditProfileDialog({
       }
       
       // 2. Update Firebase Auth profile
-      await updateProfile(auth.currentUser!, {
-        displayName: data.name,
-        photoURL: photoURL,
-      });
+      if(auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: data.name,
+          photoURL: photoURL,
+        });
+      }
 
       // 3. Update Firestore profile
       await setUserProfile({ ...userProfile, name: data.name });
@@ -192,3 +194,4 @@ export function EditProfileDialog({
     </Dialog>
   );
 }
+// Updated

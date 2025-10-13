@@ -122,3 +122,4 @@ export default function CommunityPage() {
     </AppShell>
   );
 }
+// Updated

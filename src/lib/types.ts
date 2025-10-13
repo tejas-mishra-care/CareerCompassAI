@@ -58,3 +58,4 @@ export interface UserProfile {
   opportunities?: Opportunity[];
   opportunitiesLastUpdated?: number; // Firestore timestamp
 }
+// Updated

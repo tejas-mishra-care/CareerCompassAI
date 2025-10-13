@@ -23,3 +23,4 @@ export default function MySkillsPage() {
     </AppShell>
   );
 }
+// Updated
