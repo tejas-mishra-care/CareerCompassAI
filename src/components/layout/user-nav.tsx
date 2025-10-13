@@ -13,16 +13,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useUserProfile } from '@/hooks/use-user-profile.tsx';
 import { User, LogOut } from 'lucide-react';
-import { getAuth } from 'firebase/auth';
-import { app } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
+import { useAuth } from '@/firebase';
 
 
 export function UserNav() {
   const { user, userProfile } = useUserProfile();
   const router = useRouter();
-  const auth = getAuth(app);
+  const auth = useAuth();
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
@@ -34,7 +33,9 @@ export function UserNav() {
   };
 
   const handleLogout = async () => {
-    await auth.signOut();
+    if (auth) {
+      await auth.signOut();
+    }
     router.push('/login');
   }
   
@@ -81,4 +82,3 @@ export function UserNav() {
     </DropdownMenu>
   );
 }
-// Updated

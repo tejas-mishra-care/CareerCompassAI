@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { getAuth, updateProfile } from 'firebase/auth';
+import { updateProfile } from 'firebase/auth';
 
 import {
   Dialog,
@@ -31,7 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { Edit, Loader2 } from 'lucide-react';
 import { useFirebaseStorage } from '@/hooks/use-firebase-storage';
-import { app } from '@/lib/firebase';
+import { useAuth } from '@/firebase';
 
 const profileFormSchema = z.object({
   name: z
@@ -51,7 +51,7 @@ export function EditProfileDialog({
 }) {
   const { user, userProfile, setUserProfile } = useUserProfile();
   const { toast } = useToast();
-  const auth = getAuth(app);
+  const auth = useAuth();
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -84,7 +84,7 @@ export function EditProfileDialog({
   }, [selectedFile]);
 
   const onSubmit = async (data: ProfileFormValues) => {
-    if (!user || !userProfile) return;
+    if (!user || !userProfile || !auth?.currentUser) return;
 
     try {
       let photoURL = user.photoURL;
@@ -99,12 +99,10 @@ export function EditProfileDialog({
       }
       
       // 2. Update Firebase Auth profile
-      if(auth.currentUser) {
-        await updateProfile(auth.currentUser, {
-          displayName: data.name,
-          photoURL: photoURL,
-        });
-      }
+      await updateProfile(auth.currentUser, {
+        displayName: data.name,
+        photoURL: photoURL,
+      });
 
       // 3. Update Firestore profile
       await setUserProfile({ ...userProfile, name: data.name });
@@ -194,4 +192,3 @@ export function EditProfileDialog({
     </Dialog>
   );
 }
-// Updated

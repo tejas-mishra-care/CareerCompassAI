@@ -7,7 +7,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 // Schema for generating questions
 const InterviewQuestionsInputSchema = z.object({

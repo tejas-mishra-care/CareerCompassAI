@@ -9,14 +9,14 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
-import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { onAuthStateChanged, type User } from 'firebase/auth';
+import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
-import { app, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
 import { FirebaseErrorListener } from '@/components/layout/FirebaseErrorListener';
+import { useAuth, useFirestore } from '@/firebase';
 
 interface UserProfileContextType {
   user: User | null;
@@ -35,15 +35,20 @@ export const UserProfileProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const auth = useAuth();
+  const db = useFirestore();
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfileState] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
-  const auth = getAuth(app);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
+    if (!auth) {
+      setAuthLoading(true);
+      return;
+    };
     const unsubscribeFromAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setAuthLoading(false);
@@ -57,7 +62,7 @@ export const UserProfileProvider = ({
   }, [auth]);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !db) {
         setProfileLoading(false);
         return;
     };
@@ -68,11 +73,10 @@ export const UserProfileProvider = ({
     const unsubscribeFromProfile = onSnapshot(userDocRef, 
       (docSnap) => {
         if (docSnap.exists()) {
-          setUserProfileState(docSnap.data() as UserProfile);
+          setUserProfileState({uid: docSnap.id, ...docSnap.data()} as UserProfile);
         } else {
-          // The document doesn't exist, which might be expected for a new user.
-          // We create a local, temporary profile. The first write operation (e.g., finishing onboarding) will create the doc.
           const newProfile: UserProfile = {
+            uid: user.uid,
             name: user.displayName || 'New User',
             bio: '',
             skills: [],
@@ -96,21 +100,19 @@ export const UserProfileProvider = ({
       }
     );
     return () => unsubscribeFromProfile();
-  }, [user]);
+  }, [user, db]);
 
   const setUserProfile = useCallback(
     async (profileData: UserProfile | null) => {
-      if (!user) return; // No authenticated user, do nothing.
+      if (!user || !db) return; 
 
-      // We always want to keep the local state in sync
       setUserProfileState(profileData); 
       
       if (profileData) {
         const userDocRef = doc(db, 'users', user.uid);
         const dataToSet = {
             ...profileData,
-            updatedAt: serverTimestamp(), // Add a timestamp for tracking updates
-            // Ensure we don't write undefined values to Firestore
+            updatedAt: serverTimestamp(),
             activePathways: profileData.activePathways || [],
         };
 
@@ -118,16 +120,15 @@ export const UserProfileProvider = ({
             .catch(async (serverError) => {
                 const permissionError = new FirestorePermissionError({
                     path: userDocRef.path,
-                    operation: 'update', // or 'create' depending on logic
+                    operation: 'update',
                     requestResourceData: dataToSet,
                 });
                 errorEmitter.emit('permission-error', permissionError);
                 console.error("Failed to save user profile to Firestore", serverError);
-                // Optionally re-throw or handle the UI feedback here
             });
       }
     },
-    [user]
+    [user, db]
   );
   
   const loading = authLoading || profileLoading;
@@ -146,12 +147,9 @@ export const UserProfileProvider = ({
     if (!user && !isPublicPath) {
       router.push('/login');
     } else if (user) {
-      // User is logged in
       if (pathname === '/login') {
-        // If user is on login page, redirect them away.
         router.push('/dashboard');
       } else if (!userProfile?.onboardingCompleted && pathname !== '/profile') {
-        // If onboarding isn't done and they aren't on the profile page, send them there.
         router.push('/profile');
       }
     }

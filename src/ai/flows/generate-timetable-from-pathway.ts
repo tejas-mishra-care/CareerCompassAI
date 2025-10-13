@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const GenerateTimetableInputSchema = z.object({
   pathwayTitle: z.string().describe('The title of the learning pathway.'),

@@ -1,6 +1,6 @@
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps } from 'firebase/app';
-import { initializeFirestore, memoryLocalCache } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCpoD_CMCccniOaBrirPyPcMGsfrqgn65Y",
@@ -14,10 +14,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-
-const db = initializeFirestore(app, {
-  localCache: memoryLocalCache(),
-});
+const db = getFirestore(app);
 
 
 export { app, db };

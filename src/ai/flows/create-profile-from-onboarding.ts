@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const CreateProfileFromOnboardingInputSchema = z.object({
     answers: z.array(z.object({

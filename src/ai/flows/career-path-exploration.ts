@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const ExploreCareerPathsInputSchema = z.object({
   careerPathQuestion: z.string().describe('The user question about a specific career path.'),

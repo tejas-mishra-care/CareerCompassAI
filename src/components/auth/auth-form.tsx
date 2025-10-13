@@ -2,8 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +12,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useAuth } from '@/firebase';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -26,7 +26,7 @@ export function AuthForm({ className, ...props }: React.HTMLAttributes<HTMLDivEl
   const [isSignUp, setIsSignUp] = React.useState(true);
   const { toast } = useToast();
   const router = useRouter();
-  const auth = getAuth(app);
+  const auth = useAuth();
   
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
@@ -38,6 +38,11 @@ export function AuthForm({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 
   const onSubmit = async (data: UserFormValue) => {
     setIsLoading(true);
+    if (!auth) {
+      toast({ variant: 'destructive', title: 'Firebase not initialized.'})
+      setIsLoading(false);
+      return;
+    }
     try {
         if (isSignUp) {
             await createUserWithEmailAndPassword(auth, data.email, data.password);
@@ -153,4 +158,3 @@ export function AuthForm({ className, ...props }: React.HTMLAttributes<HTMLDivEl
   );
 
 }
-// Updated

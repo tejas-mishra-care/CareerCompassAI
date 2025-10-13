@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils';
 import { UserProfileProvider } from '@/hooks/use-user-profile.tsx';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter } from 'next/font/google';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { initializeFirebase } from '@/firebase';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -17,15 +19,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const firebase = initializeFirebase();
   return (
     <html lang="en" className="dark" style={{ colorScheme: 'dark' }}>
       <body className={cn('font-body antialiased', inter.variable)}>
-        <UserProfileProvider>
-          {children}
-          <Toaster />
-        </UserProfileProvider>
+        <FirebaseClientProvider {...firebase}>
+          <UserProfileProvider>
+            {children}
+            <Toaster />
+          </UserProfileProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
 }
-// Updated
