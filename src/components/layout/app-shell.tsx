@@ -58,11 +58,13 @@ const navItems = [
     label: 'Learning Pathways',
     icon: GraduationCap,
   },
+  /*
     {
     href: '/roadmap',
     label: 'AI Roadmap',
     icon: Route,
   },
+  */
   {
     href: '/simulations',
     label: 'Simulations',
@@ -193,4 +195,5 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 // Updated
+
 

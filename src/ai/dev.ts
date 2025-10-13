@@ -13,7 +13,9 @@ import '@/ai/flows/create-profile-from-onboarding.ts';
 import '@/ai/flows/opportunity-radar.ts';
 import '@/ai/flows/mock-interview-flow.ts';
 import '@/ai/flows/generate-timetable-from-pathway.ts';
-import '@/ai/flows/generate-learning-roadmap.ts';
+// import '@/ai/flows/generate-learning-roadmap.ts';
 
 // Updated
+
+
 
