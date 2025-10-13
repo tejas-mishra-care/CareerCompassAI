@@ -10,10 +10,13 @@ import React, {
   useMemo,
 } from 'react';
 import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
-import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { app, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
+import { FirebaseErrorListener } from '@/components/layout/FirebaseErrorListener';
 
 interface UserProfileContextType {
   user: User | null;
@@ -54,46 +57,74 @@ export const UserProfileProvider = ({
   }, [auth]);
 
   useEffect(() => {
-    if (user) {
-      setProfileLoading(true);
-      const userDocRef = doc(db, 'users', user.uid);
-      const unsubscribeFromProfile = onSnapshot(userDocRef, 
-        (docSnap) => {
-          if (docSnap.exists()) {
-            setUserProfileState(docSnap.data() as UserProfile);
-          } else {
-            const newProfile: UserProfile = {
-              name: user.displayName || 'New User',
-              bio: '',
-              skills: [],
-              activePathways: [],
-              onboardingCompleted: false,
-            };
-            setDoc(userDocRef, newProfile).then(() => setUserProfileState(newProfile));
-          }
-          setProfileLoading(false);
-        }, 
-        (error) => {
-          console.error("Failed to get user profile from Firestore.", error);
-          setUserProfileState(null);
-          setProfileLoading(false);
+    if (!user) {
+        setProfileLoading(false);
+        return;
+    };
+
+    setProfileLoading(true);
+    const userDocRef = doc(db, 'users', user.uid);
+    
+    const unsubscribeFromProfile = onSnapshot(userDocRef, 
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setUserProfileState(docSnap.data() as UserProfile);
+        } else {
+          // The document doesn't exist, which might be expected for a new user.
+          // We create a local, temporary profile. The first write operation (e.g., finishing onboarding) will create the doc.
+          const newProfile: UserProfile = {
+            name: user.displayName || 'New User',
+            bio: '',
+            skills: [],
+            activePathways: [],
+            onboardingCompleted: false,
+          };
+          setUserProfileState(newProfile);
         }
-      );
-      return () => unsubscribeFromProfile();
-    }
+        setProfileLoading(false);
+      }, 
+      async (error) => {
+        console.error("Firestore onSnapshot error:", error);
+        const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'get'
+        });
+        errorEmitter.emit('permission-error', permissionError);
+
+        setUserProfileState(null);
+        setProfileLoading(false);
+      }
+    );
+    return () => unsubscribeFromProfile();
   }, [user]);
 
   const setUserProfile = useCallback(
-    async (profile: UserProfile | null) => {
-      setUserProfileState(profile); 
-      if (profile && user) {
+    async (profileData: UserProfile | null) => {
+      if (!user) return; // No authenticated user, do nothing.
+
+      // We always want to keep the local state in sync
+      setUserProfileState(profileData); 
+      
+      if (profileData) {
         const userDocRef = doc(db, 'users', user.uid);
-        try {
-            await setDoc(userDocRef, profile, { merge: true });
-        } catch (error) {
-            console.error("Failed to save user profile to Firestore", error);
-            throw error;
-        }
+        const dataToSet = {
+            ...profileData,
+            updatedAt: serverTimestamp(), // Add a timestamp for tracking updates
+            // Ensure we don't write undefined values to Firestore
+            activePathways: profileData.activePathways || [],
+        };
+
+        setDoc(userDocRef, dataToSet, { merge: true })
+            .catch(async (serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: userDocRef.path,
+                    operation: 'update', // or 'create' depending on logic
+                    requestResourceData: dataToSet,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                console.error("Failed to save user profile to Firestore", serverError);
+                // Optionally re-throw or handle the UI feedback here
+            });
       }
     },
     [user]
@@ -127,6 +158,7 @@ export const UserProfileProvider = ({
 
   return (
     <UserProfileContext.Provider value={value}>
+      <FirebaseErrorListener />
       {children}
     </UserProfileContext.Provider>
   );
